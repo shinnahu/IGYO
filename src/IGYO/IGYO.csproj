@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>IGYO</AssemblyName>
+    <RootNamespace>IGYO</RootNamespace>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>1.0.7</Version>
+    <!-- The version is the version: no identifier of a source revision is added to it. -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <Product>IGYO</Product>
+    <Company>IGYO</Company>
+    <AssemblyTitle>IGYO</AssemblyTitle>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <!-- What is given to other people carries no trace of the folder it was built in: no debugging file, and so
+       no path to one inside the program. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Deterministic>true</Deterministic>
+    <PathMap>$(MSBuildProjectDirectory)=/_/</PathMap>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4314.35" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Windows.Forms" />
+    <!-- WPF's picture encoder, only loaded when Claude saves a recording as a GIF (GifMaker). -->
+    <Reference Include="PresentationCore" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Shared\InstallInfo.cs" Link="InstallInfo.cs" />
+    <Compile Include="..\Shared\BrowserRegistration.cs" Link="BrowserRegistration.cs" />
+    <!-- What comes with IGYO from others, and under which terms: shipped beside the program. -->
+    <None Include="..\..\THIRD-PARTY-NOTICES.md" Link="THIRD-PARTY-NOTICES.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Assets\easylist.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Assets\logo.png" CopyToOutputDirectory="PreserveNewest" />
+    <!-- IGYO's own pages: the browser's interface, the New Tab page, Settings, what they share, and the themes. -->
+    <None Update="Assets\Ui\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Assets\NewTab\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Assets\Settings\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Assets\Shared\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Assets\Themes\**" CopyToOutputDirectory="PreserveNewest" />
+    <!-- The interface's languages other than English: one file each. -->
+    <None Update="Assets\Lang\**" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Files only used while working on the pages in an ordinary browser (tools\serve.js). -->
+    <None Update="Assets\**\dev.*" CopyToOutputDirectory="Never" />
+    <None Update="Assets\**\dev-*.*" CopyToOutputDirectory="Never" />
+  </ItemGroup>
+
+</Project>

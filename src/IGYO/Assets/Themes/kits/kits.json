@@ -1,0 +1,123 @@
+{
+  "colors": [
+    { "key": "frame", "label": "Window frame", "hint": "The tab strip and the window's edge" },
+    { "key": "frameInk", "label": "Text on the frame" },
+    { "key": "surface", "label": "Panels", "hint": "Toolbar, active tab, menus, cards" },
+    { "key": "surface2", "label": "Quiet panels" },
+    { "key": "page", "label": "Page background", "hint": "New Tab and Settings" },
+    { "key": "field", "label": "Text boxes", "hint": "The address bar and inputs" },
+    { "key": "ink", "label": "Text" },
+    { "key": "ink2", "label": "Secondary text" },
+    { "key": "ink3", "label": "Faint text" },
+    { "key": "line", "label": "Lines and borders" },
+    { "key": "accent", "label": "Accent" },
+    { "key": "accentInk", "label": "Text on accent" },
+    { "key": "accent2", "label": "Second accent" },
+    { "key": "good", "label": "Good" },
+    { "key": "warn", "label": "Warning" },
+    { "key": "bad", "label": "Danger" }
+  ],
+  "fonts": [
+    { "key": "ui", "label": "Interface" },
+    { "key": "display", "label": "Headings" },
+    { "key": "mono", "label": "Monospace" }
+  ],
+  "fontChoices": [
+    { "value": "\"M PLUS 1\", \"Segoe UI\", sans-serif", "note": "Comes with IGYO: light and even" },
+    { "value": "\"Saira\", Bahnschrift, sans-serif", "note": "Comes with IGYO: squared, technical" },
+    { "value": "\"Barlow Semi Condensed\", Bahnschrift, sans-serif", "note": "Comes with IGYO: narrow, with real italics" },
+    { "value": "\"Barlow Condensed\", Bahnschrift, sans-serif", "note": "Comes with IGYO: tall and narrow, for headings" },
+    { "value": "\"Fredoka\", \"Segoe UI\", sans-serif", "note": "Comes with IGYO: rounded" },
+    { "value": "\"Mochiy Pop One\", \"Fredoka\", sans-serif", "note": "Comes with IGYO: bouncy, for headings" },
+    { "value": "\"JetBrains Mono\", Consolas, monospace", "note": "Comes with IGYO: monospace" },
+    { "value": "\"Cormorant Garamond\", \"Sitka Banner\", Georgia, serif", "note": "Comes with IGYO: light, with fine serifs" },
+    "\"Segoe UI Variable Text\", \"Segoe UI\", sans-serif",
+    "\"Segoe UI Variable Display\", \"Segoe UI\", sans-serif",
+    "Bahnschrift, \"Segoe UI\", sans-serif",
+    "\"Bahnschrift SemiCondensed\", Bahnschrift, sans-serif",
+    "\"Yu Gothic UI\", \"Segoe UI\", sans-serif",
+    "Verdana, sans-serif",
+    "Tahoma, sans-serif",
+    "\"Trebuchet MS\", sans-serif",
+    "\"Sitka Banner\", \"Palatino Linotype\", Georgia, serif",
+    "Georgia, serif",
+    "\"Palatino Linotype\", serif",
+    "\"Cascadia Mono\", Consolas, monospace",
+    "Consolas, monospace",
+    "\"Lucida Console\", monospace",
+    "\"Courier New\", monospace"
+  ],
+  "fx": [
+    { "key": "tabIn", "label": "New tabs appear", "values": ["grow", "pop", "drop", "slide", "wipe", "glitch", "none"] },
+    { "key": "loader", "label": "Loading line", "values": ["line", "ticks", "stripes", "blocks"] },
+    { "key": "click", "label": "Click burst", "values": ["none", "sparks", "squares", "pixels", "stars", "notes", "hearts", "shards"] },
+    { "key": "title", "label": "Tab title changes", "values": ["none", "scramble", "type"] },
+    { "key": "notice", "label": "Notices", "values": ["none", "type"] }
+  ],
+  "kits": [
+    {
+      "id": "igyo",
+      "name": "IGYO",
+      "description": "Soft rounded shapes and calm motion. The quiet one.",
+      "options": [
+        { "key": "tabs", "label": "Tabs", "values": [ { "value": "float", "label": "Floating" }, { "value": "attached", "label": "Attached to the toolbar" } ] },
+        { "key": "window", "label": "Window corners", "values": [ { "value": "round", "label": "Rounded" }, { "value": "square", "label": "Square" } ] }
+      ]
+    },
+    {
+      "id": "specimen",
+      "name": "Specimen",
+      "description": "Flat slate bars, a lit display for an address bar, sockets and see-through membranes, polished bone. Pictures on New Tab lie out of focus behind smoked glass.",
+      "options": [
+        { "key": "glass", "label": "See-through panels", "values": [ { "value": "on", "label": "On" }, { "value": "off", "label": "Off" } ] },
+        { "key": "window", "label": "Window corners", "values": [ { "value": "round", "label": "Rounded" }, { "value": "square", "label": "Square" } ] }
+      ]
+    },
+    {
+      "id": "bunker",
+      "name": "Bunker",
+      "description": "Paper and ink: flat rectangles, hairlines and square marks. What you choose fills with ink from the left; a status line runs along the bottom.",
+      "options": [
+        { "key": "status", "label": "Status line", "values": [ { "value": "on", "label": "Shown" }, { "value": "off", "label": "Hidden" } ] },
+        { "key": "caps", "label": "Capital letters", "values": [ { "value": "on", "label": "On" }, { "value": "off", "label": "Off" } ] },
+        { "key": "icons", "label": "Site icons", "values": [ { "value": "mono", "label": "One tone" }, { "value": "color", "label": "In color" } ] },
+        { "key": "pattern", "label": "Ruled paper", "values": [ { "value": "lines", "label": "On" }, { "value": "none", "label": "Off" } ] },
+        { "key": "window", "label": "Window corners", "values": [ { "value": "square", "label": "Square" }, { "value": "round", "label": "Rounded" } ] }
+      ]
+    },
+    {
+      "id": "protocol",
+      "name": "Protocol",
+      "description": "A field terminal: numbered tabs, charcoal blocks, one signal color, readouts and survey lines in the frame.",
+      "options": [
+        { "key": "brand", "label": "Name block", "values": [ { "value": "on", "label": "Shown" }, { "value": "off", "label": "Hidden" } ] },
+        { "key": "readouts", "label": "Readouts (tab position, clock)", "values": [ { "value": "on", "label": "Shown" }, { "value": "off", "label": "Hidden" } ] },
+        { "key": "contours", "label": "Survey lines", "values": [ { "value": "on", "label": "Shown" }, { "value": "off", "label": "Hidden" } ] },
+        { "key": "window", "label": "Window corners", "values": [ { "value": "square", "label": "Square" }, { "value": "round", "label": "Rounded" } ] }
+      ]
+    },
+    {
+      "id": "victory",
+      "name": "Victory",
+      "description": "Everything leans forward: slanted tabs with a moving shine, hazard stripes, bold italic type.",
+      "options": [
+        { "key": "shine", "label": "Shine on the active tab", "values": [ { "value": "on", "label": "On" }, { "value": "off", "label": "Off" } ] },
+        { "key": "stripes", "label": "Hazard stripes", "values": [ { "value": "on", "label": "On" }, { "value": "off", "label": "Off" } ] },
+        { "key": "counter", "label": "Tab counter", "values": [ { "value": "on", "label": "Shown" }, { "value": "off", "label": "Hidden" } ] },
+        { "key": "window", "label": "Window corners", "values": [ { "value": "round", "label": "Rounded" }, { "value": "square", "label": "Square" } ] }
+      ]
+    },
+    {
+      "id": "encore",
+      "name": "Encore",
+      "description": "Sticker outlines and candy colors: hopping pill tabs, an equalizer for sound, a combo counter and a PERFECT! when a page lands.",
+      "options": [
+        { "key": "tilt", "label": "Tilted tabs", "values": [ { "value": "on", "label": "On" }, { "value": "off", "label": "Off" } ] },
+        { "key": "combo", "label": "Combo counter", "values": [ { "value": "on", "label": "Shown" }, { "value": "off", "label": "Hidden" } ] },
+        { "key": "perfect", "label": "PERFECT! when a page loads", "values": [ { "value": "on", "label": "On" }, { "value": "off", "label": "Off" } ] },
+        { "key": "dots", "label": "Dotted frame", "values": [ { "value": "on", "label": "On" }, { "value": "off", "label": "Off" } ] },
+        { "key": "window", "label": "Window corners", "values": [ { "value": "round", "label": "Rounded" }, { "value": "square", "label": "Square" } ] }
+      ]
+    }
+  ]
+}

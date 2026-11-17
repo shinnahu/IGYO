@@ -1,0 +1,28 @@
+/* IGYO — the window that asks which profile to open at start (picker.html). Drawn from the design tokens and the
+   shared components, in the "base" layer so a theme's kit can restyle it. Its own classes start with pk-. */
+
+@layer base {
+  html, body { height: 100%; }
+  body { background: var(--c-page); overflow: auto; }
+  .pk { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 100%; padding: 32px 24px; text-align: center; }
+  .pk-title { font-size: 24px; }
+  .pk-sub { margin: 0 0 18px; color: var(--c-ink-2); }
+
+  .pk-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; max-width: 680px; }
+  .pk-card {
+    position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px;
+    width: 150px; padding: 20px 12px 16px; border: var(--bw) solid var(--c-line); border-radius: var(--r-l);
+    background: var(--c-surface); color: var(--c-ink); cursor: pointer;
+    transition: transform var(--t-1) var(--ease), border-color var(--t-1) var(--ease), box-shadow var(--t-1) var(--ease);
+  }
+  .pk-card:hover { border-color: var(--c-line-strong); box-shadow: var(--shadow-1); transform: translateY(-2px); }
+  .pk-card:active { transform: scale(.98); }
+  .pk-card:focus-visible { outline: 0; box-shadow: var(--focus); }
+  .pk-card img { width: 72px; height: 72px; border-radius: 50%; }
+  .pk-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+  .pk-badge { position: absolute; top: 8px; right: 8px; padding: 1px 7px; border-radius: var(--r-pill); background: var(--c-accent-soft); color: var(--c-accent); font-size: 11px; font-weight: 600; }
+
+  .pk-foot { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 22px; }
+  .pk-ask { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; color: var(--c-ink-2); }
+  .pk-hint { max-width: 520px; margin: 0; color: var(--c-ink-3); font-size: 12px; }
+}

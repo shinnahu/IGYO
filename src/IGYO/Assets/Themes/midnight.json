@@ -1,0 +1,31 @@
+{
+  "format": "igyo-theme/1",
+  "id": "midnight",
+  "name": "Midnight",
+  "author": "IGYO",
+  "description": "Deep navy with a clear blue.",
+  "kit": "igyo",
+  "scheme": "dark",
+  "colors": {
+    "frame": "#0f172a",
+    "frameInk": "#e2e8f0",
+    "surface": "#1e293b",
+    "surface2": "#273449",
+    "page": "#131c31",
+    "field": "#0f172a",
+    "ink": "#e2e8f0",
+    "ink2": "#94a3b8",
+    "ink3": "#64748b",
+    "line": "#334155",
+    "accent": "#60a5fa",
+    "accentInk": "#0b1b33",
+    "accent2": "#a78bfa",
+    "good": "#4ade80",
+    "warn": "#fbbf24",
+    "bad": "#fb7185"
+  },
+  "fonts": {},
+  "shape": { "radius": 10, "border": 1 },
+  "options": { "tabs": "float", "window": "round" },
+  "fx": { "tabIn": "grow", "loader": "line", "click": "none", "title": "none", "notice": "none" }
+}

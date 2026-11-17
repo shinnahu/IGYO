@@ -1,0 +1,31 @@
+{
+  "format": "igyo-theme/1",
+  "id": "victory",
+  "name": "Victory",
+  "author": "IGYO",
+  "description": "Everything leans forward. A black header with slanted tabs, sky blue with a moving shine, yellow marks and hazard stripes.",
+  "kit": "victory",
+  "scheme": "light",
+  "colors": {
+    "frame": "#14171c",
+    "frameInk": "#f4f7fa",
+    "surface": "#f3f5f8",
+    "surface2": "#e4e9ee",
+    "page": "#eaeef2",
+    "field": "#ffffff",
+    "ink": "#14171c",
+    "ink2": "#4d5863",
+    "ink3": "#7d8893",
+    "line": "#c9d1d9",
+    "accent": "#12a4ff",
+    "accentInk": "#ffffff",
+    "accent2": "#ffd200",
+    "good": "#12a150",
+    "warn": "#d97a00",
+    "bad": "#e5383b"
+  },
+  "fonts": {},
+  "shape": { "radius": 3, "border": 1 },
+  "options": { "window": "round", "shine": "on", "stripes": "on", "counter": "on" },
+  "fx": { "tabIn": "slide", "loader": "stripes", "click": "shards", "title": "none", "notice": "none" }
+}

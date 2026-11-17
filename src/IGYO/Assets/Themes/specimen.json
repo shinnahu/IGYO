@@ -1,0 +1,31 @@
+{
+  "format": "igyo-theme/1",
+  "id": "specimen",
+  "name": "Specimen",
+  "author": "IGYO",
+  "description": "Cold slate and smoked glass, with one small light.",
+  "kit": "specimen",
+  "scheme": "dark",
+  "colors": {
+    "frame": "#22252b",
+    "frameInk": "#dcdfda",
+    "surface": "#1e2126",
+    "surface2": "#282b31",
+    "page": "#14161a",
+    "field": "#090a0b",
+    "ink": "#e6e8e3",
+    "ink2": "#a2a8a5",
+    "ink3": "#747b78",
+    "line": "#30343a",
+    "accent": "#c5f135",
+    "accentInk": "#10150a",
+    "accent2": "#d6cfb2",
+    "good": "#7fe0a2",
+    "warn": "#ffb454",
+    "bad": "#ff6b7d"
+  },
+  "fonts": {},
+  "shape": { "radius": 11, "border": 1 },
+  "options": { "glass": "on", "window": "round" },
+  "fx": { "tabIn": "grow", "loader": "line", "click": "none", "title": "none", "notice": "none" }
+}

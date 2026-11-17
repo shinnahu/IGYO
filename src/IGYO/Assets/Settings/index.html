@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en" data-kit="igyo" data-scheme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/shared/fonts.css">
+  <link rel="stylesheet" href="/shared/base.css">
+  <link rel="stylesheet" href="settings.css">
+  <link rel="stylesheet" href="/theme.css" id="theme-css">
+  <script src="/theme.js"></script>
+  <script src="/lang.js"></script>
+  <script src="/shared/theme-live.js"></script>
+</head>
+<body>
+  <!-- Settings, the theme gallery and editor, and the bookmark manager. Everything is built by the scripts
+       below from what the app answers at /api/* (see SettingsPage.cs).
+       The root is not called "app": kits style the browser interface's #app, and this page shares their stylesheet. -->
+  <div id="st-app"></div>
+  <script src="/shared/icons.js"></script>
+  <script src="core.js"></script>
+  <script src="themes.js"></script>
+  <script src="bookmarks.js"></script>
+  <script src="settings.js"></script>
+</body>
+</html>

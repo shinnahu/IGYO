@@ -1,0 +1,33 @@
+{
+  "format": "igyo-theme/1",
+  "id": "igyo-dark",
+  "name": "IGYO Dark",
+  "author": "IGYO",
+  "description": "The quiet one. Soft shapes, calm motion.",
+  "kit": "igyo",
+  "scheme": "dark",
+  "colors": {
+    "frame": "#17181c",
+    "frameInk": "#e6e8ee",
+    "surface": "#24262c",
+    "surface2": "#2c2e35",
+    "page": "#1a1b20",
+    "field": "#17181c",
+    "ink": "#eceef3",
+    "ink2": "#a5abb8",
+    "ink3": "#767d8b",
+    "line": "#35373f",
+    "accent": "#c5f135",
+    "accentInk": "#16171b",
+    "accent2": "#d59bff",
+    "good": "#4ade80",
+    "warn": "#fbbf24",
+    "bad": "#fb7185"
+  },
+  "fonts": {},
+  "wallpaper": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAJCAIAAAC0SDtlAAAAF0lEQVR42mO0sHJhIAUwMZAIRjXQRAMASVcAyGcWmvEAAAAASUVORK5CYII=",
+  "shape": { "radius": 10, "border": 1 },
+  "options": { "tabs": "float", "window": "round" },
+  "fx": { "tabIn": "grow", "loader": "line", "click": "none", "title": "none", "notice": "none" },
+  "css": ".i .i-arrow { display: none; } .i .i-chevron { display: inline; } #time { font-family: \"Google Sans Flex\", var(--f-display); }"
+}

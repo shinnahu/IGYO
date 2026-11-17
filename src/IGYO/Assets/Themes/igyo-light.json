@@ -1,0 +1,33 @@
+{
+  "format": "igyo-theme/1",
+  "id": "igyo-light",
+  "name": "IGYO Light",
+  "author": "IGYO",
+  "description": "The quiet one, in daylight.",
+  "kit": "igyo",
+  "scheme": "light",
+  "colors": {
+    "frame": "#e4e7ee",
+    "frameInk": "#20242c",
+    "surface": "#ffffff",
+    "surface2": "#f2f4f8",
+    "page": "#f4f5f9",
+    "field": "#eef0f5",
+    "ink": "#1b1f27",
+    "ink2": "#5c6473",
+    "ink3": "#8a91a0",
+    "line": "#dfe3ea",
+    "accent": "#3d5afe",
+    "accentInk": "#ffffff",
+    "accent2": "#b14bf4",
+    "good": "#17a34a",
+    "warn": "#d98b06",
+    "bad": "#e5334f"
+  },
+  "fonts": {},
+  "wallpaper": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAJCAIAAAC0SDtlAAAAF0lEQVR42mO0sHJhIAUwMZAIRjXQRAMASVcAyGcWmvEAAAAASUVORK5CYII=",
+  "shape": { "radius": 10, "border": 1 },
+  "options": { "tabs": "float", "window": "round" },
+  "fx": { "tabIn": "grow", "loader": "line", "click": "none", "title": "none", "notice": "none" },
+  "css": ".i .i-arrow { display: none; } .i .i-chevron { display: inline; } #time { font-family: \"Google Sans Flex\", var(--f-display); }"
+}

@@ -1,0 +1,101 @@
+﻿<!doctype html>
+<html lang="en" data-kit="igyo" data-scheme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>IGYO</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/shared/fonts.css">
+  <link rel="stylesheet" href="/shared/base.css">
+  <link rel="stylesheet" href="chrome.css">
+  <link rel="stylesheet" href="/theme.css" id="theme-css">
+  <script src="/theme.js"></script>
+  <script src="/lang.js"></script>
+</head>
+<body>
+  <!-- The browser's interface. The page you browse shows through #viewport; kits (themes) move and restyle
+       everything else, and may show the small facts in .tc-info (tab position, clock…) as decoration. -->
+  <div id="app">
+    <header id="tabstrip" class="tc-tabstrip">
+      <div class="tc-brand" aria-hidden="true"><span class="tc-brand-mark"></span><span class="tc-brand-name">IGYO</span></div>
+      <div id="tabs" class="tc-tabs" role="tablist" aria-label="Tabs"></div>
+      <button id="newtab" class="tc-newtab" type="button" title="New tab (Ctrl+T)" aria-label="New tab"></button>
+      <div class="tc-strip-fill" aria-hidden="true">
+        <span class="tc-info" data-info="tabpos"></span>
+        <span class="tc-info" data-info="count"></span>
+        <span class="tc-info" data-info="clock"></span>
+      </div>
+      <div id="private-chip" class="tc-private" hidden><span class="tc-private-icon"></span><span data-t>Private</span></div>
+    </header>
+
+    <div id="wincontrols" class="tc-wincontrols">
+      <button type="button" data-win="min" title="Minimize" aria-label="Minimize"></button>
+      <button type="button" data-win="max" title="Maximize" aria-label="Maximize"></button>
+      <button type="button" data-win="close" title="Close" aria-label="Close"></button>
+    </div>
+
+    <div id="toolbar" class="tc-toolbar">
+      <div class="tc-nav">
+        <button id="back" class="tc-btn" type="button" title="Back (Alt+Left)" aria-label="Back"></button>
+        <button id="forward" class="tc-btn" type="button" title="Forward (Alt+Right)" aria-label="Forward"></button>
+        <button id="reload" class="tc-btn" type="button" title="Reload (F5)" aria-label="Reload"></button>
+      </div>
+      <div id="omnibox" class="tc-omnibox">
+        <span id="siteinfo" class="tc-omni-icon"></span>
+        <span class="tc-omni-label" aria-hidden="true"></span>
+        <div class="tc-omni-field">
+          <div id="display" class="tc-omni-display" aria-hidden="true"></div>
+          <input id="address" class="tc-omni-input" type="text" spellcheck="false" autocomplete="off" autocapitalize="off"
+                 aria-label="Address and search bar" placeholder="Search or type an address">
+        </div>
+        <div class="tc-omni-load" aria-hidden="true"><i></i><i></i><i></i></div>
+        <!-- the page's zoom, while it is not 100%: opens a small box with the figure, - and +, and Reset (chrome.js, overlays.js) -->
+        <button id="zoom" class="tc-btn tc-omni-zoom" type="button" aria-haspopup="dialog" aria-expanded="false" hidden></button>
+        <button id="star" class="tc-btn tc-omni-star" type="button" title="Bookmark this page (Ctrl+D)" aria-label="Bookmark this page"></button>
+      </div>
+      <div class="tc-actions">
+        <!-- the tools pinned to the toolbar, each a button of its own, in the order they were put in (chrome.js) -->
+        <div id="pinned" class="tc-pinned"></div>
+        <button id="tools" class="tc-btn tc-tools" type="button" title="Tools" aria-label="Tools" aria-haspopup="menu"><span class="tc-dot" hidden></span></button>
+        <button id="downloads" class="tc-btn" type="button" title="Downloads (Ctrl+J)" aria-label="Downloads"></button>
+        <button id="claude" class="tc-btn tc-claude" type="button" aria-label="Claude" aria-haspopup="menu" hidden><span class="tc-claude-dot"></span></button>
+        <button id="profile" class="tc-btn tc-profile" type="button" title="Profiles" aria-label="Profile" aria-haspopup="menu"><img alt="" draggable="false"></button>
+        <button id="menu" class="tc-btn" type="button" title="Menu" aria-label="Menu" aria-haspopup="menu"></button>
+      </div>
+      <div id="progress" class="tc-progress" aria-hidden="true"><i></i></div>
+    </div>
+
+    <nav id="bookmarks" class="tc-bookmarks" aria-label="Bookmarks bar">
+      <div id="bm-list" class="tc-bm-list"></div>
+      <button id="bm-more" class="tc-bm tc-bm-more" type="button" title="More bookmarks" aria-label="More bookmarks" hidden></button>
+      <button id="bm-other" class="tc-bm tc-bm-other" type="button" hidden></button>
+    </nav>
+
+    <div class="tc-edge tc-edge-left" aria-hidden="true"></div>
+    <div id="viewport" class="tc-viewport"></div>
+    <div class="tc-edge tc-edge-right" aria-hidden="true"></div>
+
+    <footer id="status" class="tc-status" aria-hidden="true">
+      <span class="tc-info" data-info="state"></span>
+      <span class="tc-info" data-info="host"></span>
+      <span class="tc-info" data-info="tabpos"></span>
+      <span class="tc-info" data-info="date"></span>
+      <span class="tc-info" data-info="clock"></span>
+    </footer>
+
+    <div class="tc-deco tc-deco-a" aria-hidden="true"></div>
+    <div class="tc-deco tc-deco-b" aria-hidden="true"></div>
+    <div class="tc-deco tc-deco-c" aria-hidden="true"></div>
+    <i class="tc-vcorner is-tl" aria-hidden="true"></i><i class="tc-vcorner is-tr" aria-hidden="true"></i>
+    <i class="tc-vcorner is-bl" aria-hidden="true"></i><i class="tc-vcorner is-br" aria-hidden="true"></i>
+  </div>
+
+  <div id="overlays"></div>
+  <div id="fx" aria-hidden="true"></div>
+
+  <script src="/shared/icons.js"></script>
+  <script src="chrome.js"></script>
+  <script src="overlays.js"></script>
+  <script src="fx.js"></script>
+  <script src="start.js"></script>
+</body>
+</html>

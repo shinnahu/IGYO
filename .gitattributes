@@ -1,0 +1,12 @@
+# Text files are kept with LF in the repository and get the checkout's own line endings.
+* text=auto
+
+# Batch files need Windows line endings wherever they are checked out.
+*.cmd text eol=crlf
+
+# Never touched: pictures, fonts, the icon, and the ad block list (kept byte for byte as EasyList publishes it).
+*.png binary
+*.gif binary
+*.ico binary
+*.woff2 binary
+src/IGYO/Assets/easylist.txt -text

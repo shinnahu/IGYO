@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en" data-kit="igyo" data-scheme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>IGYO</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/shared/fonts.css">
+  <link rel="stylesheet" href="/shared/base.css">
+  <link rel="stylesheet" href="picker.css">
+  <link rel="stylesheet" href="/theme.css">
+  <script src="/theme.js"></script>
+  <script src="/lang.js"></script>
+</head>
+<body>
+  <!-- Which profile to open: shown at start when there is more than one (see ProfilePicker.cs). -->
+  <main class="pk">
+    <h1 class="t-title pk-title" data-t>Which profile?</h1>
+    <p class="pk-sub" data-t>Each one has its own sign-ins, bookmarks and tabs.</p>
+    <div id="list" class="pk-list" role="list"></div>
+    <div class="pk-foot">
+      <label class="pk-ask"><span class="t-switch"><input id="ask" type="checkbox"><i></i></span><span data-t>Ask at every start</span></label>
+      <p id="hint" class="pk-hint"></p>
+    </div>
+  </main>
+  <script src="picker.js"></script>
+</body>
+</html>

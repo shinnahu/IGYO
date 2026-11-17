@@ -1,0 +1,21 @@
+# Build output
+bin/
+obj/
+out/
+dist/
+
+# The engine (Microsoft's WebView2 Fixed Version runtime). It is downloaded from Microsoft and expanded here
+# before building; see "Building" in README.md. It is far too large for the repository.
+runtime/
+
+# Parts taken out of the browser, kept on the author's disk only
+removed/
+
+# What the measurement's page server writes while it runs (tools\bench)
+tools/bench/done.log
+
+# Editors
+.vs/
+.vscode/
+*.user
+*.suo

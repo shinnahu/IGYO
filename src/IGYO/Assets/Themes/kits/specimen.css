@@ -1,0 +1,428 @@
+/* Kit: Specimen.
+   Made to look grown rather than built, and found rather than designed: dark, cold, a little wrong.
+   The top bar is flat: two tones, the tab strip a little darker than the bar under it, and the tab on show is of
+   the bar's own tone and runs into it on curved feet. Fields are sockets with a lit lower lip; things that float are membranes, smoked glass that lets a little of what is behind it
+   through. What has to stand out is polished bone. Light is rare and small: the accent color only ever shows
+   as something lit (a display's figures, a lamp, a hairline), never as a large fill.
+   The address bar is a display: a dark panel (not black, and not the color of its light), lit figures, lit
+   blocks with dark figures, and a backlight that comes up while you type. A field you type into lights up the
+   same way; neither gets an outline for it. Nothing stands in the tab strip but the tabs: no clock, no counter.
+   Behind the interface there is flat color, on the New Tab page too unless you add a picture: no patterns, no
+   textures, no filters, and nothing that moves by itself once it has come to rest. It is kept light:
+   what it costs was measured against IGYO Dark, and what cost memory without being seen was taken out (glows
+   made with filters, blur behind glass over plain ground, corners that are each a different curve).
+   A picture you add to the New Tab page lies behind smoked glass, out of focus: IGYO makes a small soft copy of
+   it, and that copy is what is shown (another amount chosen with Customize > Blur is drawn once from it, and kept).
+   Big words are set in a serif, labels in spaced capitals, figures in a squared face.
+   Options: glass (on|off). */
+
+:root {
+  --radius: 11;
+  --f-display: "Cormorant Garamond", "Sitka Banner", "Sitka Display", "Palatino Linotype", "Book Antiqua", "Yu Mincho", Georgia, serif;
+  --f-mono: "JetBrains Mono", "Cascadia Mono", "Cascadia Code", Consolas, monospace;
+  --sp-read: "Saira", Bahnschrift, "Segoe UI Variable Text", "Segoe UI", sans-serif;   /* readouts and labels */
+  --sp-addr: "Averia Libre", "Saira", Bahnschrift, "Segoe UI", sans-serif;              /* the address bar's figures (his word, 17 Nov 2026) */
+  --sp-addr-fig: color-mix(in oklab, var(--sp-bone), #e8d6a9 42%);                       /* and their color: bone gone a little beige */
+
+  --sp-light: #8f97a0;               /* the cold light everything is lit with: gray with a little blue in it */
+  --sp-bone: #e7e9e1;                /* what stands out without being lit */
+  --sp-bone-ink: #131516;
+  --sp-strip: color-mix(in oklab, var(--c-frame), #000 16%);             /* the tab strip */
+  --sp-bar: color-mix(in oklab, var(--c-frame), var(--sp-light) 8%);     /* the bar under it (toolbar and bookmarks), and the tab on show */
+  --sp-black: color-mix(in oklab, var(--c-field), #000 25%);            /* the matte black of a module */
+  --sp-lit: color-mix(in oklab, var(--c-accent) 55%, transparent);      /* the glow around something lit */
+  /* A display (the address bar, small counts, the keys on notices). It is not black and it is not the
+     color of its light: a dark panel (the dark of IGYO's own mark) behind a bezel. What it shows is lit; what
+     it marks is a lit block with dark figures; and while you type into it its backlight is up. Nothing is ever
+     drawn round it. */
+  --sp-lcd-off: #24262c;                                                             /* the panel: IGYO's own dark */
+  --sp-lcd-on: color-mix(in oklab, var(--sp-lcd-off), #fff 9%);                      /* with its backlight up */
+  --sp-lcd-fig: var(--c-accent);                                                     /* a lit figure */
+  --sp-lcd-rest: color-mix(in oklab, var(--sp-lcd-off), var(--sp-lcd-fig) 72%);      /* a quieter one */
+  --sp-lcd-ink: color-mix(in oklab, var(--sp-lcd-off), #000 52%);                    /* figures on a lit block */
+  --sp-lcd-bezel: inset 0 1px 2px rgba(0, 0, 0, .55), 0 0 0 1px rgba(0, 0, 0, .62), 0 1px 0 1px color-mix(in oklab, var(--c-ink) 10%, transparent);
+  --sp-edge: color-mix(in oklab, var(--c-ink) 11%, transparent);        /* a pane's outline */
+  --sp-rim: rgba(255, 255, 255, .2);                                    /* its lit top edge */
+  --sp-touch: color-mix(in oklab, var(--c-ink) 8%, transparent);        /* glass under the pointer */
+  --sp-raised: inset 0 1px 0 var(--sp-rim), inset 1px 0 0 color-mix(in oklab, var(--c-ink) 8%, transparent), inset -1px -1px 0 rgba(0, 0, 0, .42);   /* a lip of light above and left, shade below and right */
+  --sp-sunk: inset 0 2px 4px rgba(0, 0, 0, .72), inset 0 0 0 1px rgba(0, 0, 0, .5), 0 1px 0 color-mix(in oklab, var(--c-ink) 11%, transparent), 0 0 0 1px color-mix(in oklab, var(--c-ink) 3%, transparent);   /* a socket: deep, its lower lip lit */
+  --sp-clear: 92%;                   /* how much of a floating pane is glass; the rest is what lies behind it */
+  --sp-card: 56%;                    /* the same for cards lying on a page */
+  --sp-frost: blur(18px) saturate(1.15);
+  --sp-dim: transparent;             /* laid over the frame's scene when the lights go down */
+  --nt-picture: soft;                /* a picture on the New Tab page starts out of focus: Blur at 50, IGYO's soft copy */
+  --sp-veil-a: 26%;                  /* the smoked glass over a picture there: how dark at the top, */
+  --sp-veil-b: 46%;                  /* and at the foot (a theme can set both) */
+  --sp-pane: linear-gradient(180deg,
+    color-mix(in oklab, color-mix(in oklab, var(--c-surface), #fff 9%) var(--sp-clear), transparent),
+    color-mix(in oklab, var(--c-surface) var(--sp-clear), transparent) 44%,
+    color-mix(in oklab, color-mix(in oklab, var(--c-surface), #000 16%) var(--sp-clear), transparent));
+  --sp-glass: linear-gradient(180deg, color-mix(in oklab, var(--c-ink) 15%, transparent), color-mix(in oklab, var(--c-ink) 5%, transparent));
+
+  --c-shadow: rgba(3, 4, 8, .5);
+  --c-scrim: rgba(8, 9, 14, .56);
+  --shadow-1: 0 1px 2px var(--c-shadow);
+  --shadow-2: 0 1px 3px var(--c-shadow), 0 8px 24px var(--c-shadow);
+  --shadow-3: 0 2px 8px var(--c-shadow), 0 22px 56px var(--c-shadow);
+  --focus: 0 0 0 1px var(--c-accent), 0 0 0 4px color-mix(in oklab, var(--c-accent) 24%, transparent);
+  --icon-w: 1.5;
+}
+/* a light palette on this kit: the light and the edges follow the ink, and bone becomes ink */
+:root[data-scheme="light"] {
+  --sp-light: color-mix(in oklab, var(--c-ink) 46%, var(--c-frame));
+  --sp-bone: var(--c-ink);
+  --sp-bone-ink: var(--c-surface);
+  --sp-addr-fig: color-mix(in oklab, var(--c-ink), #6b5530 26%);   /* (the address bar's figures: ink gone a little warm) */
+  --sp-black: var(--c-field);
+  --sp-lcd-off: color-mix(in oklab, var(--c-field), var(--c-ink) 10%);   /* (a display in daylight: dark figures on a pale gray panel) */
+  --sp-lcd-on: color-mix(in oklab, var(--c-field), var(--c-ink) 4%);
+  --sp-lcd-fig: color-mix(in oklab, var(--c-accent), var(--c-ink) 55%);
+  --sp-lcd-ink: var(--sp-lcd-off);
+  --sp-lcd-bezel: inset 0 1px 2px rgba(0, 0, 0, .14), 0 0 0 1px color-mix(in oklab, var(--c-ink) 18%, transparent);
+  --sp-rim: rgba(255, 255, 255, .75);
+  --sp-sunk: inset 0 1px 2px rgba(0, 0, 0, .12), inset 0 0 0 1px color-mix(in oklab, var(--c-ink) 12%, transparent);
+  --c-shadow: rgba(30, 34, 52, .16);
+  --c-scrim: rgba(30, 34, 52, .3);
+}
+:root[data-o-glass="off"] { --sp-clear: 100%; --sp-card: 100%; --sp-frost: none; }
+
+::selection { background: color-mix(in oklab, var(--sp-light) 48%, transparent); }
+
+/* ----- the frame: two flat tones, the tab strip and the bar under it ----- */
+
+.tc-deco-a {
+  display: block; left: 0; right: 0; top: 0; z-index: -1; overflow: hidden;
+  height: var(--view-y, calc(var(--strip-h) + var(--bar-h)));
+  background:
+    linear-gradient(var(--sp-dim), var(--sp-dim)),
+    linear-gradient(0deg, color-mix(in oklab, var(--c-ink) 8%, transparent) 1px, transparent 1px),   /* a hairline where the page begins */
+    linear-gradient(180deg, var(--sp-strip) var(--strip-h), var(--sp-bar) var(--strip-h));
+}
+/* the window is not in front: the lights go down a little. A private window: they are low. (A tint, not a
+   filter: a filter would make the frame a layer of its own for as long as the window sits in the background.) */
+:root:not([data-active]) { --sp-dim: rgba(8, 9, 10, .16); }
+:root[data-private] { --sp-dim: rgba(4, 5, 6, .5); }
+
+/* ----- tabs: flat; the one on show is of the bar's tone and runs into it ----- */
+
+.tc-tabstrip { align-items: flex-end; gap: 0; padding-left: 0; background: transparent; }
+.tc-tabs { align-items: flex-end; gap: 1px; padding: 0 11px; }   /* (room for the first and last tab's feet) */
+.tc-tab {
+  height: calc(var(--strip-h) - 7px); padding-left: 19px;
+  border-radius: 9px 9px 0 0;
+  color: color-mix(in oklab, var(--c-frame-ink) 78%, transparent);
+}
+.tc-tab:hover { background: color-mix(in oklab, var(--c-ink) 6%, transparent); color: var(--c-frame-ink); box-shadow: none; }
+.tc-tab.is-active {
+  background:
+    radial-gradient(circle 3.4px at 10px 50%, var(--c-accent) 72%, transparent 100%),          /* its lamp: one small round lit thing */
+    var(--sp-bar);
+  color: var(--c-ink);
+  box-shadow: none;
+}
+/* between tabs at rest, a hairline */
+.tc-tab + .tc-tab::before { left: -1px; top: 30%; bottom: 26%; width: 1px; background: color-mix(in oklab, var(--c-frame-ink) 15%, transparent); }
+/* Where the tab on show runs into the bar: a curved foot on each side, of the bar's own tone (a quarter disc cut
+   out of a small square of that tone). */
+.tc-tab.is-active::before, .tc-tab.is-active::after {
+  content: ""; position: absolute; top: auto; bottom: 0; width: 12px; height: 11px; opacity: 1; pointer-events: none;
+  background: radial-gradient(circle at var(--at), transparent 10.6px, var(--sp-bar) 11.4px);
+}
+.tc-tab.is-active::before { left: -11px; --at: .5px -.5px; }
+.tc-tab.is-active::after { right: -11px; --at: calc(100% - .5px) -.5px; }
+.tc-tab:focus-visible { box-shadow: var(--focus); }
+.tc-tab-spin { border-width: 1.5px; border-top-color: var(--c-accent); }
+.tc-tab.is-audio .tc-tab-audio { color: var(--c-accent); }
+.tc-tab-index { font-family: var(--sp-read); }
+.tc-tab.is-dragging { box-shadow: var(--shadow-2); }
+.tc-newtab { margin-bottom: 4px; border-radius: 50%; }
+.tc-newtab:hover { background: color-mix(in oklab, var(--c-ink) 9%, transparent); }
+/* a count is a lit block with dark figures */
+.tc-tabs-more, .tc-count, .t-badge {
+  border-radius: 2px; background: var(--sp-lcd-fig); color: var(--sp-lcd-ink);
+  font-family: var(--sp-read); font-weight: 700; letter-spacing: .04em;
+}
+.tc-tabs-more { margin-bottom: 7px; }   /* (at the tabs' height: the strip stands its things on the slab) */
+.tc-tabs-more:hover { filter: none; background: color-mix(in oklab, var(--sp-lcd-fig), #fff 34%); }
+@keyframes tc-more-pulse { from { box-shadow: 0 0 0 0 var(--sp-lit); } to { box-shadow: 0 0 0 9px transparent; } }
+
+.tc-wincontrols button:hover { background: color-mix(in oklab, var(--c-frame-ink) 13%, transparent); }
+.tc-wincontrols button[data-win="close"]:hover { background: color-mix(in oklab, var(--c-bad) 88%, #000); color: #fff; }
+.tc-private {
+  height: 20px; padding: 0 9px; margin-bottom: 7px; border-radius: var(--r-xs); background: var(--sp-lcd-off); color: var(--sp-lcd-fig);
+  font: 700 10px/1 var(--sp-read); letter-spacing: .16em; text-transform: uppercase;
+}
+:root[data-private] .tc-tabstrip, :root[data-private] .tc-wincontrols { color: #e9eaf0; }
+
+/* ----- toolbar: the bar, with a display let into it ----- */
+
+.tc-toolbar { background: transparent; }
+/* buttons are round, and flat: a lighter disc under the pointer */
+.tc-btn { border-radius: 50%; color: color-mix(in oklab, var(--c-ink) 84%, transparent); }
+.tc-btn:hover { background: color-mix(in oklab, var(--c-ink) 9%, transparent); color: var(--c-ink); }
+.tc-btn:active, .tc-btn.is-open { background: color-mix(in oklab, var(--c-ink) 14%, transparent); box-shadow: none; }
+.tc-btn.is-off { color: var(--c-ink-3); }
+.tc-tool.is-on { color: var(--c-accent); }
+.tc-tool.is-open { background: var(--sp-touch); }
+.tc-dot, .tc-claude-dot { width: 6px; height: 6px; box-shadow: 0 0 0 2px var(--sp-bar); }   /* an LED */
+
+/* The address bar is a display. The address is lit figures (its site brighter than the rest); what is selected
+   is a lit block with dark figures, which is how the whole address shows when you click into it; and while you
+   type, the backlight is up. */
+.tc-omnibox { border-radius: 9px; background: var(--sp-lcd-off); color: var(--sp-lcd-fig); box-shadow: none; }   /* (flat, like the bar it is in) */
+/* Its figures are a beige bone (--sp-addr-fig), not the green the other displays are lit in (his words, 17 Nov 2026:
+   bone, then "a bit more beige"): the address, the caret, the selection and the marks at either end. (The quieter
+   figure is worked out again here, from that.) */
+.tc-omnibox { --sp-lcd-fig: var(--sp-addr-fig); --sp-lcd-rest: color-mix(in oklab, var(--sp-lcd-off), var(--sp-lcd-fig) 62%); }
+.tc-omnibox:hover { background: color-mix(in oklab, var(--sp-lcd-off), var(--sp-lcd-on) 45%); }
+.tc-omnibox.is-focused { background: var(--sp-lcd-on); border-color: transparent; box-shadow: none; }
+.tc-omni-input, .tc-omni-display { font: 400 14px/1 var(--sp-addr); letter-spacing: .02em; }
+.tc-omni-input { caret-color: var(--sp-lcd-fig); }
+.tc-omni-input::placeholder { color: var(--sp-lcd-rest); }
+.tc-omni-input::selection { background: var(--sp-lcd-fig); color: var(--sp-lcd-ink); }
+.tc-omni-display .d-rest { color: var(--sp-lcd-rest); }
+/* its first figure says what the connection is: lit when it is secure, amber when it is not, quiet otherwise
+   (a figure like the others: nothing is put round it) */
+.tc-omni-icon { color: var(--sp-lcd-rest); }
+.tc-omnibox[data-kind="secure"] .tc-omni-icon { color: var(--sp-lcd-fig); }
+.tc-omnibox[data-kind="open"] .tc-omni-icon { color: var(--c-warn); }
+/* the marks at its other end are figures too: quiet until they are on */
+.tc-omni-star, .tc-omni-zoom { border-radius: 2px; color: var(--sp-lcd-rest); }
+.tc-omni-star:hover, .tc-omni-zoom:hover { background: color-mix(in oklab, var(--sp-lcd-fig) 13%, transparent); color: var(--sp-lcd-fig); }
+.tc-omni-star:active, .tc-omni-zoom:active, .tc-omni-zoom.is-open { background: color-mix(in oklab, var(--sp-lcd-fig) 22%, transparent); box-shadow: none; color: var(--sp-lcd-fig); }
+.tc-omni-star.is-on { color: var(--sp-lcd-fig); }
+.tc-omni-star.is-on .i { animation: specimen-star var(--t-3) var(--spring); }
+@keyframes specimen-star { 0% { transform: scale(.5) rotate(-30deg); } 100% { transform: none; } }
+/* This kit's own drawings in the icons that have one (Shared\icons.js): favourites are IGYO's mark, not the classic
+   star (its outline, and once the page is saved the mark solid), and back
+   and forward are bare chevrons. On the favourites button the mark needs the room to read as itself. */
+.i .i-std { display: none; }
+.i .i-alt { display: inline; }
+.tc-omni-star .i { width: calc(var(--omni-h) - 13px); height: calc(var(--omni-h) - 13px); }
+.tc-omni-zoom { font-family: var(--sp-addr); }
+/* three slanted segments count while a page loads */
+:root[data-loading] .tc-omni-load { display: flex; align-items: center; gap: 2px; flex: none; padding: 0 6px; }
+.tc-omni-load i { width: 4px; height: 11px; background: var(--sp-lcd-fig); opacity: .16; transform: skewX(-22deg); animation: specimen-segment 900ms steps(1) infinite; }
+.tc-omni-load i:nth-child(2) { animation-delay: 150ms; }
+.tc-omni-load i:nth-child(3) { animation-delay: 300ms; }
+@keyframes specimen-segment { 0% { opacity: 1; box-shadow: 0 0 6px var(--sp-lcd-fig); } 50% { opacity: .16; box-shadow: none; } }
+/* and a glint runs along the horizon */
+.tc-progress { top: -1px; bottom: auto; height: 2px; }
+:root[data-fx-loader="ticks"] .tc-progress, :root[data-fx-loader="stripes"] .tc-progress, :root[data-fx-loader="blocks"] .tc-progress { top: -2px; height: 2px; }
+
+/* ----- bookmarks bar: on the floor ----- */
+
+.tc-bookmarks { background: transparent; }
+.tc-bm { color: color-mix(in oklab, var(--c-ink) 82%, transparent); }
+.tc-bm:hover, .tc-bm.is-open { background: var(--sp-touch); color: var(--c-ink); }
+.tc-bm:active { background: color-mix(in oklab, var(--c-ink) 13%, transparent); }
+.tc-bm-ghost > .tc-bm { background: var(--c-surface); }
+.tc-bookmarks, :root[data-bm="off"] .tc-toolbar { box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--c-ink) 7%, transparent); }
+
+/* ----- panes: menus, dialogs, and the small things that float ----- */
+
+.t-menu, .t-dialog, .tc-suggest, .tc-zoom, .tc-notice, .tc-translate, .tc-picker-lens, .tc-claudestrip {
+  border: 0; background: var(--sp-pane); backdrop-filter: var(--sp-frost);
+}
+.t-menu { padding: 6px; border-radius: calc(var(--r-m) + 2px); box-shadow: var(--sp-raised), var(--shadow-3); }
+.t-menu-item { border-radius: var(--r-s); }
+.t-menu-item.is-active, .t-menu-item.is-open, .t-menu-item:focus-visible { background: var(--sp-touch); box-shadow: inset 0 1px 0 color-mix(in oklab, var(--c-ink) 6%, transparent); }
+.t-menu-item:active { background: color-mix(in oklab, var(--c-ink) 13%, transparent); }
+.t-menu-item .t-kbd, .t-kbd { font: 500 10.5px/1 var(--sp-read); letter-spacing: .08em; }
+.t-menu-item .tc-menu-check { color: var(--c-accent); }
+.t-menu-sep { background: linear-gradient(90deg, transparent, var(--sp-edge) 14%, var(--sp-edge) 86%, transparent); }
+.t-menu-head { padding-top: 9px; font: 500 9.5px/1 var(--sp-read); letter-spacing: .26em; }
+.tc-menu-switch, .tc-menu-switch.is-on { background: var(--sp-black); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c-ink) 12%, transparent); }
+.tc-menu-switch::after { background: color-mix(in oklab, var(--c-ink) 44%, var(--c-surface)); box-shadow: none; }
+.tc-menu-switch.is-on::after { background: var(--c-accent); box-shadow: 0 0 8px var(--c-accent); }
+.tc-menu-slider > .tc-menu-value { font-family: var(--sp-read); letter-spacing: .04em; }
+
+/* (no "position" on a dialog: the interface places its dialogs itself) */
+.t-dialog { padding: 26px 26px 22px; border-radius: var(--r-l); box-shadow: var(--sp-raised), var(--shadow-3); }
+.t-dialog h2 { margin-bottom: 8px; font: 300 28px/1.12 var(--f-display); letter-spacing: -.01em; font-variant-numeric: lining-nums; }
+.tc-choice { border: 0; background: var(--sp-black); box-shadow: var(--sp-sunk); }
+.tc-choice label:hover { background: var(--sp-touch); }
+.tc-choice label:has(input:checked) { background: color-mix(in oklab, var(--c-ink) 13%, transparent); }
+
+.tc-suggest, .tc-zoom, .tc-translate, .tc-picker-lens, .tc-card { border-radius: calc(var(--r-m) + 2px); box-shadow: var(--sp-raised), var(--shadow-2); }
+.tc-suggest-row { border-radius: var(--r-s); }
+.tc-suggest-row.is-active { background: var(--sp-touch); box-shadow: inset 0 1px 0 color-mix(in oklab, var(--c-ink) 6%, transparent); }
+.tc-suggest-row .s-site { color: var(--c-ink); text-decoration: underline; text-decoration-color: var(--c-accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.tc-zoom-value, .tc-picker-label { font-family: var(--sp-read); letter-spacing: .05em; }
+.tc-translate-lang { background: var(--sp-black); box-shadow: var(--sp-sunk); }
+.tc-notice { border-radius: calc(var(--r-m) + 2px); box-shadow: var(--sp-raised), var(--shadow-2); }
+/* a small key with a display for a face: its label lit, its backlight up under the pointer */
+.tc-notice-action, #toast-action {
+  border-radius: var(--r-xs); background: var(--sp-lcd-off); color: var(--sp-lcd-fig);
+  box-shadow: var(--sp-lcd-bezel);
+}
+.tc-notice-action:hover, #toast-action:hover { background: var(--sp-lcd-on); box-shadow: var(--sp-lcd-bezel); }
+.tc-claudestrip { box-shadow: var(--sp-raised), var(--shadow-3), 0 0 0 1px var(--c-accent-2), 0 0 18px -4px var(--c-accent-2); }
+.tc-claudestrip-dot { box-shadow: 0 0 8px var(--c-accent-2); }
+.tc-drop-line { box-shadow: 0 0 8px var(--sp-lit); }
+.tc-bm.is-drop, .t-menu-item.is-drop { background: var(--sp-touch); box-shadow: inset 0 0 0 1px var(--c-accent), 0 0 12px -3px var(--sp-lit); }
+
+/* ----- controls ----- */
+
+.t-btn {
+  border: 0; background: var(--sp-touch); font-weight: 550;
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--c-ink) 10%, transparent), inset 0 0 0 1px color-mix(in oklab, var(--c-ink) 9%, transparent);
+}
+.t-btn:hover { background: color-mix(in oklab, var(--c-ink) 13%, transparent); }
+.t-btn:active { background: color-mix(in oklab, var(--c-ink) 17%, transparent); }
+/* what is pressed to go on is polished bone */
+.t-btn.is-primary { background: linear-gradient(158deg, color-mix(in oklab, var(--sp-bone), #fff 45%), var(--sp-bone) 44%, color-mix(in oklab, var(--sp-bone), #000 17%)); color: var(--sp-bone-ink); box-shadow: inset 0 1px 0 #fff, inset -1px -1px 0 rgba(0, 0, 0, .22), 0 6px 16px -9px var(--sp-bone); }
+.t-btn.is-primary:hover { background: linear-gradient(158deg, #fff, color-mix(in oklab, var(--sp-bone), #fff 50%) 44%, var(--sp-bone)); }
+.t-btn.is-destructive { background: var(--c-bad); color: #1c0d11; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35); }
+.t-btn.is-destructive:hover { background: color-mix(in oklab, var(--c-bad), #fff 16%); }
+.t-btn.is-danger { color: var(--c-bad); }
+.t-btn.is-danger:hover { background: color-mix(in oklab, var(--c-bad) 16%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c-bad) 46%, transparent); }
+.t-btn.is-ghost { background: transparent; box-shadow: none; }
+.t-btn.is-ghost:hover { background: var(--sp-touch); }
+.t-btn:focus-visible, .t-iconbtn:focus-visible { box-shadow: var(--focus); }
+.t-iconbtn:hover { background: var(--sp-touch); }
+
+.t-input, .t-select, .t-textarea, .st-seg { border-color: transparent; background-color: var(--sp-black); box-shadow: var(--sp-sunk); }
+/* (the one you are typing into lights up like a display; nothing is drawn round it) */
+.t-input:focus, .t-select:focus, .t-textarea:focus { border-color: transparent; background-color: var(--sp-lcd-on); box-shadow: var(--sp-lcd-bezel); caret-color: var(--sp-lcd-fig); }
+/* a switch: a socket, and in it a round lamp that lights */
+.t-switch i, .t-switch input:checked + i, .switch .track, .switch input:checked + .track { background: var(--sp-black); box-shadow: var(--sp-sunk); }
+.t-switch i::after, .switch .track::after {
+  background: color-mix(in oklab, var(--c-ink) 42%, var(--c-surface));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), 0 1px 2px rgba(0, 0, 0, .5);
+  transition: transform var(--t-2) var(--spring), background var(--t-2) var(--ease), box-shadow var(--t-2) var(--ease);
+}
+.t-switch input:checked + i::after, .switch input:checked + .track::after {
+  background: var(--c-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), 0 0 10px var(--sp-lit), 0 0 2px var(--c-accent);
+}
+.t-range::-webkit-slider-runnable-track { background: var(--sp-black); box-shadow: 0 0 0 1px color-mix(in oklab, var(--c-ink) 12%, transparent); }
+.t-range::-webkit-slider-thumb { border: 0; border-radius: 50%; background: linear-gradient(158deg, #fff, var(--sp-bone) 50%, color-mix(in oklab, var(--sp-bone), #000 20%)); box-shadow: 0 1px 3px rgba(0, 0, 0, .6); }
+.t-swatch { border-color: var(--sp-edge); }
+
+.t-card {
+  border: 0; background: color-mix(in oklab, var(--c-surface) var(--sp-card), transparent);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--c-ink) 10%, transparent), inset 0 0 0 1px color-mix(in oklab, var(--c-ink) 6%, transparent);
+}
+.t-chip { background: var(--sp-touch); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c-ink) 7%, transparent); }
+/* a meter is a vein that fills with light */
+.t-meter { height: 7px; border-radius: var(--r-xs); background: var(--sp-black); box-shadow: var(--sp-sunk); }
+.t-meter > i { border-radius: inherit; background: linear-gradient(90deg, color-mix(in oklab, var(--c-accent) 38%, var(--sp-black)), var(--c-accent)); }
+.t-label, .t-field > span { font: 500 10.5px/1.3 var(--sp-read); letter-spacing: .2em; text-transform: uppercase; }
+.t-title { font: 300 35px/1.08 var(--f-display); letter-spacing: -.012em; font-variant-numeric: lining-nums; }
+
+/* ----- New Tab page ----- */
+
+/* The ground of the page where there is no picture at all: one plain tone (the theme brings no picture of its
+   own; a picture you add lies behind the glass, below). */
+body.nt:not(.has-image) #backdrop { background: var(--c-page); }
+
+/* A picture lies behind smoked glass, with a see-through dark layer over all of it. A picture you add starts out
+   of focus (the page shows IGYO's soft copy, see --nt-picture above), and Customize > Blur sets how much, in
+   every look; a picture that a theme brings is shown as the theme brings it until Blur is set. Only the picture
+   itself is drawn out of focus: nothing on the page blurs what is behind it. */
+body.has-image #backdrop::after {
+  background: linear-gradient(180deg, color-mix(in oklab, #111314 var(--sp-veil-a), transparent), color-mix(in oklab, #111314 var(--sp-veil-b), transparent));   /* (dark whatever the palette: the words on a picture are white) */
+}
+
+/* The time is large and thin; the date is a label over it. */
+#clock { display: flex; flex-direction: column-reverse; align-items: center; }
+#time { font: 300 clamp(72px, 12vw, 128px)/.86 var(--f-display); letter-spacing: -.02em; font-variant-numeric: lining-nums; }
+#date { margin: 0 0 16px; font: 500 11px/1 var(--sp-read); letter-spacing: .34em; text-transform: uppercase; }
+
+#search {
+  height: 52px; padding-left: 18px; border: 0; border-radius: var(--r-l);
+  background: var(--sp-glass);
+  box-shadow: var(--sp-raised), 0 18px 38px -20px rgba(0, 0, 0, .8);
+}
+/* (in use, the glass catches more light; nothing is drawn round it) */
+#search:focus-within {
+  transform: none; border-color: transparent;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--c-ink) 21%, transparent), color-mix(in oklab, var(--c-ink) 9%, transparent));
+  box-shadow: var(--sp-raised), inset 0 0 0 1px color-mix(in oklab, var(--c-ink) 13%, transparent), 0 18px 38px -20px rgba(0, 0, 0, .8);
+}
+.nt-search-mark { display: block; flex: none; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: var(--c-accent); box-shadow: 0 0 8px 1px var(--sp-lit); }   /* the instrument is on */
+/* the key at its end is a hollow in the same glass: darker than the glass round it, never black */
+#go { width: 42px; height: 42px; border-radius: 50%; background: color-mix(in oklab, #000 30%, transparent); color: var(--c-accent); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .45), 0 1px 0 color-mix(in oklab, var(--c-ink) 12%, transparent); }
+#go:hover { transform: none; filter: none; background: color-mix(in oklab, #000 44%, transparent); }
+#go .i { stroke-width: 2; }
+body.read-only #search { opacity: .8; }
+
+/* shortcuts: specimens under glass */
+.tile > a:hover, .tile > .add:hover, .tile > a:focus-visible, .tile > .add:focus-visible { background: color-mix(in oklab, var(--c-ink) 6%, transparent); backdrop-filter: none; }
+.tile > a:focus-visible, .tile > .add:focus-visible { box-shadow: var(--focus); }
+.icon {
+  width: 56px; height: 56px; border: 0;
+  background: var(--sp-glass);
+  box-shadow: var(--sp-raised), 0 14px 20px -14px rgba(0, 0, 0, .85);
+}
+.icon.monogram { background: var(--sp-glass); color: var(--sp-bone); font: 300 31px/1 var(--f-display); }
+body.has-image .icon.monogram { color: #fff; }
+.name { font-size: 12px; letter-spacing: .01em; color: var(--text-2); }
+.tile:hover .name { color: var(--text); }
+.add .icon, body.has-image .add .icon { background: transparent; backdrop-filter: none; box-shadow: none; border: 1px dashed color-mix(in oklab, var(--text-2) 46%, transparent); }
+.tools button { border: 0; background: var(--c-surface); box-shadow: var(--sp-raised); }
+.tile.drop-target > a { background: var(--sp-touch); box-shadow: 0 0 0 1px var(--c-accent), 0 0 14px -3px var(--sp-lit); }
+
+#customize, #private-badge { border: 0; background: var(--sp-glass); box-shadow: var(--sp-raised); }
+#customize:hover { transform: none; background: linear-gradient(180deg, color-mix(in oklab, var(--c-ink) 20%, transparent), color-mix(in oklab, var(--c-ink) 9%, transparent)); }
+#customize:focus-visible { box-shadow: var(--focus); }
+#sheet, dialog, #toast { border: 0; background: var(--sp-pane); box-shadow: var(--sp-raised), var(--shadow-3); }
+body.sheet-open #sheet, dialog[open], #toast.show { backdrop-filter: blur(26px) saturate(1.15); }   /* only while they are on show */
+#sheet h2, dialog h2 { font: 300 28px/1.12 var(--f-display); letter-spacing: -.01em; }
+#sheet h3 { font: 500 10.5px/1.3 var(--sp-read); letter-spacing: .24em; }
+.round:hover { background: var(--sp-touch); }
+.field input { border-color: transparent; background: var(--sp-black); box-shadow: var(--sp-sunk); }
+.field input:focus { border-color: transparent; background: var(--sp-lcd-on); box-shadow: var(--sp-lcd-bezel); caret-color: var(--sp-lcd-fig); }
+.btn { border: 0; background: var(--sp-touch); box-shadow: inset 0 1px 0 color-mix(in oklab, var(--c-ink) 10%, transparent), inset 0 0 0 1px color-mix(in oklab, var(--c-ink) 9%, transparent); }
+.btn:hover { background: color-mix(in oklab, var(--c-ink) 13%, transparent); }
+.btn.primary { background: linear-gradient(158deg, color-mix(in oklab, var(--sp-bone), #fff 45%), var(--sp-bone) 44%, color-mix(in oklab, var(--sp-bone), #000 17%)); color: var(--sp-bone-ink); box-shadow: inset 0 1px 0 #fff, inset -1px -1px 0 rgba(0, 0, 0, .22); }
+.btn.primary:hover { filter: none; background: linear-gradient(158deg, #fff, color-mix(in oklab, var(--sp-bone), #fff 50%) 44%, var(--sp-bone)); }
+.pic.selected .choose { outline-width: 1px; box-shadow: 0 0 14px -2px var(--sp-lit); }
+.pic.default .choose { background: var(--wallpaper, none) center / cover no-repeat, var(--c-page); }   /* the theme's own picture, or the plain ground */
+
+/* ----- Settings, and the window that asks which profile ----- */
+
+.st-app, .pk {   /* black, lit from one corner */
+  background:
+    radial-gradient(60% 56% at 6% -6%, color-mix(in oklab, var(--sp-light) 15%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in oklab, var(--c-page), var(--sp-light) 6%), var(--c-page) 60%);
+}
+
+.st-rail { background: color-mix(in oklab, var(--c-surface) 34%, transparent); border-right-color: var(--sp-edge); }
+.st-rail-head { font: 300 28px/1.05 var(--f-display); letter-spacing: -.008em; }
+.st-nav-item:hover { background: var(--sp-touch); }
+.st-nav-item[aria-current="page"] { background: color-mix(in oklab, var(--c-ink) 11%, transparent); box-shadow: inset 0 1px 0 color-mix(in oklab, var(--c-ink) 12%, transparent), inset 0 0 0 1px color-mix(in oklab, var(--c-ink) 7%, transparent); }
+.st-nav-item[aria-current="page"] .i { color: var(--c-ink); }
+.st-nav-item[aria-current="page"]::before {   /* an LED where the bar was */
+  left: auto; right: 12px; top: 50%; bottom: auto; width: 5px; height: 5px; margin-top: -2.5px;
+  box-shadow: 0 0 8px 1px var(--sp-lit);
+}
+.st-h1 { font-size: 44px; }
+.st-group-label { font: 500 11px/1.3 var(--sp-read); letter-spacing: .24em; text-transform: uppercase; color: var(--c-ink-2); }
+.st-row + .st-row::before, .st-profiles:not(:empty) + .st-row::before { background: var(--sp-edge); opacity: .7; }
+.st-row.is-toggle:hover { background: color-mix(in oklab, var(--c-ink) 5%, transparent); }
+.st-notice { border: 0; background: var(--sp-pane); backdrop-filter: var(--sp-frost); box-shadow: var(--sp-raised), var(--shadow-3); }
+.st-notice.is-error { box-shadow: var(--sp-raised), var(--shadow-3), 0 0 0 1px color-mix(in oklab, var(--c-bad) 60%, transparent); }
+.st-theme { border: 0; background: color-mix(in oklab, var(--c-surface) var(--sp-card), transparent); box-shadow: inset 0 0 0 1px var(--sp-edge); }
+.st-theme:hover { box-shadow: inset 0 0 0 1px var(--sp-edge), var(--shadow-2); }
+.st-theme.is-chosen { box-shadow: 0 0 0 1px var(--c-accent), 0 0 18px -4px var(--sp-lit); }
+.st-theme-check { box-shadow: 0 0 8px var(--sp-lit); }
+.st-mock { border-bottom-color: var(--sp-edge); }
+.st-seg-item[aria-pressed="true"] { background: color-mix(in oklab, var(--c-ink) 16%, transparent); box-shadow: inset 0 1px 0 color-mix(in oklab, var(--c-ink) 12%, transparent); }
+.st-editor-top { background: color-mix(in oklab, var(--c-page) 72%, transparent); backdrop-filter: blur(18px); border-bottom-color: var(--sp-edge); }
+.st-sample { border-color: var(--sp-edge); }
+.st-hex, .st-range-value, .st-mem-total strong, .st-claude-time, .st-tree-count, .st-bm-count { font-family: var(--sp-read); letter-spacing: .04em; }
+.st-mem-total strong { font-weight: 500; font-size: 24px; }
+.st-mem-part.is-engine::before { box-shadow: 0 0 7px var(--sp-lit); }
+.st-state.is-active::before { box-shadow: 0 0 7px color-mix(in oklab, var(--c-good) 60%, transparent); }
+.st-mem-tabs, .st-claude-log, .st-bm-crumbs { border-color: var(--sp-edge); }
+.st-tree-row:hover, .st-bm-row:hover, .st-tree-twist:hover { background: var(--sp-touch); }
+.st-tree-row.is-chosen { background: color-mix(in oklab, var(--c-ink) 12%, transparent); }
+.st-bm-row.is-drop-into, .st-tree-row.is-drop-into { background: var(--sp-touch); box-shadow: inset 0 0 0 1px var(--c-accent), 0 0 12px -3px var(--sp-lit); }
+
+.pk-title { font-size: 44px; }
+.pk-card { border: 0; background: color-mix(in oklab, var(--c-surface) var(--sp-card), transparent); box-shadow: var(--sp-raised); }
+.pk-card:hover { box-shadow: inset 0 1px 0 var(--sp-rim), inset 0 0 0 1px color-mix(in oklab, var(--c-ink) 20%, transparent), var(--shadow-2); }
+.pk-card:focus-visible { box-shadow: var(--focus); }
+.pk-badge { border-radius: 2px; background: var(--sp-lcd-fig); color: var(--sp-lcd-ink); font-family: var(--sp-read); font-weight: 700; letter-spacing: .06em; }

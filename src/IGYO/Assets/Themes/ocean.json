@@ -1,0 +1,31 @@
+{
+  "format": "igyo-theme/1",
+  "id": "ocean",
+  "name": "Ocean",
+  "author": "IGYO",
+  "description": "Pale blue and deep sea ink.",
+  "kit": "igyo",
+  "scheme": "light",
+  "colors": {
+    "frame": "#d6e6f5",
+    "frameInk": "#0f2537",
+    "surface": "#f3f8fc",
+    "surface2": "#e4eef8",
+    "page": "#eaf2fa",
+    "field": "#ffffff",
+    "ink": "#0f2537",
+    "ink2": "#4e6a82",
+    "ink3": "#7b93a8",
+    "line": "#c3d6e8",
+    "accent": "#0369a1",
+    "accentInk": "#ffffff",
+    "accent2": "#0d9488",
+    "good": "#15803d",
+    "warn": "#b45309",
+    "bad": "#be123c"
+  },
+  "fonts": {},
+  "shape": { "radius": 10, "border": 1 },
+  "options": { "tabs": "float", "window": "round" },
+  "fx": { "tabIn": "grow", "loader": "line", "click": "none", "title": "none", "notice": "none" }
+}

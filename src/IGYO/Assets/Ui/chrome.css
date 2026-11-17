@@ -1,0 +1,689 @@
+/* IGYO — the browser's interface: structure and the default look.
+   A theme's kit restyles all of this from the "kit" layer. Things a kit can rely on:
+
+   Layout     #app is a grid with areas tabs / bar / bm / left / view / right / status. The page shows through
+              #viewport ("view"); wherever a kit puts it, the app moves the real page there.
+   Sizes      --strip-h --tab-h --tab-w --bar-h --bm-h --btn --omni-h --wc-w   (smaller in compact mode)
+   State      on <html>: data-active (window in front), data-max, data-fullscreen, data-private, data-compact,
+              data-loading, data-bm="off", data-anim="off", data-tabs-n (number of tabs)
+              on a tab: .is-active .is-loading .is-audio .is-asleep .is-entering .is-leaving .is-dragging, data-index="01"
+              on #omnibox: .is-focused, data-kind="blank|secure|open|settings"
+   Effects    chosen by the theme's "fx" and set on <html>: data-fx-tabin, data-fx-loader, data-fx-notice
+   Facts      .tc-info[data-info="tabpos|count|clock|date|host|state"] hold live text; hidden unless a kit shows them
+   Rounded page corners: set --view-r on #app (for example 10px) and --view-corner to the color around the page. */
+
+@layer base {
+  html, body { height: 100%; overflow: hidden; background: transparent; }
+  body { cursor: default; user-select: none; }
+  img { -webkit-user-drag: none; }
+
+  :root {
+    --strip-h: 42px;
+    --tab-h: 32px;
+    --tab-w: 224px;
+    --bar-h: 44px;
+    --bm-h: 32px;
+    --btn: 32px;
+    --omni-h: 34px;
+    --wc-w: 138px;
+  }
+  :root[data-compact] {
+    --strip-h: 36px;
+    --tab-h: 28px;
+    --bar-h: 38px;
+    --bm-h: 28px;
+    --btn: 28px;
+    --omni-h: 30px;
+  }
+
+  #app {
+    position: fixed; inset: 0;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "tabs tabs tabs"
+      "bar bar bar"
+      "bm bm bm"
+      "left view right"
+      "status status status";
+  }
+  #tabstrip { grid-area: tabs; }
+  #toolbar { grid-area: bar; }
+  #bookmarks { grid-area: bm; }
+  .tc-edge-left { grid-area: left; }
+  .tc-edge-right { grid-area: right; }
+  #viewport { grid-area: view; min-width: 0; min-height: 0; pointer-events: none; }
+  #status { grid-area: status; display: none; }
+  .tc-info { display: none; white-space: nowrap; }
+  .tc-deco { position: absolute; pointer-events: none; display: none; }
+
+  /* Full screen: only the page (and anything floating over it). */
+  :root[data-fullscreen] #tabstrip, :root[data-fullscreen] #toolbar, :root[data-fullscreen] #bookmarks,
+  :root[data-fullscreen] #wincontrols, :root[data-fullscreen] #status, :root[data-fullscreen] .tc-edge,
+  :root[data-fullscreen] .tc-deco, :root[data-fullscreen] .tc-vcorner { display: none !important; }
+
+  /* ----- tab strip ----- */
+
+  .tc-tabstrip {
+    position: relative;
+    display: flex; align-items: center; gap: 2px;
+    height: var(--strip-h); padding: 0 calc(var(--wc-w) + 6px) 0 8px;
+    background: var(--c-frame); color: var(--c-frame-ink);
+    app-region: drag;
+  }
+  .tc-brand { display: none; align-items: center; gap: 8px; }
+  .tc-strip-fill { flex: 1; align-self: stretch; min-width: 24px; overflow: hidden; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+
+  .tc-tabs {
+    position: relative;
+    display: flex; align-items: center; gap: 2px;
+    min-width: 0; height: 100%;
+    overflow-x: auto; scrollbar-width: none;   /* with very many tabs the strip scrolls (mouse wheel) */
+    app-region: no-drag;
+  }
+  /* Tabs beyond an end of the strip: that end fades, and a "+N" mark counts tabs that opened there out of view. */
+  .tc-tabs.is-more-end { mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+  .tc-tabs.is-more-start { mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
+  .tc-tabs.is-more-start.is-more-end { mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+  .tc-tabs[data-axis="y"].is-more-end { mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent); }
+  .tc-tabs[data-axis="y"].is-more-start { mask-image: linear-gradient(to top, #000 calc(100% - 28px), transparent); }
+  .tc-tabs[data-axis="y"].is-more-start.is-more-end { mask-image: linear-gradient(to bottom, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+  .tc-tabs-more {
+    display: grid; place-items: center; flex: none;
+    min-width: 26px; height: 20px; padding: 0 7px; margin: 0 2px;
+    border: 0; border-radius: var(--r-pill);
+    background: var(--c-accent); color: var(--c-accent-ink);
+    font: 700 11px/1 var(--f-ui); cursor: pointer;
+    app-region: no-drag;
+  }
+  .tc-tabs-more:hover { filter: brightness(1.12); }
+  .tc-tabs-more.is-new { animation: tc-more-pulse 1s var(--ease) 2; }
+  @keyframes tc-more-pulse { from { box-shadow: 0 0 0 0 color-mix(in oklab, var(--c-accent) 65%, transparent); } to { box-shadow: 0 0 0 10px transparent; } }
+  .tc-tab {
+    position: relative;
+    display: flex; align-items: center; gap: 8px;
+    flex: 0 1 auto; width: var(--tab-w); min-width: 40px; max-width: var(--tab-w);
+    height: var(--tab-h); padding: 0 6px 0 10px;
+    border-radius: var(--r-m);
+    color: color-mix(in oklab, var(--c-frame-ink) 74%, transparent);
+    container-type: inline-size;
+    transition: background var(--t-1) var(--ease), color var(--t-1) var(--ease), box-shadow var(--t-2) var(--ease);
+  }
+  .tc-tab:hover { background: color-mix(in oklab, var(--c-frame-ink) 9%, transparent); color: var(--c-frame-ink); }
+  .tc-tab.is-active { background: var(--c-surface); color: var(--c-ink); box-shadow: var(--shadow-1); }
+  .tc-tab:focus-visible { outline: 0; box-shadow: var(--focus); }
+  /* a hairline between resting tabs */
+  .tc-tab + .tc-tab::before {
+    content: ""; position: absolute; left: -1.500px; top: 26%; bottom: 26%; width: 1px;
+    background: color-mix(in oklab, var(--c-frame-ink) 16%, transparent);
+    transition: opacity var(--t-1) var(--ease);
+  }
+  .tc-tab.is-active::before, .tc-tab:hover::before, .tc-tab.is-active + .tc-tab::before, .tc-tab:hover + .tc-tab::before { opacity: 0; }
+
+  .tc-tab-icon { position: relative; display: grid; place-items: center; width: 16px; height: 16px; flex: none; }
+  .tc-tab-icon img { width: 16px; height: 16px; border-radius: 3px; }
+  .tc-tab-icon .i { width: 16px; height: 16px; opacity: .8; }
+  .tc-tab.is-asleep .tc-tab-icon { opacity: .5; }
+  .tc-tab.is-asleep .tc-tab-title { opacity: .7; }
+  .tc-tab-spin {
+    position: absolute; inset: 0; display: none; border-radius: 50%;
+    border: 2px solid color-mix(in oklab, currentColor 22%, transparent); border-top-color: var(--c-accent);
+    animation: tc-spin .8s linear infinite;
+  }
+  .tc-tab.is-loading .tc-tab-spin { display: block; }
+  .tc-tab.is-loading .tc-tab-icon > :not(.tc-tab-spin) { visibility: hidden; }
+  .tc-tab-index { display: none; font: 600 10px/1 var(--f-mono); }
+  .tc-tab-title {
+    flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; font-size: 12.500px;
+    mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent);
+    /* A label cut at its end is given a box taller than its line and pulled back by the same amount, so nothing
+       moves: a tight line otherwise also cuts the top of Ñ, É, Ž and the bottom of g, y, p. (Same below.) */
+    padding-block: .45em; margin-block: -.45em;
+  }
+  .tc-tab-audio { display: none; flex: none; }
+  .tc-tab-audio .i { width: 14px; height: 14px; }
+  .tc-tab.is-audio .tc-tab-audio { display: grid; }
+  .tc-tab-close {
+    display: grid; place-items: center; flex: none;
+    width: 20px; height: 20px; padding: 0; border: 0; border-radius: var(--r-pill);
+    background: transparent; color: inherit; opacity: 0;
+    transition: opacity var(--t-1) var(--ease), background var(--t-1) var(--ease);
+  }
+  .tc-tab-close .i { width: 12px; height: 12px; stroke-width: 2.200; }
+  .tc-tab:hover .tc-tab-close, .tc-tab.is-active .tc-tab-close { opacity: .75; }
+  .tc-tab-close:hover { opacity: 1 !important; background: color-mix(in oklab, currentColor 16%, transparent); }
+  @container (max-width: 92px) {
+    .tc-tab-close { display: none; }
+    .tc-tab-audio { display: none !important; }
+  }
+  @container (max-width: 52px) {
+    .tc-tab-title { display: none; }
+  }
+  .tc-tab.is-dragging { z-index: 3; transition: none; box-shadow: var(--shadow-2); }
+  /* A tab dragged out of the strip: it fades where it was, and a copy of it follows the mouse (to become a window). */
+  .tc-tab.is-out { opacity: .35; box-shadow: none; }
+  .tc-bm-ghost.tc-tab-ghost { opacity: .92; }
+  .tc-tab-ghost > .tc-tab { background: var(--c-surface); color: var(--c-ink); box-shadow: var(--shadow-2); pointer-events: none; }
+  .tc-tab-ghost > .tc-tab::before { display: none; }
+
+  .tc-newtab {
+    display: grid; place-items: center; flex: none;
+    width: 28px; height: 28px; margin-left: 4px; padding: 0; border: 0; border-radius: var(--r-m);
+    background: transparent; color: inherit;
+    app-region: no-drag;
+    transition: background var(--t-1) var(--ease), transform var(--t-1) var(--ease);
+  }
+  .tc-newtab:hover { background: color-mix(in oklab, var(--c-frame-ink) 10%, transparent); }
+  .tc-newtab:active { transform: scale(.92); }
+  .tc-newtab .i { width: 16px; height: 16px; }
+
+  .tc-private {
+    display: inline-flex; align-items: center; gap: 6px; flex: none;
+    height: 22px; padding: 0 10px; margin-right: 8px; border-radius: var(--r-pill);
+    background: color-mix(in oklab, var(--c-frame-ink) 14%, transparent); font-size: 11.500px;
+  }
+  .tc-private .i { width: 14px; height: 14px; }
+
+  /* The window's own buttons. */
+  .tc-wincontrols {
+    position: absolute; top: 0; right: 0; z-index: 6;
+    display: flex; height: var(--strip-h);
+    color: var(--c-frame-ink);
+    app-region: no-drag;
+  }
+  .tc-wincontrols button {
+    display: grid; place-items: center;
+    width: calc(var(--wc-w) / 3); height: 100%; padding: 0; border: 0;
+    background: transparent; color: inherit;
+    transition: background var(--t-1) var(--ease), color var(--t-1) var(--ease);
+  }
+  .tc-wincontrols .i { width: 15px; height: 15px; stroke-width: 1.300; }
+  .tc-wincontrols button:hover { background: color-mix(in oklab, var(--c-frame-ink) 12%, transparent); }
+  .tc-wincontrols button[data-win="close"]:hover { background: #e5283a; color: #fff; }
+  :root:not([data-active]) .tc-tabstrip, :root:not([data-active]) .tc-wincontrols { color: color-mix(in oklab, var(--c-frame-ink) 62%, transparent); }
+
+  /* ----- toolbar ----- */
+
+  .tc-toolbar {
+    position: relative;
+    display: flex; align-items: center; gap: 6px;
+    height: var(--bar-h); padding: 0 8px;
+    background: var(--c-surface); color: var(--c-ink);
+  }
+  .tc-nav, .tc-actions { display: flex; align-items: center; gap: 2px; flex: none; }
+  .tc-btn {
+    position: relative;
+    display: grid; place-items: center; flex: none;
+    width: var(--btn); height: var(--btn); padding: 0; border: 0; border-radius: var(--r-m);
+    background: transparent; color: inherit;
+    transition: background var(--t-1) var(--ease), transform var(--t-1) var(--ease), color var(--t-1) var(--ease), opacity var(--t-1) var(--ease);
+  }
+  .tc-btn:hover { background: var(--c-hover); }
+  .tc-btn:active { background: var(--c-press); transform: scale(.93); }
+  /* Maximized, the toolbar's first and last buttons reach out to the screen's edge over the toolbar's own room with a
+     part that isn't drawn (how far: chrome.js, "the screen's edges"), so the pointer thrown against the edge is on the
+     button, and lights it up, as in other browsers. */
+  .tc-btn.is-edge-first::before, .tc-btn.is-edge-last::before {
+    content: ""; position: absolute; top: calc(var(--reach-up, 0px) * -1); bottom: calc(var(--reach-down, 0px) * -1);
+  }
+  .tc-btn.is-edge-first::before { right: 100%; width: var(--reach-x, 0px); }
+  .tc-btn.is-edge-last::before { left: 100%; width: var(--reach-x, 0px); }
+  .tc-btn:focus-visible { outline: 0; box-shadow: var(--focus); }
+  .tc-btn:disabled { opacity: .32; pointer-events: none; }
+  .tc-btn.is-open { background: var(--c-press); }
+  .tc-btn.is-off { color: var(--c-ink-3); }
+  .tc-count {
+    position: absolute; top: 1px; right: 0;
+    min-width: 14px; height: 14px; padding: 0 3px; border-radius: var(--r-pill);
+    background: var(--c-accent); color: var(--c-accent-ink);
+    font: 700 9px/14px var(--f-ui); text-align: center;
+  }
+  /* The tools pinned to the toolbar. Their box is not a box of its own: the buttons stand in the row like the
+     others, so a kit's spacing applies to them as well. One that is switched on takes the accent color; one that
+     is being dragged to another place is lifted. */
+  .tc-pinned { display: contents; }
+  .tc-tool.is-on { color: var(--c-accent); }
+  .tc-tool.is-dragging { z-index: 3; transition: none; background: var(--c-surface); box-shadow: var(--shadow-2); cursor: grabbing; }
+  /* an extension's button: the extension's own picture, gray while it is switched off; held down while its popup is open */
+  .tc-ext-icon { width: 18px; height: 18px; object-fit: contain; border-radius: 3px; pointer-events: none; -webkit-user-drag: none; }
+  .tc-ext.is-off .tc-ext-icon, .tc-ext.is-off svg.i { filter: grayscale(1); opacity: .5; }
+  .tc-tool.is-open { background: var(--c-hover); }
+  /* on the tools button (or the volume's own) while this tab's volume is not the page's own */
+  .tc-dot {
+    position: absolute; right: 4px; bottom: 4px;
+    width: 7px; height: 7px; border-radius: var(--r-pill);
+    background: var(--c-accent); box-shadow: 0 0 0 2px var(--c-surface);
+  }
+  .tc-dot[hidden] { display: none; }
+  .tc-profile img { width: 22px; height: 22px; border-radius: 50%; display: block; }
+
+  .tc-omnibox {
+    position: relative;
+    display: flex; align-items: center; gap: 8px;
+    flex: 1; min-width: 80px; height: var(--omni-h); padding: 0 3px 0 11px;
+    border: var(--bw) solid transparent; border-radius: var(--r-pill);
+    background: var(--c-field); color: var(--c-ink);
+    cursor: text;
+    transition: border-color var(--t-1) var(--ease), box-shadow var(--t-1) var(--ease), background var(--t-1) var(--ease);
+  }
+  .tc-omnibox:hover { background: color-mix(in oklab, var(--c-field), var(--c-ink) 4%); }
+  .tc-omnibox.is-focused { background: var(--c-surface); border-color: var(--c-accent); box-shadow: 0 0 0 3px var(--c-accent-soft); }
+  .tc-omni-icon { display: grid; place-items: center; flex: none; width: 16px; height: 16px; color: var(--c-ink-2); }
+  .tc-omni-icon .i { width: 15px; height: 15px; }
+  .tc-omnibox[data-kind="open"] .tc-omni-icon { color: var(--c-warn); }
+  .tc-omni-label { display: none; }
+  .tc-omni-field { position: relative; flex: 1; min-width: 0; height: 100%; }
+  .tc-omni-input, .tc-omni-display {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    font: 13.500px/1 var(--f-ui); letter-spacing: .005em;
+  }
+  .tc-omni-input { padding: 0; border: 0; outline: 0; background: none; color: inherit; user-select: text; }
+  .tc-omni-input::placeholder { color: var(--c-ink-3); }
+  .tc-omni-display {
+    display: none; align-items: center; overflow: hidden; white-space: nowrap; pointer-events: none;
+    mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+  }
+  /* Resting: the address reads as "site" + the rest, quieter. Typing: the plain text box. */
+  .tc-omnibox.has-display:not(.is-focused) .tc-omni-display { display: flex; }
+  .tc-omnibox.has-display:not(.is-focused) .tc-omni-input { opacity: 0; }
+  .tc-omni-display .d-scheme { display: none; }
+  .tc-omni-display .d-rest { color: var(--c-ink-3); }
+  .tc-omni-star, .tc-omni-zoom { width: calc(var(--omni-h) - 6px); height: calc(var(--omni-h) - 6px); border-radius: var(--r-pill); }
+  .tc-omni-star .i, .tc-omni-zoom .i { width: 16px; height: 16px; }
+  .tc-omni-star.is-on { color: var(--c-accent); }
+  /* the page's zoom while it is not 100% (and while its box is open): beside the star, as close as the star's own room */
+  .tc-omni-zoom { margin-right: -4px; }
+  .tc-omni-load { display: none; }
+
+  /* The loading line. data-fx-loader picks its style. */
+  .tc-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; overflow: hidden; opacity: 0; transition: opacity var(--t-2) var(--ease); pointer-events: none; }
+  :root[data-loading] .tc-progress { opacity: 1; }
+  .tc-progress > i { position: absolute; top: 0; bottom: 0; left: 0; width: 34%; background: linear-gradient(90deg, transparent, var(--c-accent), transparent); }
+  :root[data-loading] .tc-progress > i { animation: tc-load-line 1.150s var(--ease) infinite; }
+  :root[data-fx-loader="ticks"] .tc-progress { height: 3px; }
+  :root[data-fx-loader="ticks"] .tc-progress > i {
+    width: 100%; background: repeating-linear-gradient(90deg, var(--c-accent) 0 10px, transparent 10px 16px);
+    mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent); mask-size: 40% 100%; mask-repeat: no-repeat;
+  }
+  :root[data-loading][data-fx-loader="ticks"] .tc-progress > i { animation: tc-load-mask 1.200s steps(18) infinite; }
+  :root[data-fx-loader="stripes"] .tc-progress { height: 4px; }
+  :root[data-fx-loader="stripes"] .tc-progress > i {
+    width: 100%; background: repeating-linear-gradient(115deg, var(--c-accent) 0 9px, var(--c-accent-2) 9px 18px); background-size: 39.720px 100%;
+  }
+  :root[data-loading][data-fx-loader="stripes"] .tc-progress > i { animation: tc-load-stripes .500s linear infinite; }
+  :root[data-fx-loader="blocks"] .tc-progress { height: 4px; }
+  :root[data-fx-loader="blocks"] .tc-progress > i { width: 100%; background: repeating-linear-gradient(90deg, var(--c-accent) 0 12px, transparent 12px 16px); transform-origin: 0 50%; }
+  :root[data-loading][data-fx-loader="blocks"] .tc-progress > i { animation: tc-load-blocks 1.600s steps(14) infinite; }
+
+  /* ----- bookmarks bar ----- */
+
+  .tc-bookmarks {
+    display: flex; align-items: center; gap: 2px;
+    height: var(--bm-h); padding: 0 8px 4px;
+    background: var(--c-surface); color: var(--c-ink);
+  }
+  :root[data-bm="off"] .tc-bookmarks { display: none; }
+  .tc-bm-list { display: flex; align-items: center; gap: 2px; flex: 1; min-width: 0; height: 100%; overflow: hidden; }
+  .tc-bm {
+    display: inline-flex; align-items: center; gap: 6px; flex: none;
+    max-width: 190px; height: 24px; padding: 0 8px; border: 0; border-radius: var(--r-s);
+    background: transparent; color: inherit; font-size: 12px; white-space: nowrap;
+    transition: background var(--t-1) var(--ease);
+  }
+  .tc-bm:hover, .tc-bm.is-open { background: var(--c-hover); }
+  .tc-bm:active { background: var(--c-press); }
+  .tc-bm:focus-visible { outline: 0; box-shadow: var(--focus); }
+  .tc-bm img, .tc-bm .i { width: 16px; height: 16px; flex: none; border-radius: 3px; }
+  .tc-bm .i { color: var(--c-ink-2); }
+  .tc-bm > span { overflow: hidden; text-overflow: ellipsis; padding-block: .45em; margin-block: -.45em; }
+  .tc-bm.is-hidden { visibility: hidden; }
+  /* A bookmark being dragged: a see-through copy follows the mouse (in a layer over the whole window), the
+     bookmark itself stays where it is, faded; the folder it would go into is lit up, a place is shown as a line. */
+  .tc-bm-draglayer { position: absolute; inset: 0; z-index: 5; cursor: default; }
+  .tc-bm-ghost { position: absolute; left: 0; top: 0; pointer-events: none; opacity: .6; will-change: transform; }
+  .tc-bm-ghost > .tc-bm { max-width: 220px; background: var(--c-surface); box-shadow: var(--shadow-2); }
+  .tc-drop-line { position: absolute; left: 0; top: 0; pointer-events: none; border-radius: 2px; background: var(--c-accent); }
+  .tc-bm.is-drag-source, .t-menu-item.is-drag-source { opacity: .45; }
+  .tc-bm.is-drop, .t-menu-item.is-drop { background: var(--c-accent-soft); box-shadow: inset 0 0 0 2px var(--c-accent); }
+  .tc-bm-empty { padding: 0 8px; font-size: 12px; color: var(--c-ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tc-bm-more { padding: 0 5px; }
+
+  /* The line where the interface ends and the page begins. */
+  .tc-bookmarks, :root[data-bm="off"] .tc-toolbar { box-shadow: inset 0 calc(var(--bw) * -1) 0 var(--c-line); }
+
+  /* Rounded page corners: little masks over the page's corners, in the color around it. */
+  .tc-vcorner {
+    position: absolute; display: none; pointer-events: none;
+    width: var(--view-r, 0px); height: var(--view-r, 0px);
+    --at: 100% 100%;
+    background: radial-gradient(circle at var(--at), transparent calc(var(--view-r) - .600px), var(--view-corner, var(--c-surface)) calc(var(--view-r) + .400px));
+  }
+  :root[data-view-round] .tc-vcorner { display: block; }
+  .tc-vcorner.is-tl { left: var(--view-x); top: var(--view-y); }
+  .tc-vcorner.is-tr { left: calc(var(--view-x) + var(--view-w) - var(--view-r)); top: var(--view-y); --at: 0 100%; }
+  .tc-vcorner.is-bl { left: var(--view-x); top: calc(var(--view-y) + var(--view-h) - var(--view-r)); --at: 100% 0; }
+  .tc-vcorner.is-br { left: calc(var(--view-x) + var(--view-w) - var(--view-r)); top: calc(var(--view-y) + var(--view-h) - var(--view-r)); --at: 0 0; }
+
+  /* ----- things that float over the page ----- */
+
+  #overlays { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  #overlays > * { pointer-events: auto; }
+  #fx { position: fixed; inset: 0; z-index: 40; pointer-events: none; overflow: hidden; }
+
+  .tc-layer { position: absolute; inset: 0; }
+  .tc-scrim { position: absolute; inset: 0; }
+  .tc-layer.is-dim .tc-scrim { background: var(--c-scrim); animation: tc-fade var(--t-2) var(--ease) both; }
+  .tc-layer.is-closing { pointer-events: none; }
+  .tc-layer.is-closing .tc-scrim { animation: tc-fade var(--t-1) var(--ease) reverse both; }
+  .tc-layer.is-waiting > * { visibility: hidden; }   /* until the app has made room for it */
+
+  .tc-pop { position: absolute; transform-origin: var(--from-x, 50%) var(--from-y, 0); animation: tc-pop var(--t-2) var(--ease) both; }
+  .tc-layer.is-waiting .tc-pop { animation: none; }   /* its entrance starts when it is shown */
+  .tc-layer.is-closing .tc-pop { animation: tc-pop-out var(--t-1) var(--ease) both; }
+  .t-menu.tc-pop { max-height: calc(100vh - 16px); overflow-y: auto; overscroll-behavior: contain; }
+  .t-menu-item .tc-menu-check, .t-menu-item .tc-menu-arrow { display: grid; place-items: center; flex: none; width: 16px; height: 16px; }
+  .t-menu-item .tc-menu-arrow { margin-right: -4px; color: var(--c-ink-3); }
+  .t-menu-item .tc-menu-check .i, .t-menu-item .tc-menu-arrow .i, .t-menu-item .t-menu-icon .i { width: 15px; height: 15px; }
+  .t-menu-item .tc-menu-check { color: var(--c-accent); }
+  .t-menu-item .t-menu-icon { color: var(--c-ink-2); }
+  .t-menu-item .t-menu-icon img { border-radius: 50%; }
+  .t-menu-item.is-bookmark .t-menu-icon img, .t-menu-item.is-extension .t-menu-icon img { border-radius: 3px; }
+
+  /* the tools menu: its lines carry a switch, a shortcut or a slider, and a pin, so it may be wider than other menus
+     (in every language and kit, no label is cut and every pin stays inside its line) */
+  .t-menu.has-pins { max-width: min(480px, calc(100vw - 16px)); }
+  /* a checked line that has an icon keeps it: its check mark stands at the end */
+  .t-menu-item .tc-menu-check.is-end { margin-left: 10px; }
+  /* a line that switches something on and off: a small switch at its end */
+  .tc-menu-switch {
+    position: relative; flex: none; width: 28px; height: 16px; margin-left: 12px; border-radius: var(--r-pill);
+    background: color-mix(in oklab, currentColor 28%, transparent);
+    transition: background var(--t-1) var(--ease);
+  }
+  .tc-menu-switch::after {
+    content: ""; position: absolute; left: 2px; top: 2px; width: 12px; height: 12px; border-radius: var(--r-pill);
+    background: var(--c-surface); box-shadow: var(--shadow-1);
+    transition: transform var(--t-1) var(--ease);
+  }
+  .tc-menu-switch.is-on { background: var(--c-accent); }
+  .tc-menu-switch.is-on::after { transform: translateX(12px); }
+  /* the pin at the end of a tool's line: pinned, the tool also has a button of its own on the toolbar */
+  .tc-menu-pin {
+    display: grid; place-items: center; flex: none;
+    width: 24px; height: 24px; margin: 0 -4px 0 6px; padding: 0; border: 0; border-radius: var(--r-s);
+    background: transparent; color: var(--c-ink-3); pointer-events: auto;
+    transition: background var(--t-1) var(--ease), color var(--t-1) var(--ease);
+  }
+  .tc-menu-pin .i { width: 15px; height: 15px; }
+  .tc-menu-pin:hover { background: color-mix(in oklab, currentColor 16%, transparent); color: var(--c-ink); }
+  .tc-menu-pin.is-on, .tc-menu-pin.is-on:hover { color: var(--c-accent); }
+  div.t-menu-item { cursor: default; }
+
+  /* a menu line that is a slider (the tab's volume in the tools menu) */
+  .t-menu-item.tc-menu-slider { cursor: default; gap: 10px; }
+  .t-menu-item.tc-menu-slider:active { background: var(--c-hover); }
+  .tc-menu-slider > .t-menu-text { flex: none; overflow: visible; }
+  .tc-menu-slider > .t-range { flex: 1 1 150px; min-width: 140px; width: auto; }
+  /* (the track and the figure take the menu's own text color, whatever a kit makes of its menus) */
+  .tc-menu-slider > .t-range::-webkit-slider-runnable-track { background: color-mix(in oklab, currentColor 30%, transparent); }
+  .tc-menu-slider > .tc-menu-value { flex: none; min-width: 4.4ch; text-align: right; font-variant-numeric: tabular-nums; color: inherit; opacity: .78; }
+  .tc-menu-slider[aria-disabled="true"] > .t-range { opacity: .4; }
+
+  /* the color picker: a picture of the page laid over the page, and a magnifier beside the mouse */
+  .tc-picker { cursor: crosshair; }
+  .tc-picker-shot { position: absolute; display: block; }
+  .tc-picker-lens {
+    position: absolute; z-index: 2; pointer-events: none;
+    display: grid; gap: 6px; padding: 6px;
+    background: var(--c-surface); color: var(--c-ink);
+    border: var(--bw) solid var(--c-line-strong); border-radius: var(--r-l); box-shadow: var(--shadow-2);
+  }
+  .tc-picker-lens[hidden] { display: none; }
+  .tc-picker-zoom { display: block; width: 110px; height: 110px; border-radius: var(--r-s); image-rendering: pixelated; }
+  .tc-picker-label { display: flex; align-items: center; gap: 8px; font: 12px/1 var(--f-mono); letter-spacing: .02em; }
+  .tc-picker-swatch { flex: none; width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--c-line-strong); }
+
+  /* a selection, translated: a small panel over the page, where the selection was right-clicked */
+  #overlays > .tc-translatewrap { position: absolute; pointer-events: none; }
+  .tc-translate {
+    position: relative; pointer-events: auto;
+    display: flex; flex-direction: column; gap: 8px; padding: 10px 10px 8px 12px;
+    background: var(--c-surface); color: var(--c-ink);
+    border: var(--bw) solid var(--c-line); border-radius: var(--r-l);
+    box-shadow: var(--shadow-2);
+    animation: tc-drop var(--t-2) var(--ease) both;
+  }
+  .tc-translate:focus, .tc-translate:focus-visible { outline: 0; }
+  .tc-translate.is-closing { animation: tc-fade var(--t-1) var(--ease) reverse both; }
+  .tc-translate-head { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .tc-translate-lang {
+    min-width: 0; max-width: 46%; height: 26px; padding: 0 9px; border: 0; border-radius: var(--r-m);
+    background: var(--c-field); color: inherit; font-size: 12.500px; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .tc-translate-lang:hover, .tc-translate-lang.is-open { background: var(--c-hover); }
+  .tc-translate-lang:focus-visible { outline: 0; box-shadow: var(--focus); }
+  .tc-translate-arrow { display: grid; place-items: center; flex: none; color: var(--c-ink-3); }
+  .tc-translate-arrow .i { width: 14px; height: 14px; }
+  .tc-translate-close { flex: none; width: 26px; height: 26px; margin-left: auto; }
+  .tc-translate-close .i { width: 13px; height: 13px; }
+  .tc-translate-body {
+    max-height: var(--translate-max, 40vh); overflow-y: auto; overscroll-behavior: contain;
+    font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere;
+    user-select: text; cursor: text;
+  }
+  .tc-translate[data-state="working"] .tc-translate-body,
+  .tc-translate[data-state="same"] .tc-translate-body,
+  .tc-translate[data-state="error"] .tc-translate-body { color: var(--c-ink-2); user-select: none; cursor: default; }
+  .tc-translate-note { font-size: 12px; color: var(--c-ink-3); }
+  .tc-translate-note[hidden] { display: none; }
+  .tc-translate-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; min-height: 28px; }
+  .tc-translate-service { flex: 1 0 auto; max-width: 100%; margin-right: auto; font-size: 11.500px; color: var(--c-ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tc-translate-service:empty { display: none; }
+  .tc-translate-actions { display: flex; flex: none; gap: 6px; max-width: 100%; }
+  .tc-translate-foot .t-btn { flex: none; white-space: nowrap; }
+  .tc-translate-foot [hidden] { display: none; }
+
+  /* Suggestions, notices and the translation panel leave the page around them usable, so the interface only owns
+     their box plus --hit-pad pixels around it. Their shadow has to fit in that room, or its edge would show as a
+     hard line. */
+  .tc-suggest, .tc-notice, .tc-translate, .tc-zoom, .tc-card { --hit-pad: 34; }
+
+  /* the card over a tab the mouse rests on (chrome.js): its title and site, a picture of its page, its memory */
+  #overlays > .tc-cardwrap { position: absolute; pointer-events: none; }
+  .tc-card {
+    position: relative; width: 260px; overflow: hidden;
+    display: flex; flex-direction: column;
+    background: var(--c-surface); color: var(--c-ink);
+    border: var(--bw) solid var(--c-line); border-radius: var(--r-l);
+    box-shadow: var(--shadow-2);
+    animation: tc-fade var(--t-1) var(--ease) both;
+  }
+  .tc-card.is-closing { animation: tc-fade var(--t-1) var(--ease) reverse both; }
+  .tc-card [hidden] { display: none; }
+  .tc-card-head { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; min-width: 0; }
+  .tc-card-title {
+    font-size: 13px; font-weight: 650; line-height: 1.35; overflow-wrap: anywhere;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  }
+  .tc-card-site { font-size: 12px; color: var(--c-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tc-card-shot { aspect-ratio: 16 / 9; background: var(--c-surface-2) top center / cover no-repeat; border-top: var(--bw) solid var(--c-line); }
+  .tc-card-foot { display: flex; align-items: center; gap: 7px; padding: 8px 12px; font-size: 12px; color: var(--c-ink-2); border-top: var(--bw) solid var(--c-line); }
+  .tc-card-foot .i { flex: none; width: 14px; height: 14px; }
+
+  /* the page's zoom: a small box under the zoom button in the address bar (overlays.js). It leaves the page around
+     it usable, so Ctrl and the wheel keep reaching the page while it shows. Its buttons are the shared kinds, which
+     every kit knows how to draw on a panel of this color. */
+  #overlays > .tc-zoomwrap { position: absolute; pointer-events: none; }
+  .tc-zoom {
+    position: relative; pointer-events: auto;
+    display: flex; align-items: center; gap: 2px;
+    padding: 5px 6px 5px 14px;
+    background: var(--c-surface); color: var(--c-ink);
+    border: var(--bw) solid var(--c-line); border-radius: var(--r-l);
+    box-shadow: var(--shadow-2);
+    animation: tc-drop var(--t-2) var(--ease) both;
+  }
+  .tc-zoom:focus, .tc-zoom:focus-visible { outline: 0; }
+  .tc-zoom.is-closing { pointer-events: none; animation: tc-fade var(--t-1) var(--ease) reverse both; }
+  .tc-zoom-value { flex: none; min-width: 4.6ch; margin-right: 8px; font-size: 13.500px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tc-zoom-step { flex: none; width: 30px; height: 30px; }
+  .tc-zoom-step .i { width: 16px; height: 16px; }
+  .tc-zoom-reset { flex: none; margin-left: 8px; }
+
+  /* suggestions under the address bar */
+  .tc-suggest {
+    position: absolute; padding: 5px;
+    background: var(--c-surface); color: var(--c-ink);
+    border: var(--bw) solid var(--c-line); border-radius: var(--r-l);
+    box-shadow: var(--shadow-2);
+    animation: tc-drop var(--t-2) var(--ease) both;
+  }
+  .tc-suggest-row {
+    display: flex; align-items: center; gap: 12px;
+    height: 34px; padding: 0 10px; border-radius: var(--r-s);
+    white-space: nowrap; overflow: hidden; font-size: 13px;
+  }
+  .tc-suggest-row.is-active { background: var(--c-hover); }
+  .tc-suggest-row .tc-suggest-icon { display: grid; place-items: center; flex: none; width: 16px; height: 16px; color: var(--c-ink-3); }
+  .tc-suggest-row .tc-suggest-icon img { width: 16px; height: 16px; border-radius: 3px; }
+  .tc-suggest-row .i { width: 15px; height: 15px; }
+  .tc-suggest-row .s-text { overflow: hidden; text-overflow: ellipsis; padding-block: .45em; margin-block: -.45em; }
+  .tc-suggest-row .s-text b { font-weight: 650; }
+  .tc-suggest-row .s-site { color: var(--c-accent); }
+  .tc-suggest-row .s-note { color: var(--c-ink-3); overflow: hidden; text-overflow: ellipsis; padding-block: .45em; margin-block: -.45em; }
+
+  /* notices: a row across the page's area that places the notice (a kit may move it); only the notice itself takes the mouse */
+  #overlays > .tc-noticewrap {
+    position: absolute; pointer-events: none;
+    left: var(--view-x, 0px); width: var(--view-w, 100vw);
+    bottom: calc(100vh - var(--view-y, 0px) - var(--view-h, 100vh) + 22px);
+    display: flex; justify-content: center; padding: 0 16px;
+  }
+  .tc-notice {
+    position: relative; pointer-events: auto;
+    display: flex; align-items: center; gap: 12px;
+    max-width: min(640px, 100%); min-height: 42px; padding: 6px 6px 6px 16px;
+    background: color-mix(in oklab, var(--c-surface), var(--c-ink) 6%); color: var(--c-ink);
+    border: var(--bw) solid var(--c-line); border-radius: var(--r-l);
+    box-shadow: var(--shadow-2);
+    animation: tc-rise var(--t-3) var(--ease) both;
+  }
+  .tc-notice.is-closing { animation: tc-sink var(--t-2) var(--ease) both; }
+  .tc-notice-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; padding-block: .45em; margin-block: -.45em; }
+  .tc-notice-action {
+    flex: none; height: 28px; padding: 0 12px; border: 0; border-radius: var(--r-m);
+    background: var(--c-accent-soft); color: var(--c-accent); font-weight: 600; font-size: 12.500px;
+  }
+  .tc-notice-action:hover { background: color-mix(in oklab, var(--c-accent) 26%, transparent); }
+  .tc-notice-close { flex: none; width: 28px; height: 28px; }
+  .tc-notice-close .i { width: 13px; height: 13px; }
+
+  /* questions that wait for an answer (the Claude bridge asking to read a site): a notice that stays, placed at
+     the top of the page's area. It is drawn as a notice so every kit dresses it the way it dresses notices. */
+  #overlays > .tc-askwrap {
+    position: absolute; pointer-events: none;
+    left: var(--view-x, 0px); width: var(--view-w, 100vw);
+    top: calc(var(--view-y, 0px) + 14px);
+    display: flex; justify-content: center; padding: 0 16px;
+  }
+  /* One row: the text takes what the buttons leave and breaks into lines inside its own box when it is long.
+     (A wrapping row is measured by the engine without the gaps between its parts, so the bar came out too narrow
+     for its own buttons and the close button dropped to a second row.) Only in a narrow window do the buttons
+     go under the text, and then the bar takes the whole width so nothing depends on that measuring. */
+  .tc-ask { flex-wrap: nowrap; max-width: min(780px, 100%); }
+  .tc-ask .tc-notice-text { flex: 1 1 auto; min-width: 0; white-space: normal; overflow: visible; overflow-wrap: anywhere; font-weight: 600; }
+  @media (max-width: 640px) {
+    .tc-ask { flex-wrap: wrap; row-gap: 6px; width: 100%; }
+    .tc-ask .tc-notice-text { flex-basis: 100%; }
+    .tc-ask .tc-notice-close { margin-left: auto; }
+  }
+
+  /* the Claude mark on the toolbar: a dot while a Claude app is connected, beating while a page is being read;
+     the tab being read gets a ring around its icon */
+  .tc-claude-dot {
+    position: absolute; right: 4px; bottom: 4px; display: none;
+    width: 7px; height: 7px; border-radius: var(--r-pill);
+    background: var(--c-accent); box-shadow: 0 0 0 2px var(--c-surface);
+  }
+  .tc-claude.is-connected .tc-claude-dot { display: block; }
+  .tc-claude.is-reading .tc-claude-dot { animation: tc-claude-beat 700ms var(--ease) infinite alternate; }
+  .tc-tab.is-claude .tc-tab-icon { outline: 2px solid var(--c-accent); outline-offset: 2px; border-radius: 4px; }
+  /* a tab Claude opened for itself: marked for as long as it is open */
+  .tc-tab.is-claude-own .tc-tab-icon { outline: 2px dashed var(--c-accent-2, var(--c-accent)); outline-offset: 2px; border-radius: 4px; }
+  .tc-tab.is-claude-own.is-claude .tc-tab-icon { outline-style: solid; }
+
+  /* While Claude acts in this window: a strip over the bottom of the page, with a button that stops it. */
+  #overlays > .tc-claudewrap {
+    position: absolute; z-index: 4; pointer-events: none;
+    left: var(--view-x, 0px); width: var(--view-w, 100vw); bottom: 18px;
+    display: flex; justify-content: center; padding: 0 16px;
+  }
+  .tc-claudestrip {
+    pointer-events: auto; max-width: 640px; min-width: 0;
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 8px 7px 14px; border-radius: var(--r-pill);
+    background: var(--c-surface); color: var(--c-ink); font-size: 12.5px;
+    box-shadow: var(--shadow-3), 0 0 0 2px var(--c-accent-2, var(--c-accent));
+    animation: tc-pop var(--t-2) var(--ease) both;
+  }
+  .tc-claudestrip-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--c-accent-2, var(--c-accent)); animation: tc-claude-beat 900ms var(--ease) infinite alternate; }
+  .tc-claudestrip-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tc-claudestrip-stop { flex: none; }
+
+  /* dialogs */
+  .tc-dialog { left: 50%; top: 50%; translate: -50% -50%; --from-x: 50%; --from-y: 50%; }
+  .tc-dialog.is-bubble { left: auto; top: var(--bubble-y, 96px); right: var(--bubble-right, 16px); translate: none; width: 360px; --from-x: 85%; --from-y: 0; }
+  .tc-choice { display: grid; gap: 2px; max-height: 240px; overflow-y: auto; padding: 4px; border: var(--bw) solid var(--c-line); border-radius: var(--r-m); background: var(--c-field); }
+  .tc-choice label { display: flex; align-items: center; gap: 10px; min-height: 32px; padding: 0 10px; border-radius: var(--r-s); }
+  .tc-choice label:hover { background: var(--c-hover); }
+  .tc-choice label:has(input:checked) { background: var(--c-accent-soft); }
+  .tc-choice input { accent-color: var(--c-accent); margin: 0; }
+  .t-dialog input, .t-dialog select { user-select: text; }
+
+  /* click bursts (fx.js) */
+  .fx-p { position: absolute; width: 6px; height: 6px; pointer-events: none; color: var(--c-accent); font: 14px/1 var(--f-ui); }
+  .fx-p:nth-child(3n) { color: var(--c-accent-2); }
+  .fx-p.is-sparks { width: 3px; height: 3px; border-radius: 50%; background: currentColor; box-shadow: 0 0 6px currentColor; }
+  .fx-p.is-squares { width: 7px; height: 7px; border: 1.500px solid currentColor; }
+  .fx-p.is-pixels { width: 4px; height: 4px; background: currentColor; }
+  .fx-p.is-shards { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 9px solid currentColor; }
+  .fx-p.is-stars, .fx-p.is-notes, .fx-p.is-hearts { width: auto; height: auto; }
+
+  /* ----- motion ----- */
+
+  .tc-tab.is-entering { animation: tc-tab-grow var(--t-2) var(--ease) both; }
+  :root[data-fx-tabin="pop"] .tc-tab.is-entering { animation: tc-tab-pop var(--t-3) var(--spring) both; }
+  :root[data-fx-tabin="drop"] .tc-tab.is-entering { animation: tc-tab-drop var(--t-3) var(--spring) both; }
+  :root[data-fx-tabin="slide"] .tc-tab.is-entering { animation: tc-tab-slide var(--t-2) var(--ease) both; }
+  :root[data-fx-tabin="wipe"] .tc-tab.is-entering { animation: tc-tab-wipe var(--t-3) var(--ease) both; }
+  :root[data-fx-tabin="glitch"] .tc-tab.is-entering { animation: tc-tab-glitch 320ms steps(6) both; }
+  :root[data-fx-tabin="none"] .tc-tab.is-entering { animation: none; }
+  .tc-tab.is-leaving { animation: tc-tab-leave var(--t-2) var(--ease) both; pointer-events: none; overflow: hidden; }
+
+  @keyframes tc-claude-beat { from { transform: scale(1); } to { transform: scale(1.6); } }
+  @keyframes tc-spin { to { rotate: 360deg; } }
+  @keyframes tc-fade { from { opacity: 0; } }
+  @keyframes tc-pop { from { opacity: 0; transform: translateY(-6px) scale(.96); } }
+  @keyframes tc-pop-out { to { opacity: 0; transform: translateY(-4px) scale(.98); } }
+  @keyframes tc-drop { from { opacity: 0; transform: translateY(-8px); } }
+  @keyframes tc-rise { from { opacity: 0; transform: translateY(18px); } }
+  @keyframes tc-sink { to { opacity: 0; transform: translateY(14px); } }
+  @keyframes tc-load-line { from { left: -34%; } to { left: 100%; } }
+  @keyframes tc-load-mask { from { mask-position: -70% 0; } to { mask-position: 170% 0; } }
+  @keyframes tc-load-stripes { to { background-position: 39.720px 0; } }
+  @keyframes tc-load-blocks { 0% { clip-path: inset(0 100% 0 0); } 70%, 100% { clip-path: inset(0 0 0 0); } }
+  @keyframes tc-tab-grow { from { flex-basis: 0; min-width: 0; max-width: 0; padding-left: 0; padding-right: 0; opacity: 0; } }
+  @keyframes tc-tab-leave { to { flex-basis: 0; min-width: 0; max-width: 0; padding-left: 0; padding-right: 0; margin: 0; opacity: 0; } }
+  @keyframes tc-tab-pop { from { opacity: 0; transform: scale(.6); } }
+  @keyframes tc-tab-drop { from { opacity: 0; transform: translateY(-110%); } }
+  @keyframes tc-tab-slide { from { opacity: 0; transform: translateX(-24px); } }
+  @keyframes tc-tab-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+  @keyframes tc-tab-glitch {
+    0% { opacity: 0; transform: translateX(-8px) skewX(-18deg); }
+    35% { opacity: 1; transform: translateX(5px) skewX(10deg); }
+    60% { transform: translateX(-2px); clip-path: inset(40% 0 20% 0); }
+    100% { transform: none; clip-path: inset(0); }
+  }
+}

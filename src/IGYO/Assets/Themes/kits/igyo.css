@@ -1,0 +1,30 @@
+/* Kit: IGYO — the quiet look. Soft rounded shapes, calm motion.
+   The base stylesheets already draw this look; the kit adds its options and a few quiet flourishes. */
+
+/* Option "tabs: attached": the active tab is part of the toolbar below it, like a folder tab. */
+:root[data-o-tabs="attached"] .tc-tabstrip { align-items: flex-end; }
+:root[data-o-tabs="attached"] .tc-tabs { align-items: flex-end; }
+:root[data-o-tabs="attached"] .tc-tab {
+  height: calc(var(--strip-h) - 6px);
+  border-radius: var(--r-m) var(--r-m) 0 0;
+}
+:root[data-o-tabs="attached"] .tc-tab.is-active { box-shadow: none; }
+/* the little outward curves where the tab meets the toolbar */
+:root[data-o-tabs="attached"] .tc-tab.is-active::before,
+:root[data-o-tabs="attached"] .tc-tab.is-active::after {
+  content: ""; position: absolute; bottom: 0; top: auto; width: var(--r-m); height: var(--r-m);
+  background: radial-gradient(circle at var(--at), transparent calc(var(--r-m) - .500px), var(--c-surface) calc(var(--r-m) + .500px));
+  opacity: 1;
+}
+:root[data-o-tabs="attached"] .tc-tab.is-active::before { left: calc(var(--r-m) * -1); --at: 0 0; }
+:root[data-o-tabs="attached"] .tc-tab.is-active::after { right: calc(var(--r-m) * -1); --at: 100% 0; }
+:root[data-o-tabs="attached"] .tc-newtab { margin-bottom: 5px; }
+
+/* The star gives a small hop when a page becomes bookmarked. */
+.tc-omni-star.is-on .i { animation: igyo-star var(--t-3) var(--spring); }
+@keyframes igyo-star { 0% { transform: scale(.5) rotate(-30deg); } 100% { transform: none; } }
+
+/* A private window wears a darker frame, whatever the palette. */
+:root[data-private] .tc-tabstrip { background: color-mix(in oklab, var(--c-frame), #000 38%); color: #e9eaf0; }
+:root[data-private] .tc-wincontrols { color: #e9eaf0; }
+:root[data-private] .tc-tab:not(.is-active) { color: color-mix(in oklab, #e9eaf0 74%, transparent); }

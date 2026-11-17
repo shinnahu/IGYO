@@ -1,0 +1,31 @@
+{
+  "format": "igyo-theme/1",
+  "id": "rose",
+  "name": "Rose",
+  "author": "IGYO",
+  "description": "Soft pink paper, crimson accent.",
+  "kit": "igyo",
+  "scheme": "light",
+  "colors": {
+    "frame": "#f5dde3",
+    "frameInk": "#3b1220",
+    "surface": "#fff7f9",
+    "surface2": "#fbe8ed",
+    "page": "#fdf0f3",
+    "field": "#ffffff",
+    "ink": "#3b1220",
+    "ink2": "#8a5263",
+    "ink3": "#b08492",
+    "line": "#ebc7d1",
+    "accent": "#e11d48",
+    "accentInk": "#ffffff",
+    "accent2": "#db2777",
+    "good": "#15803d",
+    "warn": "#b45309",
+    "bad": "#be123c"
+  },
+  "fonts": {},
+  "shape": { "radius": 10, "border": 1 },
+  "options": { "tabs": "float", "window": "round" },
+  "fx": { "tabIn": "grow", "loader": "line", "click": "none", "title": "none", "notice": "none" }
+}

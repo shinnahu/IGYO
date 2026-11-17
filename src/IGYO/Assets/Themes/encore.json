@@ -1,0 +1,31 @@
+{
+  "format": "igyo-theme/1",
+  "id": "encore",
+  "name": "Encore",
+  "author": "IGYO",
+  "description": "Candy colors and sticker outlines. Tabs hop, sound shows an equalizer, your tab count is the combo, and a loaded page lands a PERFECT!",
+  "kit": "encore",
+  "scheme": "light",
+  "colors": {
+    "frame": "#ff4f9a",
+    "frameInk": "#ffffff",
+    "surface": "#fff7fb",
+    "surface2": "#ffe4f0",
+    "page": "#fff0f7",
+    "field": "#ffffff",
+    "ink": "#2b1b4d",
+    "ink2": "#5f4f84",
+    "ink3": "#8b7fa8",
+    "line": "#2b1b4d",
+    "accent": "#2cc6ff",
+    "accentInk": "#2b1b4d",
+    "accent2": "#ffd93b",
+    "good": "#1fbf85",
+    "warn": "#ff9f1c",
+    "bad": "#ff3d6e"
+  },
+  "fonts": {},
+  "shape": { "radius": 14, "border": 2 },
+  "options": { "window": "round", "dots": "on", "tilt": "on", "combo": "on", "perfect": "on" },
+  "fx": { "tabIn": "pop", "loader": "line", "click": "notes", "title": "none", "notice": "none" }
+}

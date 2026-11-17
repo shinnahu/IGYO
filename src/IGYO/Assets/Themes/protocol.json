@@ -1,0 +1,31 @@
+{
+  "format": "igyo-theme/1",
+  "id": "protocol",
+  "name": "Protocol",
+  "author": "IGYO",
+  "description": "A field terminal. Technical gray, charcoal blocks and one signal yellow; numbered tabs, readouts and survey lines in the frame.",
+  "kit": "protocol",
+  "scheme": "light",
+  "colors": {
+    "frame": "#d3d3d1",
+    "frameInk": "#1d1d20",
+    "surface": "#ececea",
+    "surface2": "#dededc",
+    "page": "#e2e2e0",
+    "field": "#f7f7f5",
+    "ink": "#1d1d20",
+    "ink2": "#4f4f55",
+    "ink3": "#7c7c83",
+    "line": "#b5b5b8",
+    "accent": "#ffe600",
+    "accentInk": "#18181a",
+    "accent2": "#28282c",
+    "good": "#1f9d57",
+    "warn": "#b37a00",
+    "bad": "#d81e5b"
+  },
+  "fonts": {},
+  "shape": { "radius": 2, "border": 1 },
+  "options": { "window": "square", "contours": "on", "readouts": "on", "brand": "on" },
+  "fx": { "tabIn": "wipe", "loader": "ticks", "click": "none", "title": "type", "notice": "type" }
+}

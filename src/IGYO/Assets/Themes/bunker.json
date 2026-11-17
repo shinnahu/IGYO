@@ -1,0 +1,31 @@
+{
+  "format": "igyo-theme/1",
+  "id": "bunker",
+  "name": "Bunker",
+  "author": "IGYO",
+  "description": "Paper and ink. Flat rectangles, hairlines and square marks; what you choose fills with ink from the left.",
+  "kit": "bunker",
+  "scheme": "light",
+  "colors": {
+    "frame": "#c8c3ab",
+    "frameInk": "#454138",
+    "surface": "#dad5bd",
+    "surface2": "#cdc8b1",
+    "page": "#d1ccb5",
+    "field": "#e4e0cc",
+    "ink": "#454138",
+    "ink2": "#655f52",
+    "ink3": "#827c6c",
+    "line": "#a59f8a",
+    "accent": "#454138",
+    "accentInk": "#dad5bd",
+    "accent2": "#b0513a",
+    "good": "#5e7a45",
+    "warn": "#9a6a1c",
+    "bad": "#a8402e"
+  },
+  "fonts": {},
+  "shape": { "radius": 0, "border": 1 },
+  "options": { "window": "square", "status": "on", "caps": "on", "icons": "mono", "pattern": "lines" },
+  "fx": { "tabIn": "wipe", "loader": "ticks", "click": "squares", "title": "scramble", "notice": "type" }
+}

@@ -1,0 +1,315 @@
+/* IGYO — shared design system.
+   Every IGYO surface (the browser's own UI, the New Tab page, Settings) loads this file and then /theme.css.
+
+   Layers: "base" is this file and each surface's own stylesheet; "kit" is the theme's kit (its shapes,
+   decorations and animations); "user" is a theme's own extra CSS. A later layer always wins, so a kit
+   never has to fight selectors. A theme's colors, fonts and numbers arrive as the custom properties
+   below, set on :root outside any layer.
+
+   TOKENS (the contract for kits and themes)
+     --c-frame / --c-frame-ink      window frame and tab strip, and text on it
+     --c-surface / --c-surface-2    panels: toolbar, active tab, menus, cards / a quieter inset surface
+     --c-page                       background of IGYO's own pages
+     --c-field                      text inputs and the address bar
+     --c-ink / --c-ink-2 / --c-ink-3  text: normal, secondary, faint
+     --c-line / --c-line-strong     borders
+     --c-hover / --c-press          fills for hovered and pressed things
+     --c-accent / --c-accent-ink / --c-accent-2 / --c-accent-soft
+     --c-good / --c-warn / --c-bad  status
+     --c-shadow / --c-scrim         shadow color, dimming behind dialogs
+     --radius (a number) -> --r-xs --r-s --r-m --r-l --r-pill;  --bw border width
+     --f-ui / --f-display / --f-mono;  --fs base size
+     --t-1 --t-2 --t-3 durations;  --ease --spring curves;  --shadow-1 --shadow-2 --shadow-3
+     --icon-w icon stroke width;  --icon-cap / --icon-join line ends
+   <html> carries data-kit, data-scheme (light|dark), data-theme and data-o-<option> for the kit's options. */
+
+@layer base, kit, user;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --c-frame: #e4e7ee;
+    --c-frame-ink: #20242c;
+    --c-surface: #ffffff;
+    --c-surface-2: #f2f4f8;
+    --c-page: #f4f5f9;
+    --c-field: #eef0f5;
+    --c-ink: #1b1f27;
+    --c-ink-2: #5c6473;
+    --c-ink-3: #8a91a0;
+    --c-line: #dfe3ea;
+    --c-accent: #3d5afe;
+    --c-accent-ink: #ffffff;
+    --c-accent-2: #b14bf4;
+    --c-good: #17a34a;
+    --c-warn: #d98b06;
+    --c-bad: #e5334f;
+    --c-shadow: rgba(16, 24, 40, .14);
+    --c-scrim: rgba(12, 14, 22, .34);
+    --c-hover: color-mix(in oklab, var(--c-ink) 7%, transparent);
+    --c-press: color-mix(in oklab, var(--c-ink) 13%, transparent);
+    --c-accent-soft: color-mix(in oklab, var(--c-accent) 15%, transparent);
+    --c-line-strong: color-mix(in oklab, var(--c-ink) 26%, transparent);
+
+    --radius: 10;
+    --r-xs: calc(var(--radius) * .4px);
+    --r-s: calc(var(--radius) * .65px);
+    --r-m: calc(var(--radius) * 1px);
+    --r-l: calc(var(--radius) * 1.6px);
+    /* fully round only in themes that are round at all: with a small --radius, "pills" are just slightly rounded boxes */
+    --r-pill: max(var(--r-m), clamp(0px, calc((var(--radius) - 5) * 1000px), 999px));
+    --bw: 1px;
+
+    --f-ui: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+    --f-display: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+    --f-mono: "Cascadia Mono", "Cascadia Code", Consolas, monospace;
+    --fs: 13px;
+
+    --t-1: 120ms;
+    --t-2: 220ms;
+    --t-3: 420ms;
+    --ease: cubic-bezier(.2, .8, .2, 1);
+    --spring: cubic-bezier(.34, 1.56, .64, 1);
+
+    --shadow-1: 0 1px 2px var(--c-shadow);
+    --shadow-2: 0 1px 3px var(--c-shadow), 0 8px 24px var(--c-shadow);
+    --shadow-3: 0 2px 8px var(--c-shadow), 0 20px 52px var(--c-shadow);
+    --focus: 0 0 0 2px var(--c-surface), 0 0 0 4px var(--c-accent);
+
+    --icon-w: 1.7;
+    --icon-cap: round;
+    --icon-join: round;
+  }
+
+  :root[data-scheme="dark"] {
+    color-scheme: dark;
+    --c-frame: #17181c;
+    --c-frame-ink: #e6e8ee;
+    --c-surface: #24262c;
+    --c-surface-2: #2c2e35;
+    --c-page: #1a1b20;
+    --c-field: #17181c;
+    --c-ink: #eceef3;
+    --c-ink-2: #a5abb8;
+    --c-ink-3: #767d8b;
+    --c-line: #35373f;
+    --c-accent: #8aa4ff;
+    --c-accent-ink: #0b1230;
+    --c-accent-2: #d59bff;
+    --c-good: #4ade80;
+    --c-warn: #fbbf24;
+    --c-bad: #fb7185;
+    --c-shadow: rgba(0, 0, 0, .42);
+    --c-scrim: rgba(0, 0, 0, .5);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font: var(--fs)/1.45 var(--f-ui);
+    color: var(--c-ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
+  ::selection { background: color-mix(in oklab, var(--c-accent) 35%, transparent); }
+
+  /* thin scrollbars that follow the theme */
+  * { scrollbar-width: thin; scrollbar-color: color-mix(in oklab, var(--c-ink) 28%, transparent) transparent; }
+
+  /* ----- icons: stroke drawings that take the text color ----- */
+  .i {
+    width: 18px; height: 18px; flex: none;
+    fill: none; stroke: currentColor;
+    stroke-width: var(--icon-w); stroke-linecap: var(--icon-cap); stroke-linejoin: var(--icon-join);
+    pointer-events: none;
+  }
+  .i .fill { fill: currentColor; stroke: none; }
+  .i .dim { opacity: .42; }
+  .i .i-alt { display: none; }   /* a kit's own drawing, in an icon that has one beside the usual drawing (see icons.js) */
+
+  /* ----- text ----- */
+  .t-title { font: 600 20px/1.2 var(--f-display); letter-spacing: -.01em; margin: 0; }
+  .t-label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--c-ink-2); }
+  .t-muted { color: var(--c-ink-2); }
+  .t-mono { font-family: var(--f-mono); }
+
+  /* ----- buttons ----- */
+  .t-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    min-height: 32px; padding: 0 14px;
+    border: var(--bw) solid var(--c-line); border-radius: var(--r-m);
+    background: var(--c-surface); color: var(--c-ink);
+    font-weight: 500; white-space: nowrap; cursor: pointer; user-select: none;
+    transition: background var(--t-1) var(--ease), border-color var(--t-1) var(--ease), transform var(--t-1) var(--ease), box-shadow var(--t-1) var(--ease), color var(--t-1) var(--ease);
+  }
+  .t-btn:hover { background: color-mix(in oklab, var(--c-surface), var(--c-ink) 6%); border-color: var(--c-line-strong); }
+  .t-btn:active { transform: scale(.97); background: color-mix(in oklab, var(--c-surface), var(--c-ink) 11%); }
+  .t-btn:focus-visible, .t-iconbtn:focus-visible { outline: 0; box-shadow: var(--focus); }
+  .t-btn:disabled, .t-iconbtn:disabled { opacity: .45; cursor: default; pointer-events: none; }
+  .t-btn.is-primary { background: var(--c-accent); border-color: transparent; color: var(--c-accent-ink); }
+  .t-btn.is-primary:hover { background: color-mix(in oklab, var(--c-accent), var(--c-ink) 10%); }
+  .t-btn.is-destructive { background: var(--c-bad); border-color: transparent; color: #fff; }   /* a filled button for something that can't be undone */
+  .t-btn.is-destructive:hover { background: color-mix(in oklab, var(--c-bad), #000 12%); border-color: transparent; }
+  .t-btn.is-danger { color: var(--c-bad); }
+  .t-btn.is-danger:hover { background: color-mix(in oklab, var(--c-bad) 12%, var(--c-surface)); border-color: color-mix(in oklab, var(--c-bad) 45%, transparent); }
+  .t-btn.is-ghost { background: transparent; border-color: transparent; }
+  .t-btn.is-ghost:hover { background: var(--c-hover); }
+  .t-btn.is-s { min-height: 26px; padding: 0 10px; font-size: 12px; }
+
+  .t-iconbtn {
+    display: inline-grid; place-items: center;
+    width: 32px; height: 32px; padding: 0;
+    border: 0; border-radius: var(--r-m);
+    background: transparent; color: inherit; cursor: pointer;
+    transition: background var(--t-1) var(--ease), transform var(--t-1) var(--ease), color var(--t-1) var(--ease);
+  }
+  .t-iconbtn:hover { background: var(--c-hover); }
+  .t-iconbtn:active { background: var(--c-press); transform: scale(.94); }
+
+  /* ----- fields ----- */
+  .t-input, .t-select, .t-textarea {
+    width: 100%; min-height: 34px; padding: 0 11px;
+    border: var(--bw) solid var(--c-line); border-radius: var(--r-m);
+    background: var(--c-field); color: var(--c-ink); outline: 0;
+    transition: border-color var(--t-1) var(--ease), box-shadow var(--t-1) var(--ease);
+  }
+  .t-textarea { padding: 9px 11px; min-height: 96px; resize: vertical; font: 12px/1.5 var(--f-mono); }
+  .t-input::placeholder, .t-textarea::placeholder { color: var(--c-ink-3); }
+  .t-input:focus, .t-select:focus, .t-textarea:focus { border-color: var(--c-accent); box-shadow: 0 0 0 3px var(--c-accent-soft); }
+  .t-select { appearance: none; padding-right: 30px; cursor: pointer;
+    background-image: linear-gradient(45deg, transparent 50%, var(--c-ink-2) 50%), linear-gradient(135deg, var(--c-ink-2) 50%, transparent 50%);
+    background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+  .t-select option { background: var(--c-surface); color: var(--c-ink); }
+  .t-field { display: grid; gap: 6px; }
+  .t-field > span { font-size: 12px; color: var(--c-ink-2); }
+  /* a box with something before it in the same row */
+  .t-field-lead { display: flex; align-items: center; gap: 12px; }
+  .t-field-lead > .t-input { flex: 1; min-width: 0; }
+
+  /* Adding a profile: its circle as it will look (the first letter of the name on its color, drawn like the app's own
+     circles); pressed, the colors it can have show under the name. (Ui\overlays.js, Settings > Profiles.) */
+  .t-circle {
+    position: relative; display: grid; place-items: center; flex: none;
+    width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--dot, #2563eb), #fff 18%), color-mix(in srgb, var(--dot, #2563eb), #000 12%));
+    color: #fff; font: 600 20px/1 "Segoe UI Semibold", "Segoe UI", system-ui, sans-serif; cursor: pointer;
+    transition: transform var(--t-1) var(--ease), box-shadow var(--t-1) var(--ease);
+  }
+  .t-circle:hover { transform: scale(1.060); }
+  .t-circle:focus-visible { outline: 0; box-shadow: var(--focus); }
+  .t-circle[aria-expanded="true"] { box-shadow: 0 0 0 2px var(--c-surface), 0 0 0 4px var(--c-ink); }
+  .t-circle-badge {
+    position: absolute; right: -4px; bottom: -4px; display: grid; place-items: center; width: 19px; height: 19px;
+    border-radius: 50%; background: var(--c-surface); color: var(--c-ink-2); box-shadow: 0 0 0 var(--bw) var(--c-line-strong);
+  }
+  .t-circle-badge svg { width: 12px; height: 12px; }
+  .t-circle-colors { display: flex; flex-wrap: wrap; gap: 10px; padding: 4px 2px; }
+  .t-circle-colors[hidden] { display: none; }
+  .t-circle-color {
+    flex: none; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; background: var(--dot); cursor: pointer;
+    transition: transform var(--t-1) var(--ease), box-shadow var(--t-1) var(--ease);
+  }
+  .t-circle-color:hover { transform: scale(1.080); }
+  .t-circle-color:focus-visible { outline: 0; box-shadow: var(--focus); }
+  .t-circle-color.is-chosen { box-shadow: 0 0 0 2px var(--c-surface), 0 0 0 4px var(--c-ink); }
+
+  .t-range { appearance: none; width: 100%; height: 22px; background: transparent; cursor: pointer; }
+  .t-range::-webkit-slider-runnable-track { height: 4px; border-radius: var(--r-pill); background: color-mix(in oklab, var(--c-ink) 18%, transparent); }
+  .t-range::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; margin-top: -6px; border-radius: var(--r-pill); background: var(--c-accent); border: 2px solid var(--c-surface); box-shadow: var(--shadow-1); }
+
+  .t-swatch { appearance: none; width: 34px; height: 34px; padding: 0; border: var(--bw) solid var(--c-line); border-radius: var(--r-m); background: none; cursor: pointer; overflow: hidden; }
+  .t-swatch::-webkit-color-swatch-wrapper { padding: 3px; }
+  .t-swatch::-webkit-color-swatch { border: 0; border-radius: calc(var(--r-m) - 3px); }
+
+  /* ----- switch:  <label class="t-switch"><input type="checkbox"><i></i></label> ----- */
+  .t-switch { position: relative; display: inline-flex; flex: none; cursor: pointer; }
+  .t-switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .t-switch i {
+    width: 40px; height: 22px; border-radius: var(--r-pill);
+    background: color-mix(in oklab, var(--c-ink) 24%, transparent);
+    transition: background var(--t-2) var(--ease);
+  }
+  .t-switch i::after {
+    content: ""; position: absolute; top: 3px; left: 3px;
+    width: 16px; height: 16px; border-radius: var(--r-pill);
+    background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+    transition: transform var(--t-2) var(--spring);
+  }
+  .t-switch input:checked + i { background: var(--c-accent); }
+  .t-switch input:checked + i::after { transform: translateX(18px); }
+  .t-switch input:focus-visible + i { box-shadow: var(--focus); }
+  .t-switch input:disabled + i { opacity: .45; }
+
+  /* ----- surfaces ----- */
+  .t-card {
+    background: var(--c-surface); color: var(--c-ink);
+    border: var(--bw) solid var(--c-line); border-radius: var(--r-l);
+  }
+  .t-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 24px; padding: 0 10px; border-radius: var(--r-pill);
+    background: var(--c-hover); color: var(--c-ink-2); font-size: 12px; white-space: nowrap;
+  }
+  .t-badge {
+    display: inline-grid; place-items: center; min-width: 16px; height: 16px; padding: 0 4px;
+    border-radius: var(--r-pill); background: var(--c-accent); color: var(--c-accent-ink);
+    font-size: 10px; font-weight: 700; line-height: 1;
+  }
+  /* <div class="t-meter"><i style="--v:.4"></i></div> */
+  .t-meter { height: 6px; border-radius: var(--r-pill); background: color-mix(in oklab, var(--c-ink) 14%, transparent); overflow: hidden; }
+  .t-meter > i { display: block; height: 100%; width: calc(var(--v, 0) * 100%); border-radius: inherit; background: var(--c-accent); transition: width var(--t-3) var(--ease); }
+  .t-kbd { font: 11px var(--f-ui); color: var(--c-ink-3); letter-spacing: .02em; }
+
+  /* ----- menu ----- */
+  .t-menu {
+    min-width: 200px; max-width: 340px; padding: 5px;
+    background: var(--c-surface); color: var(--c-ink);
+    border: var(--bw) solid var(--c-line); border-radius: var(--r-l);
+    box-shadow: var(--shadow-3);
+    user-select: none;
+  }
+  .t-menu:focus, .t-menu:focus-visible { outline: 0; }   /* the menu holds the keyboard; the marked line shows where it is */
+  .t-menu-item {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; min-height: 32px; padding: 0 10px;
+    border: 0; border-radius: var(--r-s); background: transparent; color: inherit;
+    text-align: left; cursor: default; white-space: nowrap;
+  }
+  /* cut at its end: the box is taller than the line and pulled back, so capital accents (Ñ, Ž) and g, y, p stay whole */
+  .t-menu-item > .t-menu-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; padding-block: .45em; margin-block: -.45em; }
+  .t-menu-item > .t-menu-icon { width: 16px; height: 16px; flex: none; display: grid; place-items: center; }
+  .t-menu-item > .t-menu-icon img { width: 16px; height: 16px; border-radius: 3px; }
+  .t-menu-item.is-active, .t-menu-item:focus-visible { background: var(--c-hover); outline: 0; }
+  .t-menu-item:active { background: var(--c-press); }
+  .t-menu-item[aria-disabled="true"] { color: var(--c-ink-3); pointer-events: none; }
+  .t-menu-item .t-kbd { margin-left: 18px; }
+  .t-menu-sep { height: var(--bw); margin: 5px 8px; background: var(--c-line); }
+  .t-menu-head { padding: 7px 10px 5px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--c-ink-3); }
+
+  /* ----- dialog ----- */
+  .t-dialog {
+    width: min(420px, calc(100vw - 32px)); padding: 22px;
+    background: var(--c-surface); color: var(--c-ink);
+    border: var(--bw) solid var(--c-line); border-radius: var(--r-l);
+    box-shadow: var(--shadow-3);
+  }
+  .t-dialog h2 { margin: 0 0 6px; font: 600 17px/1.3 var(--f-display); }
+  .t-dialog p { margin: 0 0 4px; color: var(--c-ink-2); white-space: pre-line; }
+  .t-dialog-body { display: grid; gap: 12px; margin-top: 14px; }
+  .t-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+  .t-dialog-actions .is-left { margin-right: auto; }
+
+  /* Animations off (the browser's setting) or Windows' "reduce motion": everything jumps to its end state. */
+  :root[data-anim="off"] *, :root[data-anim="off"] *::before, :root[data-anim="off"] *::after {
+    animation-duration: 1ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important; transition-delay: 0ms !important;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 1ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important;
+      transition-duration: 1ms !important; transition-delay: 0ms !important;
+    }
+  }
+}
