@@ -94,6 +94,7 @@ namespace IGYO
             suggestTimer.Tick += async (s, e) => await FetchSuggestionsAsync();
             blockedTimer.Tick += (s, e) => { blockedTimer.Stop(); MarkDirty(nav: true); };
             housekeepingTimer.Tick += (s, e) => Housekeeping();
+            fullScreenTop.Tick += (s, e) => WatchFullScreenTop();
 
             app.ThemeChanged += OnThemeChanged;
             app.SettingsChanged += OnSettingsChanged;
@@ -200,6 +201,7 @@ namespace IGYO
             EarlyViews.DropUnused();   // by now the first tab and the interface have taken theirs, if they could
             session = null;
             housekeepingTimer.Start();
+            UpdateSign();   // a question asked before the window was on screen
             if (!Settings.FirstRunDone && !IsPrivate)
             {
                 Settings.FirstRunDone = true;
@@ -237,6 +239,7 @@ namespace IGYO
             bookmarks.Changed -= OnBookmarksChanged;
             Favicons.Changed -= OnFaviconChanged;
             housekeepingTimer.Dispose();
+            fullScreenTop.Dispose();
             tearWatch.Dispose();
             heldWatch.Dispose();
             suggestTimer.Dispose();
@@ -253,6 +256,20 @@ namespace IGYO
             base.OnDpiChanged(e);
             insetsKnown = false;   // the interface reports its sizes again, in the new pixels
             LayoutViews();
+            UpdateSign();          // drawn again at the new size
+        }
+
+        // Claude's sign in the page's corner goes with the window (MainForm.Bridge.cs).
+        protected override void OnLocationChanged(EventArgs e)
+        {
+            base.OnLocationChanged(e);
+            PlaceSign();
+        }
+
+        protected override void OnVisibleChanged(EventArgs e)
+        {
+            base.OnVisibleChanged(e);
+            UpdateSign();   // a hidden window's owned windows stay on screen unless hidden too
         }
 
         bool isActive;   // this window is the one in front (the interface dims its frame when it isn't)
@@ -300,10 +317,12 @@ namespace IGYO
                 {
                     minimizedAt = DateTime.Now;
                     current?.Hide();   // nothing on screen to draw while minimized
+                    UpdateSign();      // (Claude's sign goes with the window)
                 }
                 return;
             }
-            if (minimizedAt != DateTime.MaxValue)
+            bool back = minimizedAt != DateTime.MaxValue;
+            if (back)
             {
                 minimizedAt = DateTime.MaxValue;
                 sleptWhileMinimized = false;
@@ -311,6 +330,7 @@ namespace IGYO
                 MarkDirty(tabs: true);
             }
             LayoutViews();
+            if (back) UpdateSign();    // Claude's sign comes back with the window
             PostWindow();
         }
 
@@ -427,6 +447,7 @@ namespace IGYO
             ContentHost.Bounds = new Rectangle(insets.Left, band + insets.Top,
                 Math.Max(0, client.Width - insets.Horizontal), Math.Max(0, client.Height - band - insets.Vertical));
             ApplyShape();
+            PlaceSign();
         }
 
         void ApplyShape()
@@ -1245,12 +1266,50 @@ namespace IGYO
             SetFullScreen(on);
         }
 
+        // In full screen the pointer at the very top of the screen brings down a round ✕ that leaves full screen, as in
+        // Chrome. The interface draws it; the page under the pointer has the mouse there, so the window watches where
+        // the pointer is and tells the interface. The ✕ goes again once the pointer is well below it.
+        readonly Timer fullScreenTop = new Timer { Interval = 100 };
+        bool exitShown;
+
+        void WatchFullScreenTop()   // (WindowFromPoint and GetAncestor: MainForm.Zoom.cs)
+        {
+            if (!fullScreen || IsDisposed || WindowState == FormWindowState.Minimized) { ShowExitButton(false); fullScreenTop.Stop(); return; }
+            var at = PointerNow();
+            var screen = RectangleToScreen(ClientRectangle);
+            bool over = at.X >= screen.Left && at.X < screen.Right && at.Y >= screen.Top && at.Y < screen.Bottom;
+            // (Only over this window: not when another window lies on top there.)
+            if (over && scriptedPointer == null) over = GetAncestor(WindowFromPoint(at), 2 /* GA_ROOT */) == Handle;
+            if (!over) { ShowExitButton(false); return; }
+            int y = at.Y - screen.Top;
+            if (!exitShown && y <= S(2)) ShowExitButton(true);
+            else if (exitShown && y > S(110)) ShowExitButton(false);
+        }
+
+        void ShowExitButton(bool on)
+        {
+            if (exitShown == on) return;
+            exitShown = on;
+            if (ui.Ready) Post("fsExit", new Dictionary<string, object> { ["show"] = on });
+        }
+
+        // The ✕: the window's full screen ends (F11's), or a page's own full screen (a video's), as Esc would end it.
+        void LeaveFullScreen()
+        {
+            ShowExitButton(false);
+            if (windowFullScreen) { ToggleWindowFullScreen(); return; }
+            if (!fullScreen) return;
+            try { _ = current?.Core?.ExecuteScriptAsync("document.fullscreenElement && document.exitFullscreen()"); } catch { }
+        }
+
         void SetFullScreen(bool on)
         {
             if (on == fullScreen) return;
             SuspendLayout();
             fullScreen = on;
             insetsKnown = false;
+            if (on) fullScreenTop.Start();
+            else { fullScreenTop.Stop(); ShowExitButton(false); }
             if (on)
             {
                 stateBeforeFullScreen = WindowState;
@@ -1571,7 +1630,6 @@ namespace IGYO
             windowStateSent = string.Join("|", WindowState_().Values);   // (what the interface was just given)
             tabsDirty = navDirty = bookmarksDirty = true;
             Flush();
-            PostAsk();   // a question that was waiting for an answer is shown again
             if (focusAddressWhenReady || (current != null && current.IsBlank && ContainsFocus))
             {
                 focusAddressWhenReady = false;
@@ -1601,6 +1659,7 @@ namespace IGYO
             }
             if (ui.Ready) Post("theme", new Dictionary<string, object> { ["theme"] = ThemeState() });
             Invalidate();
+            if (sign != null && sign.IsShown) UpdateSign();   // Claude's sign takes the new colors too
         }
 
         // The interface, New Tab pages and Settings are loaded again: they take their words when they load.
@@ -1609,6 +1668,7 @@ namespace IGYO
             foreach (var tab in tabs) tab.Rename();
             UpdateTitle();
             ui.Reload();
+            if (sign != null && sign.IsShown) UpdateSign();   // (and Claude's sign its words)
             foreach (var tab in tabs)
                 if (InternalPages.IsInternal(tab.Url) && tab.Core != null)
                     try { if (tab.Core.IsSuspended) tab.Core.Resume(); tab.Core.Reload(); } catch { }

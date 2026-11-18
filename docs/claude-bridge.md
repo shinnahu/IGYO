@@ -30,24 +30,29 @@ Nothing else is installed and no port is opened.
 
 ## What you see and control
 
-- **The program is named first.** The first time a program connects, IGYO shows a bar naming it (for
+- **The program is named first.** The first time a program connects, IGYO asks in the window, naming it (for
   example `claude.exe`), with **Allow this time**, **Always** and **Refuse**. "Always" remembers that
   program file; the list is in Settings, where you can remove it.
-- **Each site is asked about.** The first time a site is wanted, a bar says "Claude wants to read
+- **Each site is asked about.** The first time a site is wanted, IGYO asks "Claude wants to read
   *site*", with **Allow this time**, **Always** and **Never**. A site is a scheme plus a host
   (`https://mail.example.com`); another host, or `http` instead of `https`, is another site.
   "Allow this time" covers that tab for as long as it stays on that site. The request waits up to 90
   seconds for your answer; unanswered, Claude is told you have not answered.
-- **Acting is asked about apart.** The first time Claude wants to act on a site, a bar says "Claude wants
+- **Acting is asked about apart.** The first time Claude wants to act on a site, IGYO asks "Claude wants
   to act on *site*", with **Allow this time**, **Always** and **Decline**. Acting includes reading, so a
   site allowed for acting is also allowed for reading. Giving a page a file from the PC, or a picture
   Claude took, is asked about every time, naming the files and the site.
-- **The bars are IGYO's, not the page's.** They are drawn by the browser's interface over the page, so a
-  page can neither draw one nor press one. A bar in a window you are not using makes its taskbar button
-  flash; the window does not come forward.
-- **While Claude acts in a window**, a strip over the bottom of its page says so ("Claude is working in this
-  window"), naming the program, with **Stop Claude**: that cuts every connection at once (the same as Pause).
-  The tabs Claude opened are marked in the tab strip (a dashed ring around their icon).
+- **The questions are IGYO's, not the page's.** They stand in the bottom left corner of the page, in a small
+  window of IGYO's own over the browser window, so a page can neither draw one nor press one; resting the
+  pointer on a question shows what it means. A press in the first moment after a question appears does not
+  answer it. A question in a window you are not using makes its taskbar button flash; the window does not
+  come forward.
+- **While Claude acts in a window**, a sign in that same corner says so ("Claude is working in this
+  window."), with **Stop Claude**: that cuts every connection at once (the same as Pause). The tabs Claude
+  opened are marked in the tab strip (a dashed ring around their icon).
+- **Left out of recordings.** That corner window (questions, the sign, notices about Claude) is left out of
+  every picture taken of the screen: screen recorders such as OBS, screenshots, screen sharing (Windows 10
+  2004 or later). The person at the PC sees it; a recording of Claude at work does not.
 - **A mark on the toolbar** shows while the switch is on for the profile, and the tab being read is marked
   while it is read. The mark's menu shows what is connected, what the site in the current tab is set to
   (Ask before reading, Always allow reading, Always allow reading and acting, Never allow), **Pause:

@@ -149,7 +149,8 @@
     const node = el('div', 'tc-tab' + (firstTabs ? '' : ' is-entering'),
       '<span class="tc-tab-icon"></span><span class="tc-tab-index"></span><span class="tc-tab-title"></span>' +
       `<span class="tc-tab-audio" title="Playing sound">${icon('volume')}</span>` +
-      `<button class="tc-tab-close" type="button" tabindex="-1" aria-label="Close tab" title="Close tab (Ctrl+W)">${icon('close')}</button>`);
+      `<button class="tc-tab-close" type="button" tabindex="-1" aria-label="Close tab" title="Close tab (Ctrl+W)">${icon('close')}</button>` +
+      '<span class="tc-tab-reach" aria-hidden="true"></span>');   // (the screen's edges, below)
     node.setAttribute('role', 'tab');
     node.querySelector('.tc-tab-audio').title = tr('Playing sound');
     node.dataset.id = t.id;
@@ -248,7 +249,8 @@
     }
     for (const node of added) if (node !== activeNode) watchNew(node);
     updateEdges();
-    setTimeout(updateEdges, 450);   // again once new tabs have grown in and closed ones have gone
+    measureTabReach();
+    setTimeout(() => { updateEdges(); measureTabReach(); }, 450);   // again once new tabs have grown in and closed ones have gone
     const index = S.tabs.findIndex((t) => t.id === S.active);
     root.dataset.tabsN = String(S.tabs.length);
     setInfo('tabpos', `${two(index + 1)}/${two(S.tabs.length)}`);
@@ -1470,7 +1472,8 @@
     // On a folder the new one goes inside it; on a bookmark, beside it.
     items.push({ label: b.children ? tr('New folder inside…') : tr('New folder…'), icon: 'folder', run: () => Host.cmd('newBookmarkFolder', { id: b.id }) });
     items.push({ label: tr('Manage bookmarks…'), keys: 'Ctrl+Shift+O', run: () => Host.cmd('settings', { section: 'bookmarks' }) });
-    IGYO.menu.open({ at: { x, y }, items });
+    // (Over a folder's menu the bookmark is in, that menu stays open behind it: overlays.js, openContext.)
+    IGYO.menu.context({ at: { x, y }, items });
   }
 
   // Bookmarks that don't fit go behind the » button.
@@ -1556,7 +1559,27 @@
       max.title = w.maximized ? tr('Restore') : tr('Maximize');
       max.setAttribute('aria-label', max.title);
     }
+    if (!w.fullscreen) showExitButton(false);
     Layout.queue();
+  }
+
+  // ----- full screen: the way out at the top -----
+  // In full screen the pointer at the very top of the screen brings down a round ✕ that leaves full screen, as in
+  // Chrome. The page has the mouse there, not this interface, so the app watches the pointer and says when (fsExit).
+  const exitButton = el('button', 'tc-fsexit', icon('close'));
+  exitButton.type = 'button';
+  exitButton.hidden = true;
+  exitButton.dataset.hit = '16';
+  exitButton.addEventListener('click', () => { showExitButton(false); Host.cmd('exitFullScreen'); });
+  $('overlays').append(exitButton);
+
+  function showExitButton(on) {
+    on = !!on && root.hasAttribute('data-fullscreen');
+    if (exitButton.hidden === !on) return;
+    exitButton.title = tr('Exit full screen');
+    exitButton.setAttribute('aria-label', exitButton.title);
+    exitButton.hidden = !on;
+    Layout.now();   // its room becomes the interface's (or the page's again) at once
   }
 
   // ----- the screen's edges -----
@@ -1634,6 +1657,23 @@
   new ResizeObserver(measureEdgeReach).observe(toolbarEl);
   new MutationObserver(measureEdgeReach).observe(root, { attributes: true, attributeFilter: ['data-max', 'data-fullscreen'] });
 
+  // The tabs light up there too. Maximized, the strip's own room above each tab is the screen's top edge, and a press
+  // there already goes to the tab (above); so each tab reaches up over that room with a part that is not drawn
+  // (chrome.css, .tc-tab-reach), as far as the strip's edge, and the pointer thrown against the top of the screen is on
+  // the tab itself, lit up the way every kit lights a tab under the pointer. (In a list down the side: to the left.)
+  // Only that far: the reach stays inside the strip, so it never makes the strip scroll.
+  function measureTabReach() {
+    const vertical = stripIsVertical();
+    for (const node of tabEls.values()) {
+      const reach = Math.max(0, Math.floor(vertical ? node.offsetLeft : node.offsetTop)) + 'px';
+      if (node._reach === reach) continue;
+      node._reach = reach;
+      node.style.setProperty('--tab-reach', reach);
+    }
+  }
+  new ResizeObserver(measureTabReach).observe(tabsEl);
+  new MutationObserver(measureTabReach).observe(root, { attributes: true, attributeFilter: ['data-max', 'data-fullscreen', 'data-compact', 'data-kit', 'data-theme'] });
+
   // ----- settings, profile, theme -----
 
   function applySettings() {
@@ -1672,9 +1712,10 @@
     button.setAttribute('aria-label', button.title);
     for (const [id, node] of tabEls) node.classList.toggle('is-claude', reading.includes(id));
     markClaudeTabs();
-    showClaudeStrip(b.acting || '');
     if (was !== button.hidden) Layout.queue();
   }
+  // (That Claude is working in this window, and the questions it asks, are not drawn here: they stand in the page's
+  // bottom left corner in a window of the app's own, which screen recordings leave out. See ClaudeSign.cs.)
 
   // The tabs Claude opened for itself are marked, as long as they are open.
   function markClaudeTabs() {
@@ -1686,33 +1727,6 @@
       if (mine) node.dataset.claudeTip = tr('Opened by Claude');
       else delete node.dataset.claudeTip;
     }
-  }
-
-  // While Claude acts in this window, a strip over the bottom of the page says so, with a button that stops it at
-  // once (everything Claude was doing in IGYO is cut off, as with Pause in the Claude menu).
-  let claudeStrip = null;
-  function showClaudeStrip(program) {
-    if (!program) {
-      if (claudeStrip) { claudeStrip.parentElement.remove(); claudeStrip = null; Layout.queue(); }
-      return;
-    }
-    if (!claudeStrip) {
-      const wrap = el('div', 'tc-claudewrap');
-      claudeStrip = el('div', 'tc-claudestrip');
-      claudeStrip.dataset.hit = '10';
-      claudeStrip.setAttribute('role', 'status');
-      const dot = el('span', 'tc-claudestrip-dot');
-      const text = el('span', 'tc-claudestrip-text');
-      const stop = el('button', 't-btn is-s tc-claudestrip-stop');
-      stop.type = 'button';
-      stop.textContent = tr('Stop Claude');
-      stop.addEventListener('click', () => Host.cmd('claudeStop'));
-      claudeStrip.append(dot, text, stop);
-      wrap.append(claudeStrip);
-      $('overlays').append(wrap);
-      Layout.queue();
-    }
-    claudeStrip.querySelector('.tc-claudestrip-text').textContent = tr('Claude is working in this window ({0}). Leave it be meanwhile.', program);
   }
 
   // A theme arrives as its kit, options and effects; its colors and shapes are in /theme.css.
@@ -1744,6 +1758,7 @@
       delete link.dataset.themeLoading;
       link.id = 'theme-css';
       fitBookmarks();
+      measureTabReach();   // (a kit draws its tabs at its own height)
       Layout.queue();
     };
     link.addEventListener('load', done);
@@ -1761,6 +1776,6 @@
 
   Object.assign(IGYO, {
     Host, S, Layout, el, setInfo,
-    ui: { renderTabs, renderNav, renderBookmarks, applySettings, applyTheme, applyWindow, applyBridge, showHostMenu, requestMenu, focusAddress, pasteText, go, buttons, viewport: viewportEl, extensionClick, updateTools, renderZoom },
+    ui: { renderTabs, renderNav, renderBookmarks, applySettings, applyTheme, applyWindow, applyBridge, showHostMenu, requestMenu, focusAddress, pasteText, go, buttons, viewport: viewportEl, extensionClick, updateTools, renderZoom, showExitButton },
   });
 })();

@@ -257,7 +257,9 @@
       row.addEventListener('contextmenu', (event) => {
         event.preventDefault();
         event.stopPropagation();
-        if (item.context) item.context(event.clientX, event.clientY);
+        if (!item.context || item.disabled) return;
+        if (menu) { clearTimeout(menu.timer); setActive(panel, row); }   // (the line stays marked under its own menu)
+        item.context(event.clientX, event.clientY);
       });
       panel.append(row);
     }
@@ -297,7 +299,7 @@
     const item = row._item;
     if (row._dragged) { row._dragged = false; return; }   // the click that ends a drag chooses nothing
     if (!menu || !item || item.disabled) return;
-    if (item.children) { openSub(row, true); return; }
+    if (item.children) { if (!row.parentElement.classList.contains('is-context')) openSub(row, true); return; }
     if (item.slider) return;   // a slider is moved, not chosen: the menu stays open
     const options = menu.options;
     if (typeof item.switch === 'boolean') {
@@ -315,8 +317,12 @@
 
   function onMenuKey(event) {
     if (!menu) return;
-    const panel = menu.panels[menu.panels.length - 1];
+    const context = menu.context;
+    const panel = context ? context.panel : menu.panels[menu.panels.length - 1];
     const rows = rowsOf(panel);
+    // A line's own right-click menu over the menu: the arrows go through its lines, and Esc or Left closes only it.
+    if (context && (event.key === 'Escape' || event.key === 'ArrowLeft')) { event.preventDefault(); event.stopPropagation(); closeContext(); return; }
+    if (context && event.key === 'ArrowRight') { event.preventDefault(); event.stopPropagation(); return; }
     const at = rows.indexOf(panel._active);
     const stop = () => { event.preventDefault(); event.stopPropagation(); };
     if (panel._active && panel._active._step && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
@@ -352,31 +358,93 @@
     const items = (typeof options.items === 'function' ? options.items() : options.items) || [];
     const panel = buildPanel(items, 0);
     layer.append(panel);
-    menu = { layer, options, panels: [panel], previous, timer: 0 };
+    menu = { layer, options, panels: [panel], previous, timer: 0, context: null };
 
-    const w = panel.offsetWidth, h = panel.offsetHeight;
-    const W = window.innerWidth, H = window.innerHeight;
-    let x, y, fromX = '0%', fromY = '0%';
     if (options.anchor) {
+      const w = panel.offsetWidth, h = panel.offsetHeight;
+      const W = window.innerWidth, H = window.innerHeight;
       const r = options.anchor.getBoundingClientRect();
       const right = options.align === 'right' || r.left + w > W - 8;
-      x = right ? r.right - w : r.left;
-      y = r.bottom + 6;
-      fromX = right ? '100%' : '0%';
+      const x = right ? r.right - w : r.left;
+      let y = r.bottom + 6, fromY = '0%';
       if (y + h > H - 8 && r.top - 6 - h >= 8) { y = r.top - 6 - h; fromY = '100%'; }
+      panel.style.left = clamp(x, 8, Math.max(8, W - w - 8)) + 'px';
+      panel.style.top = clamp(y, 8, Math.max(8, H - h - 8)) + 'px';
+      panel.style.setProperty('--from-x', right ? '100%' : '0%');
+      panel.style.setProperty('--from-y', fromY);
       options.anchor.classList.add('is-open');
-    } else {
-      x = options.at.x;
-      y = options.at.y;
-      if (x + w > W - 8) { x = options.at.x - w; fromX = '100%'; }
-      if (y + h > H - 8) { y = Math.max(8, options.at.y - h); fromY = '100%'; }
-    }
+    } else placeAt(panel, options.at);
+    layer.whenShown(() => panel.focus({ preventScroll: true }));   // arrows, Enter and Esc then reach the menu
+    if (options.keyboard) setActive(panel, rowsOf(panel)[0]);
+  }
+
+  // A menu that opens where the mouse was pressed: down and to the right of it, or the other way where it would not fit.
+  function placeAt(panel, at) {
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    const W = window.innerWidth, H = window.innerHeight;
+    let x = at.x, y = at.y, fromX = '0%', fromY = '0%';
+    if (x + w > W - 8) { x = at.x - w; fromX = '100%'; }
+    if (y + h > H - 8) { y = Math.max(8, at.y - h); fromY = '100%'; }
     panel.style.left = clamp(x, 8, Math.max(8, W - w - 8)) + 'px';
     panel.style.top = clamp(y, 8, Math.max(8, H - h - 8)) + 'px';
     panel.style.setProperty('--from-x', fromX);
     panel.style.setProperty('--from-y', fromY);
-    layer.whenShown(() => panel.focus({ preventScroll: true }));   // arrows, Enter and Esc then reach the menu
+  }
+
+  // A line's own right-click menu (a bookmark's, in a folder's menu) opens over the menu that line is in, and that
+  // menu stays open behind it, as in other browsers. Esc, or a click on the menu behind, closes only the right-click
+  // menu; a right click on another line there opens that line's own instead; a click anywhere else closes both, and
+  // so does a choice made in it. With no menu open it is an ordinary menu.
+  function openContext(options) {
+    if (!menu) { openMenu(options); return; }
+    clearTimeout(menu.timer);
+    closeContext(true);
+    const items = (typeof options.items === 'function' ? options.items() : options.items) || [];
+    // Over the menu behind, so that it takes no pointer while this one is open (no line lights up, no folder opens).
+    const shield = el('div', 'tc-menu-shield');
+    const panel = buildPanel(items, menu.panels.length);
+    panel.classList.add('is-context');
+    const onMenuBehind = (x, y) => !!menu && menu.panels.some((p) => {
+      const r = p.getBoundingClientRect();
+      return x >= r.left && x < r.right && y >= r.top && y < r.bottom;
+    });
+    shield.addEventListener('pointerdown', (event) => {
+      if (event.button === 2) return;   // (a right click is handled as one: below)
+      event.preventDefault();
+      if (onMenuBehind(event.clientX, event.clientY)) closeContext();
+      else closeMenu();
+    });
+    shield.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      const x = event.clientX, y = event.clientY;
+      if (!onMenuBehind(x, y)) { closeMenu(); return; }
+      closeContext(true);
+      const under = document.elementFromPoint(x, y);
+      const row = under && under.closest ? under.closest('.t-menu-item') : null;
+      if (row && row._item && row._item.context && !row._item.disabled) {
+        setActive(row.parentElement, row);
+        row._item.context(x, y);
+      } else if (menu) {
+        const back = menu.panels[menu.panels.length - 1];
+        if (back) back.focus({ preventScroll: true });
+      }
+    });
+    menu.layer.append(shield, panel);
+    menu.context = { panel, shield };
+    placeAt(panel, options.at);
+    panel.focus({ preventScroll: true });   // arrows, Enter and Esc reach it
     if (options.keyboard) setActive(panel, rowsOf(panel)[0]);
+  }
+
+  function closeContext(quiet) {
+    const c = menu && menu.context;
+    if (!c) return;
+    menu.context = null;
+    c.shield.remove();
+    c.panel.remove();
+    if (quiet) return;
+    const back = menu.panels[menu.panels.length - 1];   // the keyboard goes back to the menu behind
+    if (back) back.focus({ preventScroll: true });
   }
 
   // ----- dialogs -----
@@ -637,61 +705,8 @@
     Layout.now();
   }
 
-  // ----- questions that wait for an answer -----
-  // The app asks them for the Claude bridge: "Claude wants to read example.com", "a program wants to connect".
-  // Unlike a notice, a question stays until it is answered or the app takes it back, and it sits at the top of
-  // the page's area. It is drawn here, in the interface's own view: a web page can neither show it nor press it.
-  // The page under it stays usable, and the keyboard is left where it was.
-
-  let ask = null;
-
-  function hideAsk(id, instant) {
-    const a = ask;
-    if (!a || (id != null && a.id !== id)) return;
-    ask = null;
-    const remove = () => { a.wrap.remove(); Layout.now(); };
-    if (instant || document.documentElement.dataset.anim === 'off') { remove(); return; }
-    a.box.classList.add('is-closing');
-    setTimeout(remove, 220);
-  }
-
-  function showAsk(message) {
-    hideAsk(null, true);
-    for (const old of overlays.querySelectorAll('.tc-askwrap')) old.remove();   // one that was still fading out
-    const wrap = el('div', 'tc-askwrap');
-    const box = el('div', 'tc-notice tc-ask');
-    box.dataset.hit = '30';
-    box.setAttribute('role', 'alert');
-    if (message.tip) box.title = message.tip;
-    const text = el('span', 'tc-notice-text');
-    text.textContent = message.text || '';
-    box.append(text);
-    // A click that was on its way to the page when the question appeared doesn't answer it.
-    const armedAt = performance.now() + 600;
-    const answer = (choice) => {
-      if (performance.now() < armedAt) return;
-      hideAsk(message.id, false);
-      Host.post({ t: 'ask', id: message.id, choice });
-    };
-    for (const b of message.buttons || []) {
-      const button = el('button', 'tc-notice-action');
-      button.type = 'button';
-      button.dataset.choice = b.id;
-      button.textContent = b.label;
-      button.addEventListener('click', () => answer(b.id));
-      box.append(button);
-    }
-    const close = el('button', 't-iconbtn tc-notice-close', icon('close'));
-    close.type = 'button';
-    close.title = tr('Not now');
-    close.setAttribute('aria-label', tr('Not now'));
-    close.addEventListener('click', () => answer(''));
-    box.append(close);
-    wrap.append(box);
-    overlays.append(wrap);
-    ask = { id: message.id, wrap, box };
-    Layout.now();
-  }
+  // (The questions the Claude bridge puts to the person are not drawn here: they stand in the page's bottom left
+  // corner, in a window of the app's own that screen recordings leave out. See ClaudeSign.cs.)
 
   // ----- suggestions (Google's predictions for what is being typed; nothing from your history) -----
 
@@ -1186,6 +1201,8 @@
   IGYO.picker = { show: showPicker, close: () => closePicker(null), get isOpen() { return !!picker; } };
   IGYO.menu = {
     open: openMenu, close: closeMenu, get isOpen() { return !!menu; },
+    // A line's own right-click menu: over the open menu (which stays), or an ordinary menu when none is open.
+    context: openContext, get hasContext() { return !!(menu && menu.context); },
     // For a bookmark being dragged over open menus (chrome.js): the panels on show, the first one first; a folder's
     // line held under the mouse opens its own menu, and a line elsewhere closes the ones opened deeper.
     get panels() { return menu ? menu.panels.slice() : []; },
@@ -1194,7 +1211,6 @@
   };
   IGYO.dialog = { show: showDialog, get isOpen() { return !!dialog; } };
   IGYO.notice = { show: showNotice, hide: hideNotice };
-  IGYO.ask = { show: showAsk, hide: hideAsk };
   IGYO.zoom = { show: showZoom, hide: hideZoom, toggle: toggleZoom, update: updateZoom, get isOpen() { return !!zoom; } };
   IGYO.suggest = suggest;
 })();

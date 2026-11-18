@@ -50,7 +50,9 @@
   height: var(--tab-h); padding: 0 5px 0 0; gap: 8px; border-radius: 0;
   background: color-mix(in oklab, var(--c-frame-ink) 8%, transparent);
   color: color-mix(in oklab, var(--c-frame-ink) 72%, transparent);
-  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%);
+  /* the corner cut; above the tab the cut lets through its undrawn reach to the screen's edge when maximized
+     (Ui\chrome.css, .tc-tab-reach), so the tab lights up there too */
+  clip-path: polygon(0 calc(var(--tab-reach, 0px) * -1 - 6px), 100% calc(var(--tab-reach, 0px) * -1 - 6px), 100% 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%);
 }
 .tc-tab + .tc-tab::before { display: none; }
 .tc-tab:hover { background: color-mix(in oklab, var(--c-frame-ink) 15%, transparent); }

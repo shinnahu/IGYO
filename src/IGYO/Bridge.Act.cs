@@ -70,12 +70,22 @@ namespace IGYO
             Notify(true);
         }
 
-        // The strip's button: everything stops at once (the same as Pause in the Claude menu).
+        // The button on the sign in the page's corner: everything stops at once (the same as Pause in the Claude menu).
         public void StopActing()
         {
             actingIn.Clear();
             SetPaused(true);
         }
+
+#if DEBUG
+        // Test builds: as if the program named so had just acted in the window (its sign shows; Stop works as usual).
+        public void ActingForCheck(MainForm window, string program)
+        {
+            bool fresh = ActingIn(window) == null;
+            actingIn[window] = (DateTime.UtcNow, program);
+            if (fresh) Notify();
+        }
+#endif
 
         void ForgetTab(BrowserTab tab)
         {

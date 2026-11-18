@@ -8,14 +8,16 @@ using System.Windows.Forms;
 
 namespace IGYO
 {
-    // The window's part in the Claude bridge: the questions it puts to the person, the mark on the toolbar and
-    // that mark's menu. What may be read is decided in Bridge; this only shows and asks.
+    // The window's part in the Claude bridge: the questions it puts to the person, the sign in the page's corner
+    // (ClaudeSign), the mark on the toolbar and that mark's menu. What may be read is decided in Bridge; this only
+    // shows and asks.
     sealed partial class MainForm
     {
         sealed class AskBar
         {
             public int Id;
-            public Dictionary<string, object> Spec;
+            public string Text, Tip;
+            public (string id, string label)[] Buttons;
             public HashSet<string> Choices;
             public object Tag;
             public Timer Life;
@@ -31,19 +33,13 @@ namespace IGYO
         // When this window was last the one in front: "the tab in front" means the front tab of the latest one.
         public DateTime LastActive { get; private set; } = DateTime.UtcNow;
 
-        // Puts a question over the page and waits for the answer: the id of the button pressed, or null when it was
-        // closed, taken back, or left unanswered for too long. The interface draws it, in a view of its own that no
-        // web page can reach, so a page can neither fake the question nor press its buttons. The page stays usable.
+        // Puts a question in the page's corner and waits for the answer: the id of the button pressed, or null when it
+        // was closed, taken back, or left unanswered for too long. It is drawn in the sign (ClaudeSign), a window of
+        // IGYO's own that no web page can reach, so a page can neither fake the question nor press its buttons. The
+        // page stays usable.
         public Task<string> AskAsync(string text, string tip, (string id, string label)[] buttons, object tag, int seconds)
         {
-            var bar = new AskBar { Id = ++askSeq, Tag = tag, Choices = new HashSet<string>(buttons.Select(b => b.id)) };
-            bar.Spec = new Dictionary<string, object>
-            {
-                ["id"] = bar.Id,
-                ["text"] = text,
-                ["tip"] = tip ?? "",
-                ["buttons"] = buttons.Select(b => new Dictionary<string, object> { ["id"] = b.id, ["label"] = b.label }).ToList(),
-            };
+            var bar = new AskBar { Id = ++askSeq, Text = text ?? "", Tip = tip ?? "", Buttons = buttons, Tag = tag, Choices = new HashSet<string>(buttons.Select(b => b.id)) };
             bar.Life = new Timer { Interval = Math.Max(5, seconds) * 1000 };
             bar.Life.Tick += (s, e) => FinishAsk(bar, null);
             askBars.Add(bar);
@@ -51,13 +47,13 @@ namespace IGYO
             return bar.Answer.Task;
         }
 
-        // Shows the question whose turn it is (again, when the interface has just loaded anew).
+        // Shows the question whose turn it is.
         void PostAsk()
         {
-            if (askBars.Count == 0 || !ui.Ready || IsDisposed) return;
+            if (askBars.Count == 0 || IsDisposed) return;
             var bar = askBars[0];
             if (!bar.Life.Enabled) bar.Life.Start();   // its time runs from when it is first shown
-            Post("ask", new Dictionary<string, object>(bar.Spec));
+            UpdateSign();
         }
 
         void FinishAsk(AskBar bar, string choice)
@@ -69,8 +65,8 @@ namespace IGYO
             bar.Life.Dispose();
             if (index == 0 && !IsDisposed)
             {
-                Post("askDone", new Dictionary<string, object> { ["id"] = bar.Id });
-                PostAsk();
+                if (askBars.Count > 0) PostAsk();
+                else UpdateSign();
             }
             bar.Answer.TrySetResult(choice);
         }
@@ -118,7 +114,6 @@ namespace IGYO
                 ["paused"] = bridge.Paused,
                 ["connected"] = on ? bridge.ConnectedNames() : new List<string>(),
                 ["reading"] = on ? tabs.Where(t => bridge.IsReading(t.Id)).Select(t => t.Id).ToList() : new List<int>(),
-                ["acting"] = on ? bridge.ActingIn(this) ?? "" : "",   // the program acting in this window now: the strip shows it
                 ["own"] = on ? tabs.Where(t => bridge.IsClaudesTab(t)).Select(t => t.Id).ToList() : new List<int>(),   // the tabs Claude opened
             };
         }
@@ -127,6 +122,7 @@ namespace IGYO
         {
             if (IsDisposed) return;
             if (ui.Ready) Post("bridge", BridgeState());
+            UpdateSign();   // Claude started or stopped working in this window
             if (lists) RefreshSettingsPages();
         }
 
@@ -134,6 +130,124 @@ namespace IGYO
         {
             foreach (var bar in askBars.ToList()) FinishAsk(bar, null);
             foreach (var tab in tabs) app.Bridge.TabClosed(tab);
+            CloseClaudeNotice();
+            sign?.Dispose();
+            sign = null;
+        }
+
+        // ----- the sign in the page's bottom left corner (ClaudeSign) -----
+        // From the top: a notice about Claude, the question waiting for an answer, and, in the corner itself, that
+        // Claude is working in this window. Screen recordings and screenshots leave it out (see ClaudeSign).
+
+        ClaudeSign sign;
+
+        sealed class SignNotice
+        {
+            public int Id;
+            public string Text, Action;
+            public Action Run;
+            public Timer Life;
+        }
+        SignNotice claudeNotice;
+        int claudeNoticeSeq;
+
+        // A notice about Claude (a recording it saved, a change to its switches that needs a restart): in the corner
+        // with Claude's other signs, for a while (longer while the pointer is on it).
+        public void ShowClaudeNotice(string text, string linkText = null, Action action = null, int ms = 0)
+        {
+            if (IsDisposed) return;
+            CloseClaudeNotice(false);
+            var n = new SignNotice { Id = ++claudeNoticeSeq, Text = text ?? "", Action = action == null ? null : linkText, Run = action };
+            n.Life = new Timer { Interval = ms > 0 ? ms : action != null ? 7000 : 4500 };
+            n.Life.Tick += (s, e) =>
+            {
+                if (sign != null && sign.IsHovered("notice:" + n.Id)) { n.Life.Interval = 2500; return; }
+                if (claudeNotice == n) CloseClaudeNotice();
+            };
+            claudeNotice = n;
+            n.Life.Start();
+            UpdateSign();
+        }
+
+        void CloseClaudeNotice(bool update = true)
+        {
+            var n = claudeNotice;
+            if (n == null) return;
+            claudeNotice = null;
+            n.Life.Stop();
+            n.Life.Dispose();
+            if (update) UpdateSign();
+        }
+
+        // What the sign shows now; nothing while the window is minimized or hidden (it comes back with the window).
+        void UpdateSign()
+        {
+            if (IsDisposed || !IsHandleCreated) return;
+            var cards = new List<ClaudeSign.Card>();
+            if (claudeNotice != null)
+                cards.Add(new ClaudeSign.Card
+                {
+                    Key = "notice:" + claudeNotice.Id,
+                    Text = claudeNotice.Text,
+                    Closable = true,
+                    Buttons = claudeNotice.Action == null ? new (string, string)[0] : new[] { ("go", claudeNotice.Action) },
+                });
+            if (askBars.Count > 0)
+            {
+                var bar = askBars[0];
+                cards.Add(new ClaudeSign.Card { Key = "ask:" + bar.Id, Text = bar.Text, Detail = bar.Tip, Strong = true, Closable = true, Armed = true, Buttons = bar.Buttons });
+            }
+            bool on = !IsPrivate && Profile.ClaudeBridge;
+            if (on && app.Bridge.ActingIn(this) != null)
+                cards.Add(new ClaudeSign.Card { Key = "acting", Text = L.T("Claude is working in this window."), Busy = true, Buttons = new[] { ("stop", L.T("Stop Claude")) } });
+            if (cards.Count == 0 || !Visible || WindowState == FormWindowState.Minimized)
+            {
+                sign?.Hide();
+                return;
+            }
+            if (sign == null)
+            {
+                sign = new ClaudeSign(this);
+                sign.Pressed += OnSignPressed;
+            }
+            sign.Show(cards, PageOnScreen(), CurrentTheme, DeviceDpi);
+        }
+
+        // The page's area on the screen: the sign stands in its bottom left corner.
+        Rectangle PageOnScreen()
+        {
+            try
+            {
+                var r = ContentHost.IsHandleCreated ? ContentHost.RectangleToScreen(ContentHost.ClientRectangle) : Rectangle.Empty;
+                return r.Width > 0 && r.Height > 0 ? r : RectangleToScreen(ClientRectangle);
+            }
+            catch { return Bounds; }
+        }
+
+        // The window moved, changed size or laid itself out anew: the sign goes with the page.
+        void PlaceSign()
+        {
+            if (sign != null && sign.IsShown && !IsDisposed) sign.Place(PageOnScreen(), DeviceDpi);
+        }
+
+        void OnSignPressed(string card, string button)
+        {
+            if (card == "acting")
+            {
+                if (button == "stop") app.Bridge.StopActing();
+                return;
+            }
+            if (card.StartsWith("ask:", StringComparison.Ordinal))
+            {
+                if (int.TryParse(card.Substring(4), out int id)) OnAskAnswer(id, button);   // "" (the ✕): not now
+                return;
+            }
+            if (card.StartsWith("notice:", StringComparison.Ordinal) && claudeNotice != null && card == "notice:" + claudeNotice.Id)
+            {
+                var run = button == "go" ? claudeNotice.Run : null;
+                CloseClaudeNotice();
+                run?.Invoke();
+            }
         }
 
         // ----- what the bridge does to the window when Claude acts (Bridge.Act.cs) -----
@@ -183,11 +297,11 @@ namespace IGYO
             return new Size(w, h);
         }
 
-        // A recording Claude saved: said in the window, with a way to see it.
+        // A recording Claude saved: said in the window's corner, with a way to see it.
         public void ShowSavedRecording(string file)
         {
             if (IsDisposed) return;
-            ShowNotice(L.T("Claude saved a recording: {0}", System.IO.Path.GetFileName(file)), L.T("Show in folder"), () => ShowInExplorer(file), 12000);
+            ShowClaudeNotice(L.T("Claude saved a recording: {0}", System.IO.Path.GetFileName(file)), L.T("Show in folder"), () => ShowInExplorer(file), 12000);
         }
 
         IEnumerable<MenuEntry> ClaudeItems()

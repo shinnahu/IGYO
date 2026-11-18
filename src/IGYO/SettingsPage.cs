@@ -431,7 +431,7 @@ namespace IGYO
                     app.Bridge.SetActing(owner.Profile, Json.Get(args, "on") is bool act && act);
                     // A window covered by others is only drawn (and so can only be pictured) when the engine was started that way.
                     if (owner.Profile.ClaudeAct && !BrowserEngine.DrawCovered)
-                        owner.ShowNotice(L.T("Claude can take pictures of a window that other windows cover from IGYO's next start on."), L.T("Restart now"), () => app.Restart(owner), 16000);
+                        owner.ShowClaudeNotice(L.T("Claude can take pictures of a window that other windows cover from IGYO's next start on."), L.T("Restart now"), () => app.Restart(owner), 16000);
                     Answer(Ok);
                     return;
                 case "bridge/site":

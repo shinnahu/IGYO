@@ -120,6 +120,14 @@
     transition: opacity var(--t-1) var(--ease);
   }
   .tc-tab.is-active::before, .tc-tab:hover::before, .tc-tab.is-active + .tc-tab::before, .tc-tab:hover + .tc-tab::before { opacity: 0; }
+  /* Maximized, a tab reaches up over the strip's room above it, to the screen's top edge, with a part that isn't drawn
+     (how far: chrome.js, measureTabReach), so the pointer thrown against the top of the screen is on the tab and
+     lights it up, as in other browsers. (In a list down the side: to its left.) It reaches a little past the strip's
+     edge, so a tab a kit tilts or lifts still meets the very first row of pixels; the strip cuts off the rest (and,
+     that side being where the strip starts, never scrolls for it). */
+  .tc-tab-reach { display: none; position: absolute; left: 0; right: 0; bottom: 100%; height: calc(var(--tab-reach, 0px) + 6px); }
+  :root[data-max]:not([data-fullscreen]) .tc-tab-reach { display: block; }
+  .tc-tabs[data-axis="y"] .tc-tab-reach { left: auto; right: 100%; top: 0; bottom: 0; width: calc(var(--tab-reach, 0px) + 6px); height: auto; }
 
   .tc-tab-icon { position: relative; display: grid; place-items: center; width: 16px; height: 16px; flex: none; }
   .tc-tab-icon img { width: 16px; height: 16px; border-radius: 3px; }
@@ -373,6 +381,7 @@
 
   .tc-layer { position: absolute; inset: 0; }
   .tc-scrim { position: absolute; inset: 0; }
+  .tc-menu-shield { position: absolute; inset: 0; }   /* over a menu while a line's own right-click menu is open on it */
   .tc-layer.is-dim .tc-scrim { background: var(--c-scrim); animation: tc-fade var(--t-2) var(--ease) both; }
   .tc-layer.is-closing { pointer-events: none; }
   .tc-layer.is-closing .tc-scrim { animation: tc-fade var(--t-1) var(--ease) reverse both; }
@@ -580,25 +589,21 @@
   .tc-notice-close { flex: none; width: 28px; height: 28px; }
   .tc-notice-close .i { width: 13px; height: 13px; }
 
-  /* questions that wait for an answer (the Claude bridge asking to read a site): a notice that stays, placed at
-     the top of the page's area. It is drawn as a notice so every kit dresses it the way it dresses notices. */
-  #overlays > .tc-askwrap {
-    position: absolute; pointer-events: none;
-    left: var(--view-x, 0px); width: var(--view-w, 100vw);
-    top: calc(var(--view-y, 0px) + 14px);
-    display: flex; justify-content: center; padding: 0 16px;
+  /* Full screen: the round ✕ that comes down from the top when the pointer reaches it (chrome.js, "the way out"). */
+  .tc-fsexit {
+    position: absolute; z-index: 5; top: 16px; left: 50%; translate: -50% 0;
+    display: grid; place-items: center;
+    width: 46px; height: 46px; padding: 0; border: var(--bw) solid var(--c-line); border-radius: 50%;
+    background: color-mix(in oklab, var(--c-surface) 94%, transparent); color: var(--c-ink);
+    box-shadow: var(--shadow-3);
+    animation: tc-fsexit-in var(--t-2) var(--ease) both;
+    transition: background var(--t-1) var(--ease);
   }
-  /* One row: the text takes what the buttons leave and breaks into lines inside its own box when it is long.
-     (A wrapping row is measured by the engine without the gaps between its parts, so the bar came out too narrow
-     for its own buttons and the close button dropped to a second row.) Only in a narrow window do the buttons
-     go under the text, and then the bar takes the whole width so nothing depends on that measuring. */
-  .tc-ask { flex-wrap: nowrap; max-width: min(780px, 100%); }
-  .tc-ask .tc-notice-text { flex: 1 1 auto; min-width: 0; white-space: normal; overflow: visible; overflow-wrap: anywhere; font-weight: 600; }
-  @media (max-width: 640px) {
-    .tc-ask { flex-wrap: wrap; row-gap: 6px; width: 100%; }
-    .tc-ask .tc-notice-text { flex-basis: 100%; }
-    .tc-ask .tc-notice-close { margin-left: auto; }
-  }
+  .tc-fsexit[hidden] { display: none; }
+  .tc-fsexit:hover { background: color-mix(in oklab, var(--c-surface), var(--c-ink) 12%); }
+  .tc-fsexit:active { background: color-mix(in oklab, var(--c-surface), var(--c-ink) 20%); }
+  .tc-fsexit .i { width: 18px; height: 18px; stroke-width: 2; }
+  @keyframes tc-fsexit-in { from { opacity: 0; transform: translateY(-64px); } }
 
   /* the Claude mark on the toolbar: a dot while a Claude app is connected, beating while a page is being read;
      the tab being read gets a ring around its icon */
@@ -613,24 +618,8 @@
   /* a tab Claude opened for itself: marked for as long as it is open */
   .tc-tab.is-claude-own .tc-tab-icon { outline: 2px dashed var(--c-accent-2, var(--c-accent)); outline-offset: 2px; border-radius: 4px; }
   .tc-tab.is-claude-own.is-claude .tc-tab-icon { outline-style: solid; }
-
-  /* While Claude acts in this window: a strip over the bottom of the page, with a button that stops it. */
-  #overlays > .tc-claudewrap {
-    position: absolute; z-index: 4; pointer-events: none;
-    left: var(--view-x, 0px); width: var(--view-w, 100vw); bottom: 18px;
-    display: flex; justify-content: center; padding: 0 16px;
-  }
-  .tc-claudestrip {
-    pointer-events: auto; max-width: 640px; min-width: 0;
-    display: flex; align-items: center; gap: 10px;
-    padding: 7px 8px 7px 14px; border-radius: var(--r-pill);
-    background: var(--c-surface); color: var(--c-ink); font-size: 12.5px;
-    box-shadow: var(--shadow-3), 0 0 0 2px var(--c-accent-2, var(--c-accent));
-    animation: tc-pop var(--t-2) var(--ease) both;
-  }
-  .tc-claudestrip-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--c-accent-2, var(--c-accent)); animation: tc-claude-beat 900ms var(--ease) infinite alternate; }
-  .tc-claudestrip-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .tc-claudestrip-stop { flex: none; }
+  /* (That Claude is working in this window, and its questions, stand in the page's corner in a window of the app's
+     own, which screen recordings leave out: ClaudeSign.cs.) */
 
   /* dialogs */
   .tc-dialog { left: 50%; top: 50%; translate: -50% -50%; --from-x: 50%; --from-y: 50%; }

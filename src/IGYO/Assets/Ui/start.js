@@ -17,13 +17,14 @@
     ui.applyBridge();
     Layout.queue();
   });
-  // The Claude bridge: its mark on the toolbar, and the questions the app asks for it (they stay until answered).
+  // The Claude bridge: its mark on the toolbar. (Its questions, and that Claude is working in the window, stand in
+  // the page's corner in a window of the app's own: ClaudeSign.cs.)
   Host.on('bridge', (m) => {
     S.bridge = m;
     ui.applyBridge();
   });
-  Host.on('ask', (m) => T.ask.show(m));
-  Host.on('askDone', (m) => T.ask.hide(m.id));
+  // In full screen, the pointer at the very top of the screen: the ✕ that leaves full screen comes down (or goes).
+  Host.on('fsExit', (m) => ui.showExitButton(!!m.show));
   Host.on('tabs', (m) => {
     S.tabs = m.list || [];
     S.active = m.active || 0;

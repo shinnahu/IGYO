@@ -541,7 +541,7 @@
       // Acting: a second switch, only with the first one on. Each site is still asked about, apart from reading.
       const act = toggle(claude, {
         title: tr('Let Claude act in this profile'),
-        desc: tr('Claude can then open tabs of its own here, and, on the sites you allow for acting, click, type, fill in forms and run scripts, through the browser engine: your mouse and keyboard are not touched, and the window is not brought forward. A strip in the window shows while it acts, with a button that stops it. It never types into password, card or code boxes.'),
+        desc: tr('Claude can then open tabs of its own here, and, on the sites you allow for acting, click, type, fill in forms and run scripts, through the browser engine: your mouse and keyboard are not touched, and the window is not brought forward. While it acts, a sign in the corner of the page says so, with a button that stops it; screen recordings leave the sign out. It never types into password, card or code boxes.'),
       });
       act.input.addEventListener('change', async () => {
         const on = act.input.checked;

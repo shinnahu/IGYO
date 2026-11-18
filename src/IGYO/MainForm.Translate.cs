@@ -92,6 +92,7 @@ namespace IGYO
         public void OnPageContextMenu(BrowserTab tab, CoreWebView2 core, CoreWebView2ContextMenuRequestedEventArgs e)
         {
             AddOpenImage(tab, core, e);
+            AddLens(tab, core, e);   // "Search image with Google Lens" (MainForm.Lens.cs)
             try
             {
                 var target = e.ContextMenuTarget;

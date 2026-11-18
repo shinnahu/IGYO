@@ -108,18 +108,12 @@
 .tc-tabstrip { align-items: flex-end; gap: 0; padding-left: 0; background: transparent; }
 .tc-tabs { align-items: flex-end; gap: 1px; padding: 0 11px; }   /* (room for the first and last tab's feet) */
 .tc-tab {
-  height: calc(var(--strip-h) - 7px); padding-left: 19px;
+  height: calc(var(--strip-h) - 7px);
   border-radius: 9px 9px 0 0;
   color: color-mix(in oklab, var(--c-frame-ink) 78%, transparent);
 }
 .tc-tab:hover { background: color-mix(in oklab, var(--c-ink) 6%, transparent); color: var(--c-frame-ink); box-shadow: none; }
-.tc-tab.is-active {
-  background:
-    radial-gradient(circle 3.4px at 10px 50%, var(--c-accent) 72%, transparent 100%),          /* its lamp: one small round lit thing */
-    var(--sp-bar);
-  color: var(--c-ink);
-  box-shadow: none;
-}
+.tc-tab.is-active { background: var(--sp-bar); color: var(--c-ink); box-shadow: none; }   /* (nothing lit on it) */
 /* between tabs at rest, a hairline */
 .tc-tab + .tc-tab::before { left: -1px; top: 30%; bottom: 26%; width: 1px; background: color-mix(in oklab, var(--c-frame-ink) 15%, transparent); }
 /* Where the tab on show runs into the bar: a curved foot on each side, of the bar's own tone (a quarter disc cut
@@ -221,7 +215,7 @@
 
 /* ----- panes: menus, dialogs, and the small things that float ----- */
 
-.t-menu, .t-dialog, .tc-suggest, .tc-zoom, .tc-notice, .tc-translate, .tc-picker-lens, .tc-claudestrip {
+.t-menu, .t-dialog, .tc-suggest, .tc-zoom, .tc-notice, .tc-translate, .tc-picker-lens, .tc-fsexit {
   border: 0; background: var(--sp-pane); backdrop-filter: var(--sp-frost);
 }
 .t-menu { padding: 6px; border-radius: calc(var(--r-m) + 2px); box-shadow: var(--sp-raised), var(--shadow-3); }
@@ -257,8 +251,8 @@
   box-shadow: var(--sp-lcd-bezel);
 }
 .tc-notice-action:hover, #toast-action:hover { background: var(--sp-lcd-on); box-shadow: var(--sp-lcd-bezel); }
-.tc-claudestrip { box-shadow: var(--sp-raised), var(--shadow-3), 0 0 0 1px var(--c-accent-2), 0 0 18px -4px var(--c-accent-2); }
-.tc-claudestrip-dot { box-shadow: 0 0 8px var(--c-accent-2); }
+.tc-fsexit { box-shadow: var(--sp-raised), var(--shadow-3); }
+.tc-fsexit:hover { background: linear-gradient(var(--sp-touch), var(--sp-touch)), var(--sp-pane); }
 .tc-drop-line { box-shadow: 0 0 8px var(--sp-lit); }
 .tc-bm.is-drop, .t-menu-item.is-drop { background: var(--sp-touch); box-shadow: inset 0 0 0 1px var(--c-accent), 0 0 12px -3px var(--sp-lit); }
 

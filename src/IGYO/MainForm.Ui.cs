@@ -225,9 +225,9 @@ namespace IGYO
                     break;
                 }
                 case "toggleBookmarksBar": ToggleBookmarksBar(); break;
-                case "claudeStop": app.Bridge.StopActing(); break;   // the strip shown while Claude acts in this window
 
                 // window
+                case "exitFullScreen": LeaveFullScreen(); break;   // the ✕ that comes down at the top in full screen
                 case "win":
                     switch (Json.Str(m, "action"))
                     {
@@ -255,6 +255,31 @@ namespace IGYO
                     break;
                 // Test builds only: IGYO restarts itself, as it does after a change that needs the engine started anew.
                 case "devRestart": app.Restart(this); break;
+                // Test builds only: Claude's sign in the page's corner (a window that is never shown cannot be clicked).
+                // devActing: as if the program named had just acted here. devAsk: a question as the bridge puts one
+                // (its answer is written to debug-sign-answers.txt). devClaudeNotice: a notice about Claude.
+                // devSign: a press on a card's button (button "" is its ✕), or with hover: the pointer on the card.
+                case "devActing": app.Bridge.ActingForCheck(this, Json.Str(m, "program") ?? "check.exe"); break;
+                case "devAsk":
+                {
+                    var asked = AskAsync(Json.Str(m, "text") ?? "", Json.Str(m, "tip") ?? "",
+                        Json.Arr(Json.Get(m, "buttons")).Select(b => Json.Obj(b)).Where(b => b != null).Select(b => (Json.Str(b, "id") ?? "", Json.Str(b, "label") ?? "")).ToArray(),
+                        null, Math.Max(5, Int(m, "seconds")));
+                    var label = Json.Str(m, "text") ?? "";
+                    _ = asked.ContinueWith(t => { try { File.AppendAllText(Path.Combine(AppPaths.DataDir, "debug-sign-answers.txt"), label + " => " + (t.Result ?? "(none)") + "\r\n"); } catch { } });
+                    break;
+                }
+                case "devClaudeNotice":
+                    ShowClaudeNotice(Json.Str(m, "text") ?? "", Json.Str(m, "action"),
+                        Json.Str(m, "action") == null ? (Action)null : () => { try { File.AppendAllText(Path.Combine(AppPaths.DataDir, "debug-sign-answers.txt"), "notice action\r\n"); } catch { } }, Int(m, "ms"));
+                    break;
+                case "devSign":
+                    if (sign != null)
+                    {
+                        if (Flag(m, "hover")) sign.PointerForCheck(Json.Str(m, "card") ?? "", Json.Str(m, "button"));
+                        else sign.PressForCheck(Json.Str(m, "card") ?? "", Json.Str(m, "button") ?? "");
+                    }
+                    break;
 #endif
             }
         }

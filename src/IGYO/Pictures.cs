@@ -171,6 +171,64 @@ namespace IGYO
             catch { return null; }
         }
 
+        // A picture as it is sent to a picture search: JPEG, no larger than maxSide on its long side, anything see-through
+        // laid on white. A JPEG or PNG that is small enough already goes as it is (null bytes then; width and height are
+        // still given). Null and zero sizes when Windows can't read the picture (WebP, AVIF, SVG): it goes as it is.
+        public static byte[] ForSearch(byte[] picture, int maxSide, out int width, out int height, out bool asIs)
+        {
+            width = height = 0;
+            asIs = false;
+            try
+            {
+                using (var stream = new MemoryStream(picture))
+                using (var image = Image.FromStream(stream, false, false))
+                {
+                    width = image.Width;
+                    height = image.Height;
+                    bool plain = image.RawFormat.Guid == ImageFormat.Jpeg.Guid || image.RawFormat.Guid == ImageFormat.Png.Guid;
+                    if (plain && width <= maxSide && height <= maxSide && picture.Length <= 3 * 1024 * 1024) { asIs = true; return null; }
+                    double k = Math.Min(1.0, (double)maxSide / Math.Max(width, height));
+                    int w = Math.Max(1, (int)Math.Round(width * k)), h = Math.Max(1, (int)Math.Round(height * k));
+                    using (var bmp = new Bitmap(w, h, PixelFormat.Format24bppRgb))
+                    {
+                        using (var g = Graphics.FromImage(bmp))
+                        {
+                            g.Clear(Color.White);
+                            HighQuality(g);
+                            Draw(g, image, new Rectangle(0, 0, w, h), new Rectangle(0, 0, image.Width, image.Height));
+                        }
+                        using (var output = new MemoryStream())
+                        {
+                            var codec = ImageCodecInfo.GetImageEncoders().First(c => c.FormatID == ImageFormat.Jpeg.Guid);
+                            using (var parameters = new EncoderParameters(1))
+                            {
+                                parameters.Param[0] = new EncoderParameter(Encoder.Quality, 90L);
+                                bmp.Save(output, codec, parameters);
+                            }
+                            return output.ToArray();
+                        }
+                    }
+                }
+            }
+            catch { width = height = 0; return null; }
+        }
+
+        // What kind of picture these bytes are, by their first bytes ("" when none of the usual kinds).
+        public static string TypeOf(byte[] b)
+        {
+            if (b == null || b.Length < 12) return "";
+            if (b[0] == 0xFF && b[1] == 0xD8 && b[2] == 0xFF) return "image/jpeg";
+            if (b[0] == 0x89 && b[1] == 0x50 && b[2] == 0x4E && b[3] == 0x47) return "image/png";
+            if (b[0] == 0x47 && b[1] == 0x49 && b[2] == 0x46) return "image/gif";
+            if (b[0] == 0x52 && b[1] == 0x49 && b[2] == 0x46 && b[3] == 0x46 && b[8] == 0x57 && b[9] == 0x45 && b[10] == 0x42 && b[11] == 0x50) return "image/webp";
+            if (b[4] == 0x66 && b[5] == 0x74 && b[6] == 0x79 && b[7] == 0x70 && b[8] == 0x61 && b[9] == 0x76 && b[10] == 0x69 && b[11] == 0x66) return "image/avif";
+            if (b[0] == 0x42 && b[1] == 0x4D) return "image/bmp";
+            if (b[0] == 0 && b[1] == 0 && b[2] == 1 && b[3] == 0) return "image/x-icon";
+            var head = System.Text.Encoding.UTF8.GetString(b, 0, Math.Min(b.Length, 512)).TrimStart('﻿', ' ', '\r', '\n', '\t');
+            if (head.StartsWith("<svg", StringComparison.OrdinalIgnoreCase) || (head.StartsWith("<?xml", StringComparison.OrdinalIgnoreCase) && head.IndexOf("<svg", StringComparison.OrdinalIgnoreCase) >= 0)) return "image/svg+xml";
+            return "";
+        }
+
         public static void SaveJpeg(Image image, string path, long quality)
         {
             var codec = ImageCodecInfo.GetImageEncoders().First(c => c.FormatID == ImageFormat.Jpeg.Guid);

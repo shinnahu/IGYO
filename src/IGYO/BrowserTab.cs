@@ -130,7 +130,13 @@ namespace IGYO
             ApplyDarkMode(target ?? "");
             ApplyEnhance();
             if (Math.Abs(Volume - 1) > 0.0005) SetVolume(Volume);   // a tab loaded again keeps the volume it was given
-            if (!string.IsNullOrEmpty(target)) core.Navigate(target);
+            var post = pendingPost;
+            pendingPost = null;
+            if (!string.IsNullOrEmpty(target))
+            {
+                if (post != null) Post(core, target, post, pendingPostType);
+                else core.Navigate(target);
+            }
             StartupTrace.Mark("tab: told to go to its address");
             owner.OnTabReady(this);
             await identity;
@@ -296,6 +302,22 @@ namespace IGYO
             // (With websites shown dark, the canvas a page starts from is dark too, so loading never flashes white.)
             var color = own ? owner.CurrentTheme.Page : owner.ForceDark ? Color.FromArgb(18, 18, 18) : Color.White;
             if (View.DefaultBackgroundColor != color) View.DefaultBackgroundColor = color;
+        }
+
+        // A page asked for with a form's worth of data (a POST, as "Search image with Google Lens" sends the picture),
+        // for a tab that is not open yet: its address is asked for that way once its view is ready, instead of plainly.
+        byte[] pendingPost;
+        string pendingPostType;
+        public void PostWhenReady(byte[] body, string contentType)
+        {
+            pendingPost = body;
+            pendingPostType = contentType;
+        }
+
+        static void Post(CoreWebView2 core, string url, byte[] body, string contentType)
+        {
+            try { core.NavigateWithWebResourceRequest(core.Environment.CreateWebResourceRequest(url, "POST", new System.IO.MemoryStream(body), "Content-Type: " + contentType)); }
+            catch (Exception ex) { ErrorLog.Write(ex); core.Navigate(url); }
         }
 
         public void NavigateTo(string url)

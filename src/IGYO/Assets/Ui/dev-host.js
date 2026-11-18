@@ -184,7 +184,7 @@
         send(Object.assign({ t: 'bookmarks' }, state.bookmarks));
         break;
       }
-      case 'claudeStop': state.bridge.acting = ''; state.bridge.paused = true; send(Object.assign({ t: 'bridge' }, state.bridge)); break;
+      case 'exitFullScreen': state.win.fullscreen = false; send(Object.assign({ t: 'window' }, state.win)); break;
       case 'toggleBookmarksBar': state.settings.bookmarksBar = !state.settings.bookmarksBar; send({ t: 'settings', settings: state.settings }); break;
       // the tools
       case 'dark': picked[60](); break;
@@ -258,12 +258,13 @@
     colors: ['#2563EB', '#7C3AED', '#16A34A', '#D97706', '#E11D48', '#0D9488', '#DB2777', '#475569', '#8AA4FF', '#C5F135', '#FFD500', '#FE58C9', '#FF99C5', '#D9C6A2'], color: '#16A34A' }));
   add('choice', () => send({ t: 'dialog', id: 7, kind: 'choice', title: 'Import from Google Chrome', message: 'Import bookmarks from this Chrome profile:', options: ['Personal (Default)', 'Work (Profile 1)', 'Old (Profile 2)'], ok: 'Import' }));
   add('fullscreen', () => { state.win.fullscreen = !state.win.fullscreen; send(Object.assign({ t: 'window' }, state.win)); });
-  add('claude asks', () => send({ t: 'ask', id: 8, text: 'Claude wants to read wiki.example.org', tip: 'Asked through claude.exe.', buttons: [{ id: 'once', label: 'Allow this time' }, { id: 'always', label: 'Always' }, { id: 'never', label: 'Never' }] }));
+  // (In the app, the ✕ comes when the pointer reaches the top of the screen in full screen.)
+  add('fullscreen ✕', () => send({ t: 'fsExit', show: true }));
   add('claude reads', () => { state.bridge.reading = state.bridge.reading.length ? [] : [state.active]; send(Object.assign({ t: 'bridge' }, state.bridge)); });
   add('claude mark', () => { state.bridge.on = !state.bridge.on; send(Object.assign({ t: 'bridge' }, state.bridge)); });
-  add('claude acts', () => {
-    state.bridge.acting = state.bridge.acting ? '' : 'claude.exe';
-    state.bridge.own = state.bridge.acting ? [state.tabs[state.tabs.length - 1].id] : [];
+  // (Claude's questions and its "working in this window" sign are a window of the app's own: not drawn here.)
+  add('claude tab', () => {
+    state.bridge.own = state.bridge.own && state.bridge.own.length ? [] : [state.tabs[state.tabs.length - 1].id];
     send(Object.assign({ t: 'bridge' }, state.bridge));
   });
   document.body.append(panel);
@@ -276,7 +277,6 @@
           send({ t: 'init', app: 'IGYO', isPrivate: state.isPrivate, profile: { id: 'Default', name: 'Personal', avatar: '' }, settings: state.settings, theme: window.IGYO_THEME, window: state.win, bridge: state.bridge });
           pushTabs(); pushNav(); send(Object.assign({ t: 'bookmarks' }, state.bookmarks));
           break;
-        case 'ask': console.info('[dev] the question was answered:', m.choice || '(closed)'); break;
         case 'layout': {
           const d = window.devicePixelRatio || 1;
           page.style.left = m.view[0] / d + 'px'; page.style.top = m.view[1] / d + 'px';
