@@ -13,7 +13,10 @@
 #   -Edge, -EdgePx    a line around the mark in that color, about this many pixels wide in every frame (it keeps the
 #                     acid mark readable on a light background, where acid alone is about 1.3:1 against white)
 #   -Tile2            with a second color the tile runs from -Tile (top left) to -Tile2 (bottom right)
+#                     (his spark's tile runs straight down, top to bottom)
+#   -TileMid          with -Tile2: a third color the tile passes through halfway
 #   -Rim, -RimWidth   a line around the tile's edge, in that color, this wide on the 512 px tile
+# The app icons to choose from in Settings (Assets\AppIcons) are drawn by tools\make-app-icons.ps1 with these switches.
 # The ball:
 #   -Spikes           how many times as long the spikes are drawn as listed below (1 = as listed)
 #   -BallFill         how much of the tile the mark fills: in frames up to 20 px, of 24-32 px, of 40-48 px, and larger
@@ -30,8 +33,8 @@
 #   -StubsFrom        the four short needles are drawn only in frames of at least this many pixels
 # Before that, until earlier on 17 Nov 2026, it was a white star on #24262C with the large mark in every frame:
 #   -Shape star -Tile '#24262C' -Ink '#FFFFFF' -SmallScale 0.8 -MidScale 0 -SmallBold 1 -SmallPinch 0.36 -StubsFrom 0
-param([Parameter(Mandatory)][string]$OutFile, [string]$PngOut, [string]$SvgOut, [string]$SvgColor = '#FFFFFF', [double]$SmallScale = 0.94,
-      [double]$MidScale = 0.9, [string]$Tile = '', [string]$Tile2 = '', [string]$Ink = '', [string]$Edge = '', [double]$EdgePx = 0.9,
+param([Parameter(Mandatory)][string]$OutFile, [string]$PngOut, [int]$PngSize = 256, [string]$SvgOut, [string]$SvgColor = '#FFFFFF', [double]$SmallScale = 0.94,
+      [double]$MidScale = 0.9, [string]$Tile = '', [string]$Tile2 = '', [string]$TileMid = '', [string]$Ink = '', [string]$Edge = '', [double]$EdgePx = 0.9,
       [double]$SmallBold = 2.6,
       [double]$SmallPinch = 0.7, [int]$StubsFrom = 64, [string]$Rim = '', [double]$RimWidth = 16,
       [ValidateSet('spark', 'thorns', 'ball', 'star')][string]$Shape = 'spark', [double]$Spikes = 1, [double[]]$BallFill = @(0.92, 0.88, 0.8, 0.74),
@@ -469,8 +472,15 @@ function New-IconBitmap([int]$size) {
   $tileBrush = if ($Tile -eq 'none') { $null } elseif ($Tile2) {
     $from = if ($Shape -eq 'spark') { New-Object System.Drawing.PointF 0, -1 } else { New-Object System.Drawing.PointF 0, 0 }
     $to = if ($Shape -eq 'spark') { New-Object System.Drawing.PointF 0, ($n + 1) } else { New-Object System.Drawing.PointF $n, $n }
-    New-Object System.Drawing.Drawing2D.LinearGradientBrush -ArgumentList $from, $to,
+    $brush = New-Object System.Drawing.Drawing2D.LinearGradientBrush -ArgumentList $from, $to,
       ([System.Drawing.ColorTranslator]::FromHtml($Tile)), ([System.Drawing.ColorTranslator]::FromHtml($Tile2))
+    if ($TileMid) {
+      $blend = New-Object System.Drawing.Drawing2D.ColorBlend 3
+      $blend.Colors = [System.Drawing.Color[]]@(([System.Drawing.ColorTranslator]::FromHtml($Tile)), ([System.Drawing.ColorTranslator]::FromHtml($TileMid)), ([System.Drawing.ColorTranslator]::FromHtml($Tile2)))
+      $blend.Positions = [single[]]@(0, 0.5, 1)
+      $brush.InterpolationColors = $blend
+    }
+    $brush
   } else { New-Object System.Drawing.SolidBrush -ArgumentList ([System.Drawing.ColorTranslator]::FromHtml($Tile)) }
   $corner = if ($Shape -eq 'spark') { 88.96 } else { 122 }   # on the 512 canvas (his tile: 44.48 of 256)
   if ($Tile -ne 'none') { $g.FillPath($tileBrush, (New-RoundedRect 0 0 $n $n ($corner * $k))) }
@@ -552,7 +562,7 @@ for ($i = 0; $i -lt $sizes.Count; $i++) {
 foreach ($img in $images) { $w.Write($img) }
 $w.Close()
 if ($PngOut) {
-  $logo = New-IconBitmap 256
+  $logo = New-IconBitmap $PngSize
   $logo.Save($PngOut, [System.Drawing.Imaging.ImageFormat]::Png)
   $logo.Dispose()
 }

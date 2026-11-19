@@ -157,6 +157,9 @@ namespace IGYO
                 ["themes"] = ThemeStore.All().Select(ThemeStore.Summary).ToList(),
                 ["accent"] = ThemeStore.AccentHex(app.AccentOf(owner.Profile)),
                 ["accents"] = ThemeStore.LegacyAccents.Where(a => a.Value.Length > 0).Select(a => new Dictionary<string, object> { ["name"] = a.Key, ["hex"] = a.Value }).ToList(),
+                // The icon IGYO wears, and the ones it can (one for the whole program, whatever the profile)
+                ["appIcon"] = AppIcons.Resolve(s.AppIcon),
+                ["appIcons"] = AppIcons.All.Select(c => new Dictionary<string, object> { ["id"] = c.Id, ["name"] = L.T(c.Name), ["picture"] = "/app-icons/" + c.Id + ".png" }).ToList(),
                 ["profiles"] = app.Profiles.Profiles.Select(p => new Dictionary<string, object>
                 {
                     ["id"] = p.Id,
@@ -627,6 +630,12 @@ namespace IGYO
             {
                 if (text == null || !L.IsChoice(text)) return false;
                 app.SetLanguage(text);   // IGYO's own pages load again in that language (this one too)
+                return true;
+            }
+            if (key == "AppIcon")
+            {
+                if (text == null || (text.Length > 0 && !AppIcons.IsChoice(text))) return false;
+                app.ChooseAppIcon(text);   // every window at once, and IGYO's shortcuts
                 return true;
             }
             if (key.StartsWith("Pin."))

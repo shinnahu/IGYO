@@ -422,7 +422,7 @@ namespace IGYOSetup
         }
     }
 
-    // The setup window: the icon itself (the white star on its slate tile) on dark slate, and a color to pick for
+    // The setup window: the icon itself (the white star on its periwinkle tile) on dark slate, and a color to pick for
     // whatever can be pressed, periwinkle until another is picked. The pick is also what the browser
     // starts with: the theme's accent and the color of the profile's circle. Three choices, one big button, smooth progress.
     sealed class SetupForm : Form
@@ -431,8 +431,10 @@ namespace IGYOSetup
             Deep = Color.FromArgb(0x1C, 0x1E, 0x23),                       // the rest of the window
             Well = Color.FromArgb(0x15, 0x16, 0x1A),                       // the box with the folder in it
             Bone = Color.FromArgb(0xEE, 0xEF, 0xEB),                       // text
-            TileTop = Color.FromArgb(0x59, 0x5B, 0x6B),                    // the icon's tile, running down
-            TileBottom = Color.FromArgb(0x22, 0x23, 0x28),                 //   to near-black
+            // The icon as the program wears it by default (Assets\AppIcons\icons.json, "periwinkle"; tools\make-app-icons.ps1):
+            TileTop = Color.FromArgb(0x9D, 0xB1, 0xFF),                    // its tile, periwinkle running down
+            TileBottom = Color.FromArgb(0x4F, 0x5F, 0xE0),                 //   to deep blue
+            Star = Color.White,                                            // its star
             Muted = Color.FromArgb(0x9A, 0xA1, 0xA9), Faint = Color.FromArgb(0x6C, 0x72, 0x7B),
             Line = Color.FromArgb(0x34, 0x37, 0x3F), Off = Color.FromArgb(0x3A, 0x3D, 0x46), Bad = Color.FromArgb(0xFF, 0x8A, 0x80);
 
@@ -545,7 +547,7 @@ namespace IGYOSetup
             int w = ClientSize.Width, pad = S(36);
 
             // Header: the star large and faint behind, in the picked color, and the icon itself beside the name: the white
-            // star on its slate tile.
+            // star on its periwinkle tile.
             var header = new Rectangle(0, 0, w, S(150));
             using (var back = new SolidBrush(Slate)) g.FillRectangle(back, header);
             var clip = g.Clip;
@@ -557,10 +559,11 @@ namespace IGYOSetup
             using (var hairline = new Pen(Line)) g.DrawLine(hairline, 0, header.Bottom - 1, w, header.Bottom - 1);
             var icon = new RectangleF(pad - S(2), S(39), S(72), S(72));
             using (var tile = Rounded(Rectangle.Round(icon), (int)Math.Round(icon.Width * 44.48 / 256)))   // the icon's corner: 44.48 of its 256
-            using (var slate = new LinearGradientBrush(new PointF(0, icon.Top - 1), new PointF(0, icon.Bottom + 1), TileTop, TileBottom))
-                g.FillPath(slate, tile);
+            using (var tint = new LinearGradientBrush(new PointF(0, icon.Top - 1), new PointF(0, icon.Bottom + 1), TileTop, TileBottom))
+                g.FillPath(tint, tile);
             using (var mark = Mark.OnTile(icon))
-                g.FillPath(Brushes.White, mark);
+            using (var star = new SolidBrush(Star))
+                g.FillPath(star, mark);
             int nameX = pad + S(94);
             DrawTracked(g, InstallInfo.AppName, wordmark, new Point(nameX, S(40)), Bone, Slate, S(6));
             TextRenderer.DrawText(g, Words.T(InstallInfo.Tagline), Font, new Point(nameX, S(86)), Muted, Slate);

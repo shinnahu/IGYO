@@ -117,10 +117,12 @@ namespace IGYO
                 var item = core.Environment.CreateContextMenuItem(L.T("Translate selection"), null, CoreWebView2ContextMenuItemKind.Command);
                 var at = e.Location;
                 item.CustomItemSelected += (s, a) => BeginInvoke(new Action(() => StartTranslation(tab, text, at)));
-                // Right under "Copy", where the engine's menu has that line.
+                // Right under "Copy", where the engine's menu has that line: first the search, then the translation.
                 int index = 0;
                 for (int i = 0; i < e.MenuItems.Count; i++)
                     if (e.MenuItems[i].Name == "copy") { index = i + 1; break; }
+                var search = SearchSelectionItem(core, text);
+                if (search != null) e.MenuItems.Insert(index++, search);
                 e.MenuItems.Insert(index, item);
 #if DEBUG
                 // Test builds, when asked: the engine's menu is not shown (a check could not press a line of it).
@@ -134,6 +136,54 @@ namespace IGYO
 #endif
             }
             catch (Exception ex) { ErrorLog.Write(ex); }
+        }
+
+        // "Search Google for “…”" on selected text, with the search engine chosen in Settings: the search opens in a new
+        // tab right after this one, on show, as in Chrome. Null when the line can't be made.
+        CoreWebView2ContextMenuItem SearchSelectionItem(CoreWebView2 core, string text)
+        {
+            try
+            {
+                string words = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ").Trim();
+                if (words.Length == 0) return null;
+                var item = core.Environment.CreateContextMenuItem(
+                    L.T("Search {0} for “{1}”", SearchEngineName(), AsMenuText(words, 50).Replace("&", "&&")), null, CoreWebView2ContextMenuItemKind.Command);
+                Action open = () =>
+                {
+                    if (IsDisposed) return;
+                    NewTab(Settings.SearchUrl(words), true, false);
+                };
+                item.CustomItemSelected += (s, a) => BeginInvoke(open);
+#if DEBUG
+                // Test builds, when asked: the line is taken as pressed (a check could not press a line of the engine's menu).
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("NSB_TEST_SEARCH_SELECTION"))) BeginInvoke(open);
+#endif
+                return item;
+            }
+            catch (Exception ex) { ErrorLog.Write(ex); return null; }
+        }
+
+        // The search engine Settings has chosen, by its name: Google, DuckDuckGo…; a search address of one's own goes by
+        // its site's name.
+        string SearchEngineName()
+        {
+            string template = Settings.SearchTemplate();
+            foreach (var engine in Settings.SearchEngines)
+                if (engine.Value.Length > 0 && engine.Value == template) return engine.Key;
+            try
+            {
+                string host = new Uri(template.Replace("%s", "x")).Host;
+                return host.StartsWith("www.", StringComparison.OrdinalIgnoreCase) ? host.Substring(4) : host;
+            }
+            catch { return L.T("the web"); }
+        }
+
+        // A selection as a menu line shows it: at most about this many letters, cut between words where it can be.
+        internal static string AsMenuText(string words, int most)
+        {
+            if (words.Length <= most) return words;
+            int cut = words.LastIndexOf(' ', most);
+            return (cut >= most * 2 / 3 ? words.Substring(0, cut) : words.Substring(0, most)).TrimEnd() + "…";
         }
 
         void StartTranslation(BrowserTab tab, string text, Point at)

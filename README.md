@@ -100,6 +100,7 @@ Default apps, where you choose it. Uninstalling takes IGYO off that list.
 | Color picker | Tools > Pick a color from the page: a magnifier follows the mouse over the page, a click copies the color as `#RRGGBB`, and the notice offers it as `rgb()`. Esc leaves without picking. |
 | Enhance videos | On by default, and switched at once, also for a video that is playing (in Tools, or with its own toolbar button): videos are sharpened as the engine draws them. Edges and fine detail get more contrast and flat areas are left alone ("contrast adaptive sharpening"), a little, medium (the default) or strongly (Settings > Toolbar and tools). It is a setting the engine has for each video (`msVideoProcessing`, which Microsoft has not documented), so it needs no particular graphics card; an engine without it is left alone. A video that is being sharpened is drawn by the engine itself. With enhancement off, a video goes through the graphics card's video path instead, where the engine asks the driver for video super resolution, as Chromium does; whether the driver then does anything is decided in the driver's own settings (NVIDIA: Super Resolution under RTX Video Enhancement). The enhancement model of Microsoft Edge itself could not be switched on in this engine. |
 | Translate | Select text, right-click, **Translate selection**: the translation appears in a small panel beside the selection. The panel names both languages, and either can be changed from a short list in which the languages you used before come first; the long list of all languages is one line further, and the language to translate into is remembered. Japanese, Korean, Thai, Greek, Hebrew and Hindi are known by their letters before anything is sent, so they are not taken for another language. Text that is already in the language you translate into is not "translated" into itself: it goes into a second language, if you chose one (Settings > Toolbar and tools), and otherwise the panel says so. The selected text is sent to MyMemory (mymemory.translated.net), a public translation service that needs no account and allows 5,000 characters a day from one network address; nothing else is sent with it. **Translate this page**, in Tools and on the toolbar, opens the page through Google Translate's website: the page's address is sent to Google, which fetches the page itself and shows it translated. So it works for pages anyone can open, not for pages on your PC or behind a sign-in. On a page shown that way, the same button shows the original page again. (The engine cannot translate a page by itself in an app like this one.) |
+| Search a selection | Select text, right-click, **Search Google for “…”**, as in Chrome: it searches with the search engine chosen in Settings (the line then names that one), in a new tab beside the one you are on. The line stands right under Copy; a long selection is shortened in the line, and searched whole. |
 | Google Lens | Right-click a picture and choose **Search image with Google Lens**, as in Chrome: the picture goes to Google Lens, and Lens's page opens in a new tab beside the one you are on. What is sent is the picture as the page already has it, taken from the engine rather than downloaded again (so a picture behind a sign-in goes too), at most 1000 pixels on its long side (a larger one is made smaller first, as Chrome does). When the engine has no copy of it, the page reads it itself; when the page may not either (a picture from another site), Lens is given the picture's address and fetches it itself. Nothing is sent before the line is chosen. |
 | Extensions | Off until there is one in the extensions folder (Settings > Extensions > Open folder): an unpacked extension's own folder, or a `.zip` or `.crx` file, which IGYO unpacks there. There are three ways to get one in. Put it there yourself. Or open the extension's page in the Chrome Web Store or in Microsoft Edge Add-ons and choose **Add the extension on this page** in the tools menu: IGYO asks, then downloads the extension's package from that store into the folder (choosing it again later takes the store's newer version). Or press the store's own Add button on that page: by itself the engine takes that press, shows a question of its own, and nothing comes of it, so IGYO answers the page's request instead, with the same question and the same download. Once the extension is there, the store's button reads Remove; by itself the engine answers that press with a question in its own words ("Remove … from Microsoft Edge?"), so IGYO answers it as well, with its own question and its own removal (below). IGYO never adds or updates an extension by itself. What is in the folder is loaded when IGYO starts, or at once when extensions are already in use; the very first one needs IGYO closed and started again, because the engine's extension support cannot be switched on while it runs. Each extension has a line in the tools menu, under "Extensions", with its own picture and a pin, and a button on the toolbar while it is pinned (a new one starts pinned). A click on the button or the line opens the extension's popup under it, as large as the popup's own page, and the popup is told that the tab under it is the current one. A right click opens the extension's menu: on and off, its options, where it may read and change pages, manage, unpin, show in folder, remove. Settings > Extensions has a card for each with what its manifest asks for. Removing one takes it out of the profile (and out of the profiles of the other windows that are open) and moves its files to the Recycle Bin; should the engine not let go of it while IGYO runs, it is switched off and taken out completely at the next start, and its files are not moved while the engine still runs it. Some extensions name a page to be opened when they are removed (a "why did you leave" page); the engine opens such a page in a browser window of its own, apart from IGYO, and that window would keep the engine running after IGYO is closed, so IGYO closes it as it appears and no such page is shown. An extension's own button for its options, in its popup, opens them as a tab. A package from a store keeps the id it has in the store (the key it was signed with is written into the unpacked copy, as a browser does when it installs one), because extensions ask for their own files by that id. An extension can read and change the pages you open: only add what you trust. Not used in private windows. What the engine does not give an app like this one, and IGYO therefore lacks: a click on an extension's button is not handed to the extension, so one that has no popup can only be shown its options; the click does not give the one-time permission for the tab that browsers give ("activeTab"), so an extension that asks for no websites of its own cannot act on the page; badges and pictures an extension changes while it runs are not shown; an extension that asks for its options page from its background, instead of from its popup, gets it in a window of the engine's own, which IGYO closes when it is closed itself. Recording a tab's sound or picture is refused by the engine without that click. Settings > Extensions can name one extension that may record instead: the engine is then started with that extension's id on its list of extensions it lets through, which lets it record any tab at any time and also lets it past the engine's other such lists; it holds from the next start of IGYO on. When an extension's popup asks to record and is refused, IGYO closes the popup (such a popup goes on as if it were listening) and asks whether that extension is to be the one; a yes closes IGYO and starts it again, with the tabs that were open. Only extensions in the current format (Manifest V3) were tried. The addresses the packages are downloaded from are the ones the stores' own browsers use; neither store documents them for other programs, so that way in may stop working. Against the real Chrome Web Store, the line in the tools menu and the store's own button were each tried once, with one extension (see [How it was tested](#how-it-was-tested)); Microsoft Edge Add-ons was never contacted. |
 | Address bar | Addresses open, anything else is searched with the search engine you chose. The engine's own pages can be typed as well (`edge://history`); `edge://settings`, which the engine does not have in an app like this one, opens IGYO's Settings. |
@@ -120,7 +121,8 @@ Default apps, where you choose it. Uninstalling takes IGYO off that list.
 | Picture in picture | Pops the page's video into a floating window; press again to bring it back. The tab stays awake while its video floats. |
 | Full-page screenshot | Ctrl+Shift+S saves the whole page as a PNG (Pictures\IGYO). |
 | Print, zoom, full screen | Print: Ctrl+P. Zoom: Ctrl + / Ctrl − / Ctrl+0, Ctrl with the mouse wheel, or Menu > Zoom. While a page is not at 100%, a magnifier in the address bar says so (with a + above 100%, a − below) and opens a small box with the figure, − and +, and Reset. The box also comes up by itself when the zoom changes, and goes about two seconds after the last change. A zoom set with the keys, the menu or the box stays with the tab, also when it goes to another site. Full screen: F11; in full screen, the pointer at the very top of the screen brings down a round ✕ that leaves it, as in Chrome (also for a page's own full screen, such as a video's). |
-| Customizing | Settings (Ctrl+,) is a page in a tab: themes, toolbar buttons and tools, compact mode, bookmarks bar, search engine (Google, DuckDuckGo, Bing, Brave, Ecosia, Startpage or your own), New Tab page on or off, reopen tabs, folders, profiles, privacy, the bookmark manager. |
+| Customizing | Settings (Ctrl+,) is a page in a tab: themes, the app icon, toolbar buttons and tools, compact mode, bookmarks bar, search engine (Google, DuckDuckGo, Bing, Brave, Ecosia, Startpage or your own), New Tab page on or off, reopen tabs, folders, profiles, privacy, the bookmark manager. |
+| App icon | Settings > Appearance > App icon offers twelve icons: IGYO's star on tiles of different colors (Periwinkle unless another is chosen). The one chosen is IGYO's icon at once, in its windows (Alt+Tab, the window's picture on the taskbar) and on its shortcuts: the desktop and Start menu shortcuts setup made, and IGYO's pins on the taskbar. Only shortcuts that start this IGYO are changed, and nothing of them but the icon. One icon for all profiles. When an update makes the shortcuts again, the next start puts the chosen icon back on them. |
 | If something goes wrong | Unexpected errors are written to `errors.log` in the data folder and IGYO keeps going, with a small notice that links to the file. |
 
 ## Themes
@@ -240,6 +242,11 @@ are loaded, and processor time while nothing is happening) are in [docs/performa
 the scripts are in `tools\bench`.
 <!-- performance:end -->
 
+**In Windows' Task Manager**, the engine's processes are listed in a group of their own, "WebView2 Manager",
+apart from IGYO's own small process; the memory IGYO uses is the two together. For 1.0.9 two ways of having
+them listed under IGYO were tried on Windows 11 (turning off the engine's reports to Task Manager, and keeping
+the engine naming IGYO as their owner); neither changed the grouping, and neither is in the release.
+
 ## Privacy and security
 
 **What IGYO's own code sends, and where.** Everything else is the engine loading the pages you open.
@@ -308,8 +315,9 @@ again; installing over an existing IGYO keeps profiles, bookmarks and settings.
 Layout: `src\IGYO` (the browser; in `Assets`: `Ui` is the interface, `NewTab` the New Tab
 page, `Settings` the Settings page, `Shared` the design system and fonts, `Themes` the themes and their
 kits, `Lang` the languages), `src\Setup` (the setup program), `src\Shared`, `tools\` (`serve.js` shows the
-pages without starting IGYO, `lang.js` checks the language files, `make-icon.ps1` draws the icon, `bench\`
-measures memory and start-up against Chrome), `docs\`.
+pages without starting IGYO, `lang.js` checks the language files, `make-icon.ps1` draws an icon,
+`make-app-icons.ps1` draws the app icons listed in `src\IGYO\Assets\AppIcons\icons.json` and the program's own
+icon from the default one, `bench\` measures memory and start-up against Chrome), `docs\`.
 Until the rename to IGYO the project and its namespace were called NoSuggestionsBrowser, the browser's first name.
 
 `try-igyo.cmd` starts the Debug build on a separate data folder (`%LOCALAPPDATA%\IGYO trial`), beside an
@@ -335,6 +343,39 @@ data folder, and `IGYO.exe --selftest <report file>` runs the built-in checks in
   answers the page; files named `dev*` are never shipped).
 
 ## How it was tested
+
+**1.0.9.** What changed since 1.0.8 was checked like this; the checks made for earlier versions follow, and
+were not all repeated.
+
+- **Built-in checks.** `IGYO.exe --selftest`, 288 checks: the copy installed by this release's setup passes
+  them. New among them: the app icons' list and files; each icon as a window gets it, with its star in the
+  middle and its tile's color at the side; a shortcut that starts IGYO taking the icon chosen (once), a
+  shortcut of another program left alone, and the default icon putting the program's own back; how the engine
+  is started; a selection as the search line shows it (short ones whole, long ones cut between words).
+- **The setup program**, 22 checks, installed silently into a test folder under test registry keys: Tacit 1.0.6
+  replaced as for 1.0.7 (below); IGYO 1.0.7, installed from its published setup and started, made setup refuse
+  while it was open, and, run at once after it had been ended, with its engine processes still running, setup
+  installed 1.0.9 over it. Each time: the program file as built, the engine whole (253 files, no Widevine) and
+  the twelve app icons; the program's and the setup's own icon equal Periwinkle's 32-pixel picture. Started
+  with an app icon chosen before (Rose), the installed copy gave it to the desktop and Start menu shortcuts its
+  setup had made, a few seconds after starting. Uninstalling left nothing.
+- **The running browser**, the Debug build on a throwaway data folder, on a Windows desktop that is never
+  shown, driven through the engine's debugging protocol:
+  - the app icon, 18 checks: Settings > Appearance shows the twelve icons with their pictures, Periwinkle
+    worn; a click on Rose gives the window Rose's icons, big and small (as Windows hands them out), and a test
+    taskbar pin that starts this IGYO shows Rose, while a pin of another program is left as it was; Periwinkle
+    again puts the program's own icon back on the pin; with Teal chosen, IGYO closed the ordinary way and left
+    nothing running; the pin made again without the icon (as an update's setup makes its shortcuts) showed
+    Teal a few seconds after the next start, and the window wore Teal from the start. The test pins were
+    shortcut files in the test folder: the taskbar's own pins were never touched.
+  - searching a selection, 6 checks: the line stands right under Copy, before "Translate selection"
+    ("Search Google for “Microsoft's”"); taken as pressed, it opens a new tab right after the page, on show, at
+    Google's search address for the selection; with DuckDuckGo chosen the line names DuckDuckGo, and a long
+    selection is cut between words in the line while all of it is searched; in Spanish, two lines are joined
+    into one and an ampersand is written the way the engine's own lines mark a plain "&". No search site was
+    opened: the address of the search was checked.
+- **The Settings page**: in the Debug build, the twelve icons in rows of six, the one worn ringed and named as
+  the row's title; on the development server, in IGYO Dark (where a click wore the icon clicked) and IGYO Light.
 
 **1.0.8.** What changed since 1.0.7 was checked like this; the checks made for earlier versions follow, and
 were not all repeated.
@@ -740,6 +781,13 @@ and what is not tested at the end.
   restore), menus by keyboard, the theme editor, the bookmark manager, profiles, a private window, the ad
   block counter, the full-page screenshot, docked developer tools, and starting with saved tabs or from a
   link. Those checks were not repeated on this build.
+
+**Not tested in 1.0.9:** a newly chosen icon on the real taskbar, Start menu and desktop (what was checked is
+the windows' icons and the shortcut files, read back; whether Windows draws the change at once is not known
+from that), and which icon the taskbar shows for an IGYO window that is not pinned; the icons on a display
+scaled above 100%; the setup window on a real screen with the new icon (it was drawn into a picture by a
+test program); pressing "Search … for" in the engine's own right-click menu (it was taken as pressed), and how
+the engine draws an ampersand in that line.
 
 **Not tested in 1.0.8:** a real screen recording or screenshot with Claude's sign up (no recorder was run;
 what was checked is that Windows reports the sign's window as left out of screen pictures); Claude's sign with

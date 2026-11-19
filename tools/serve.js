@@ -144,6 +144,7 @@ http.createServer((req, res) => {
     if (req.method === 'POST' && p.startsWith('/api/')) return send(res, 200, TYPES['.json'], JSON.stringify({ ok: true, pictures: [], picture: '' }));
     let base = root;
     if (p.startsWith('/shared/')) { base = path.join(assets, 'Shared'); p = p.slice('/shared'.length); }
+    else if (p.startsWith('/app-icons/')) { base = path.join(assets, 'AppIcons'); p = p.slice('/app-icons'.length); }   // Settings > Appearance > App icon
     if (p.endsWith('/')) p += 'index.html';
     const file = path.normalize(path.join(base, p));
     if (!file.startsWith(base)) return send(res, 403, TYPES['.txt'], 'Refused');

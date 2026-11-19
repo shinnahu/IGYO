@@ -172,6 +172,17 @@
   /* the colors a profile's circle can have (a profile without a picture), in its own small dialog */
   .st-accents.st-profile-colors { gap: 10px; padding: 4px 2px; }
 
+  /* the app icons: each a picture of the icon itself, its ring following the tile's corners (44.48 of 256) */
+  .st-appicons { display: grid; grid-template-columns: repeat(6, 52px); gap: 12px; padding-top: 2px; }   /* rows of six */
+  .st-appicon {
+    position: relative; display: block; flex: none; width: 52px; height: 52px; padding: 0; border: 0; border-radius: 17.4%;
+    background: none; cursor: pointer; transition: transform var(--t-1) var(--ease), box-shadow var(--t-1) var(--ease);
+  }
+  .st-appicon img { display: block; width: 100%; height: 100%; border-radius: inherit; pointer-events: none; user-select: none; }
+  .st-appicon:hover { transform: scale(1.060); }
+  .st-appicon:focus-visible { outline: 0; box-shadow: var(--focus); }
+  .st-appicon.is-chosen { box-shadow: 0 0 0 2px var(--c-surface), 0 0 0 4px var(--c-ink); }
+
   /* ----- appearance: the editor ----- */
 
   .st-editor-top {

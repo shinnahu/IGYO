@@ -90,6 +90,12 @@ namespace IGYO
                 if (!TryServeFile(core, e, "Shared", path.Substring("/shared/".Length))) Refuse(core, e);
                 return true;
             }
+            if (path.StartsWith("/app-icons/"))   // the app icons' pictures (Settings > Appearance > App icon)
+            {
+                var name = path.Substring("/app-icons/".Length);
+                if (!name.EndsWith(".png", StringComparison.OrdinalIgnoreCase) || !TryServeFile(core, e, "AppIcons", name)) Refuse(core, e);
+                return true;
+            }
             if (path == "/logo.png")
             {
                 var logo = Path.Combine(AssetsDir, "logo.png");

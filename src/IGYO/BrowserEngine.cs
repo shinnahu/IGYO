@@ -152,6 +152,22 @@ namespace IGYO
             return text.Append('\\', slashes * 2).Append('"').ToString();
         }
 
+        // What the engine is started with, besides its options ("" when nothing).
+        // The engine's reports to Windows Task Manager stay on: with them, Task Manager names the engine's processes by
+        // what they do and by their pages ("WebView2 Manager", "WebView2: <page>"). Seen 19 Nov 2026 on Windows 11
+        // 23H2: whatever IGYO did, Task Manager showed the engine as a group of its own, apart from IGYO. With the
+        // reports off (msWindowsTaskManager) it was the same group, called "Utility", its processes named only by kind;
+        // with an empty view kept open so that the engine names IGYO as their owner again after every closed view
+        // (the engine takes that back each time any view closes), it was still "WebView2 Manager". Task Manager knows
+        // the engine by its "--embedded-browser-webview=1" switch, which the WebView2 loader always adds.
+        internal static string Arguments(string recording, bool drawCovered)
+        {
+            var all = new List<string>();
+            if (!string.IsNullOrEmpty(recording)) all.Add("--allowlisted-extension-id=" + recording);
+            if (drawCovered) all.Add("--disable-features=CalculateNativeWinOcclusion");
+            return string.Join(" ", all);
+        }
+
         static Task<CoreWebView2Environment> CreateAsync()
         {
             ExtensionFolder.RemovePending();   // what the engine would not let go of last time (rarely anything)
@@ -165,10 +181,8 @@ namespace IGYO
                 ScrollBarStyle = CoreWebView2ScrollbarStyle.FluentOverlay,   // thin modern scrollbars
             };
             DrawCovered = DrawCoveredGiven ?? ProfileStore.AnyLetsClaudeAct();
-            var extra = new List<string>();
-            if (Recording.Length > 0) extra.Add("--allowlisted-extension-id=" + Recording);
-            if (DrawCovered) extra.Add("--disable-features=CalculateNativeWinOcclusion");
-            if (extra.Count > 0) options.AdditionalBrowserArguments = string.Join(" ", extra);
+            var extra = Arguments(Recording, DrawCovered);
+            if (extra.Length > 0) options.AdditionalBrowserArguments = extra;
             StartupTrace.Mark("engine: asked for");
             var task = CoreWebView2Environment.CreateAsync(AppPaths.RuntimeFolder(), AppPaths.EngineDir, options);
             if (StartupTrace.On) task.ContinueWith(_ => StartupTrace.Mark("engine: ready"));

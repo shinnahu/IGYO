@@ -133,6 +133,15 @@
   let chosenTheme = new URLSearchParams(location.search).get('theme') || 'igyo-dark';
   let accent = '';
   let previewing = null;
+  // The app icons, from the same list the app reads (the dev server serves Assets/AppIcons at /app-icons/)
+  let appIcon = '';
+  let appIcons = [];
+  realFetch('/app-icons/icons.json').then((r) => r.json()).then((list) => {
+    const tr = (window.IGYO && window.IGYO.tr) || ((text) => text);
+    appIcons = list.icons.map((icon) => ({ id: icon.id, name: tr(icon.name), picture: '/app-icons/' + icon.id + '.png' }));
+    appIcon = appIcon || list.default;
+    nudge();
+  }).catch((error) => console.warn('[dev] could not read the app icons from the dev server', error));
 
   const state = () => ({
     app,
@@ -149,6 +158,8 @@
     themes: themes.map(summary),
     accent,
     accents: [['Rose', '#E11D48'], ['Amber', '#D97706'], ['Yellow', '#FFD500'], ['Acid', '#C5F135'], ['Green', '#16A34A'], ['Teal', '#0D9488'], ['Blue', '#2563EB'], ['Periwinkle', '#8AA4FF'], ['Violet', '#7C3AED'], ['Hot pink', '#FE58C9'], ['Sakura', '#FF99C5'], ['Beige', '#D9C6A2']].map(([name, hex]) => ({ name, hex })),
+    appIcon,
+    appIcons,
     profiles: profiles.map((p) => ({ id: p.id, name: p.name, avatar: avatar(p.name[0].toUpperCase(), p.color) + '#' + Date.now(), here: p.id === 'Default', open: p.open, hasPicture: p.hasPicture, isDefault: p.id === 'Default', color: p.color.toUpperCase(), isStartDefault: p.id === startWith })),
     profileColors: ['#2563EB', '#7C3AED', '#16A34A', '#D97706', '#E11D48', '#0D9488', '#DB2777', '#475569', '#8AA4FF', '#C5F135', '#FFD500', '#FE58C9', '#FF99C5', '#D9C6A2'],
     profileNextColor: ['#2563EB', '#7C3AED', '#16A34A', '#D97706', '#E11D48', '#0D9488', '#DB2777', '#475569', '#8AA4FF', '#C5F135', '#FFD500', '#FE58C9', '#FF99C5', '#D9C6A2'][profiles.length % 14],
@@ -280,6 +291,7 @@
         else if (a.key === 'SearchEngine' || a.key === 'CustomSearchUrl' || a.key === 'EnhanceLevel' || a.key === 'TranslateTo' || a.key === 'TranslateSecond') settings[a.key] = String(a.value);
         else if (a.key === 'SleepAfterMinutes' || a.key === 'UnloadAfterMinutes') settings[a.key] = Number(a.value);
         else if (a.key === 'Accent' && (a.value === '' || /^#[0-9a-f]{3,8}$/i.test(a.value))) { accent = String(a.value).toUpperCase(); look(); }
+        else if (a.key === 'AppIcon' && appIcons.some((icon) => icon.id === a.value)) appIcon = a.value;
         else return { error: "That setting can't be changed here." };
         nudge();
         return OK;

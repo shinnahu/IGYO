@@ -36,6 +36,7 @@ namespace IGYO
                 ClaudeBridge();
                 Languages();
                 DefaultBrowserParts();
+                AppIconsAndEngine();
             }
             catch (Exception ex)
             {
@@ -1369,6 +1370,86 @@ namespace IGYO
                 try { File.Delete(file); } catch { }
             }
         }
+
+        // The app icons (Settings > Appearance > App icon), the shortcuts they are put on, and how the engine is started.
+        static void AppIconsAndEngine()
+        {
+            var list = Json.Obj(Json.Parse(File.ReadAllText(Path.Combine(AppIcons.Dir, "icons.json"))));
+            var listed = Json.Arr(Json.Get(list, "icons")).Select(Json.Obj).ToList();
+            Check("app icons: all twelve are read with their files, Periwinkle is the default, an unknown one is the default",
+                AppIcons.All.Count == 12 && listed.Count == 12 && AppIcons.Default == "periwinkle" && AppIcons.All[0].Id == "periwinkle"
+                && AppIcons.All.All(c => File.Exists(AppIcons.IcoFile(c.Id)) && File.Exists(Path.Combine(AppIcons.Dir, c.Id + ".png")))
+                && AppIcons.Resolve("") == "periwinkle" && AppIcons.Resolve("teal") == "teal" && AppIcons.Resolve("..\\app") == "periwinkle"
+                && !AppIcons.IsChoice("") && !AppIcons.IsChoice("Teal") && AppIcons.IsChoice("slate"),
+                string.Join(",", AppIcons.All.Select(c => c.Id)) + " default " + AppIcons.Default);
+
+            // Each icon as a window gets it: its 32 px picture has the star in the middle and the tile's color at the side
+            // (halfway down, where a tile that runs from one color to another has the color between them).
+            var wrong = new List<string>();
+            foreach (var item in listed)
+            {
+                string id = Json.Str(item, "id");
+                System.Drawing.Color Hex(string key) => System.Drawing.ColorTranslator.FromHtml(Json.Str(item, key));
+                var star = Hex("star");
+                var side = Json.Str(item, "tileMid") != null ? Hex("tileMid")
+                    : Json.Str(item, "tile2") != null ? Mix(Hex("tile"), Hex("tile2")) : Hex("tile");
+                using (var bmp = new System.Drawing.Bitmap(32, 32))
+                {
+                    using (var g = System.Drawing.Graphics.FromImage(bmp))
+                    {
+                        g.Clear(System.Drawing.Color.Magenta);
+                        var icon = AppIcons.WindowIcon(id);
+                        if (icon == null) { wrong.Add(id + ": none"); continue; }
+                        g.DrawIcon(icon, new System.Drawing.Rectangle(0, 0, 32, 32));
+                    }
+                    var middle = bmp.GetPixel(16, 16);
+                    var left = bmp.GetPixel(4, 16);
+                    if (!Near(middle, star) || !Near(left, side)) wrong.Add(id + ": middle " + middle + " side " + left);
+                }
+            }
+            Check("app icons: each one, as a window wears it, has its star in the middle and its tile's color at the side", wrong.Count == 0, string.Join("; ", wrong));
+
+            // A shortcut that starts IGYO is given the icon chosen, only its icon; one that starts another program is
+            // left alone; the default icon puts back the program's own (as setup made the shortcuts).
+            var dir = Path.Combine(Path.GetTempPath(), "igyo-shortcuts-" + Guid.NewGuid().ToString("N").Substring(0, 6));
+            try
+            {
+                Directory.CreateDirectory(dir);
+                string exe = System.Windows.Forms.Application.ExecutablePath, other = Path.Combine(Environment.SystemDirectory, "notepad.exe");
+                string mine = Path.Combine(dir, "IGYO.lnk"), notMine = Path.Combine(dir, "Other.lnk"), rose = AppIcons.IcoFile("rose");
+                InstallInfo.CreateShortcut(mine, exe, InstallInfo.Tagline);
+                InstallInfo.CreateShortcut(notMine, other, "Other");
+                bool given = AppIcons.SetIcon(mine, exe, rose) && AppIcons.IconOf(mine) == rose + ",0";
+                bool once = !AppIcons.SetIcon(mine, exe, rose);
+                bool left = !AppIcons.SetIcon(notMine, exe, rose) && AppIcons.IconOf(notMine) == other + ",0";
+                bool back = AppIcons.SetIcon(mine, exe, exe) && AppIcons.IconOf(mine) == exe + ",0";
+                Check("app icons: IGYO's shortcut takes the icon chosen (once), another program's is left alone, the default puts back the program's",
+                    given && once && left && back, $"given {given}, once {once}, left {left}, back {back}");
+            }
+            finally { try { Directory.Delete(dir, true); } catch { } }
+
+            // "Search Google for “…”": the selection as the menu line shows it, short ones whole, long ones cut between words.
+            string longText = "the quick brown fox jumps over the lazy dog and keeps on running far away";
+            Check("search the selection: short text whole, long text cut between words with an ellipsis",
+                MainForm.AsMenuText("Microsoft's", 50) == "Microsoft's"
+                && MainForm.AsMenuText(longText, 50) == "the quick brown fox jumps over the lazy dog and…"
+                && MainForm.AsMenuText(new string('x', 80), 50) == new string('x', 50) + "…",
+                MainForm.AsMenuText(longText, 50));
+
+            // The engine keeps its reports to Windows Task Manager (they are what puts its processes in IGYO's group there):
+            // nothing is added to how it starts unless an extension may record or the window is drawn while covered.
+            string plain = BrowserEngine.Arguments("", false), full = BrowserEngine.Arguments("abcdefghijklmnopabcdefghijklmnop", true);
+            Check("engine: its Task Manager reports stay on; only recording and drawing while covered add switches",
+                plain == "" && full == "--allowlisted-extension-id=abcdefghijklmnopabcdefghijklmnop --disable-features=CalculateNativeWinOcclusion"
+                && !full.Contains("msWindowsTaskManager"),
+                plain + " | " + full);
+        }
+
+        static System.Drawing.Color Mix(System.Drawing.Color a, System.Drawing.Color b) =>
+            System.Drawing.Color.FromArgb((a.R + b.R) / 2, (a.G + b.G) / 2, (a.B + b.B) / 2);
+
+        static bool Near(System.Drawing.Color a, System.Drawing.Color b, int by = 24) =>
+            Math.Abs(a.R - b.R) <= by && Math.Abs(a.G - b.G) <= by && Math.Abs(a.B - b.B) <= by;
 
         static double Contrast(System.Drawing.Color a, System.Drawing.Color b)
         {

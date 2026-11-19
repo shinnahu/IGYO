@@ -9,7 +9,7 @@
     <RootNamespace>IGYO</RootNamespace>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>1.0.8</Version>
+    <Version>1.0.9</Version>
     <!-- The version is the version: no identifier of a source revision is added to it. -->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Product>IGYO</Product>
@@ -57,6 +57,8 @@
     <None Update="Assets\Settings\**" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Assets\Shared\**" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Assets\Themes\**" CopyToOutputDirectory="PreserveNewest" />
+    <!-- The app icons that can be chosen in Settings (tools\make-app-icons.ps1 draws them from icons.json). -->
+    <None Update="Assets\AppIcons\**" CopyToOutputDirectory="PreserveNewest" />
     <!-- The interface's languages other than English: one file each. -->
     <None Update="Assets\Lang\**" CopyToOutputDirectory="PreserveNewest" />
     <!-- Files only used while working on the pages in an ordinary browser (tools\serve.js). -->

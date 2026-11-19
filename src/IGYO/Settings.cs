@@ -12,6 +12,7 @@ namespace IGYO
         public string Language { get; set; } = "auto";         // a language's id ("es", "ja"…), "en", or "auto": the one Windows is shown in
         public string Theme { get; set; } = "auto";            // a theme's id, or "auto": IGYO Light or IGYO Dark with Windows
         public string Accent { get; set; } = "";               // "" keeps the theme's own accent; otherwise a color like #7C3AED
+        public string AppIcon { get; set; } = "";              // the icon IGYO wears (an id in Assets\AppIcons\icons.json); "" is the default one
         public bool Compact { get; set; }
         public bool Animations { get; set; } = true;
         public bool NewTabPage { get; set; } = true;
@@ -126,6 +127,7 @@ namespace IGYO
             if (!Tools.IsExtension(Tools.ForExtension(RecordingExtension ?? ""))) RecordingExtension = "";
             seen.Clear();
             if (!Tools.IsLevel(EnhanceLevel)) EnhanceLevel = "medium";
+            AppIcon = AppIcon ?? "";
             if (!TranslateLang.IsKnown(TranslateTo)) TranslateTo = "";
             if (!TranslateLang.IsKnown(TranslateSecond)) TranslateSecond = "";
             TranslateRecent = TranslateRecent ?? new List<string>();

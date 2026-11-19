@@ -132,7 +132,7 @@ namespace IGYO
 
         public Settings Settings { get; private set; }
         public ProfileStore Profiles { get; private set; }
-        public System.Drawing.Icon WindowIcon { get; private set; }   // the program's own icon, for every window
+        public System.Drawing.Icon WindowIcon { get; private set; }   // the icon IGYO wears (Settings > Appearance > App icon), for every window
         // Each profile has a look of its own (Profile.Theme/Accent; one that never chose has the one in settings.json),
         // and every window shows its profile's. Theme and ThemeDef are the look of the profile used last: the profile
         // picker's, which belongs to no profile. Its accent is IGYO's own (settings.json: the color picked in setup)
@@ -197,11 +197,14 @@ namespace IGYO
                     if (Profiles.TakeSetupColor(Settings, AppPaths.AppDir)) { Profiles.Save(); Settings.Save(); }   // the color picked in setup, once
                     ThemeFor(Profiles.Find(profileId) ?? LastProfile);   // the themes read and the first window's look worked out, off the window's thread
                     BookmarksFor(Profiles.Find(profileId) ?? Profiles.Find(Profiles.LastUsed) ?? Profiles.Default);
-                    try { WindowIcon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
+                    WindowIcon = AppIcons.WindowIcon(Settings.AppIcon);   // the app icon chosen in Settings (or the program's own)
                     StartupTrace.Mark("saved things read");
                 });
                 Anim.Enabled = Settings.Animations;
                 Bridge = new Bridge(this);
+                // An app icon chosen in Settings goes back onto shortcuts that setup made again (an update) and onto
+                // taskbar pins made since: a few seconds after the start, off this thread.
+                if (Settings.AppIcon.Length > 0) AppIcons.ApplyToShortcutsInTurn(Settings.AppIcon, 5000);
                 // With more than one profile, IGYO asks which one to open (unless it is told not to and has a default
                 // one). Not when it was started for a link or for a profile, or to take the place of a restart.
                 bool plainStart = Profiles.Find(profileId) == null && (urls == null || urls.Length == 0) && !RestoreOnce && alsoProfiles.Length == 0;
@@ -510,6 +513,21 @@ namespace IGYO
             L.Use(Settings.Language);
             SaveSettings();
             foreach (var window in windows.ToList()) window.ReloadOwnPages();
+        }
+
+        // The icon IGYO wears (Settings > Appearance > App icon): every window shows it at once, and IGYO's shortcuts
+        // are given it (off this thread). One for the whole program, whatever the profile.
+        public void ChooseAppIcon(string id)
+        {
+            Settings.AppIcon = AppIcons.IsChoice(id) && id != AppIcons.Default ? id : "";
+            WindowIcon = AppIcons.WindowIcon(Settings.AppIcon);
+            if (WindowIcon != null)
+            {
+                foreach (var window in windows) try { window.Icon = WindowIcon; } catch { }
+                if (picker != null) try { picker.Icon = WindowIcon; } catch { }
+            }
+            SaveSettings();
+            AppIcons.ApplyToShortcutsInTurn(Settings.AppIcon);
         }
 
         public void SaveSettings()

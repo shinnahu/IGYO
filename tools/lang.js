@@ -172,6 +172,9 @@ function usedKeys() {
     const theme = JSON.parse(fs.readFileSync(path.join(assets, 'Themes', file), 'utf8'));
     if (theme.description) add(theme.description, 'Themes/' + file);
   }
+  // The app icons' names (Settings > Appearance > App icon), as AppIcons.cs reads them.
+  const appIcons = JSON.parse(fs.readFileSync(path.join(assets, 'AppIcons', 'icons.json'), 'utf8'));
+  for (const icon of appIcons.icons || []) if (icon.name) add(icon.name, 'AppIcons/icons.json');
   return keys;
 }
 

@@ -111,6 +111,30 @@
     });
   }
 
+  // The icon IGYO wears: its windows' (Alt+Tab, the taskbar) and its shortcuts'. One for the whole program, whatever the
+  // profile. The row's title is the one worn; a click on another wears that one at once.
+  function appIconRow(card) {
+    const grid = h('div', { class: 'st-appicons', role: 'radiogroup', 'aria-label': tr('App icon') });
+    const r = row(card, { title: tr('App icon'), desc: tr("On the taskbar, in Alt+Tab and on IGYO's shortcuts. The same for every profile."), below: grid });
+    let signature = '';
+    onSync((state) => {
+      const icons = state.appIcons || [];
+      const next = JSON.stringify([state.appIcon, icons]);
+      if (next === signature) return;
+      signature = next;
+      const worn = icons.find((icon) => icon.id === state.appIcon);
+      r.title.textContent = worn ? worn.name : tr('App icon');
+      grid.replaceChildren(...icons.map((icon) => {
+        const on = icon.id === state.appIcon;
+        return h('button', {
+          type: 'button', class: 'st-appicon' + (on ? ' is-chosen' : ''), role: 'radio', 'aria-checked': String(on),
+          title: icon.name, 'aria-label': icon.name,
+          onclick: async () => { if (!on) settled(await api.set('AppIcon', icon.id)); },
+        }, h('img', { src: icon.picture, alt: '' }));
+      }));
+    });
+  }
+
   function renderAppearance(page) {
     header(page, tr('Appearance'), tr('Make IGYO look the way you like.'));
     // The language of IGYO's own menus and pages (each language is listed under its own name). Choosing one
@@ -159,6 +183,7 @@
     const narrow = h('div', { class: 'st-narrow' });
     page.append(narrow);
     accentRow(group(narrow, tr('Accent')));
+    appIconRow(group(narrow, tr('App icon')));
     const layout = group(narrow, tr('Layout and motion'));
     toggle(layout, { title: tr('Animations'), desc: tr('Tabs, lists, panels and the New Tab page move smoothly. Turn off for an instant, calmer feel.'), key: 'Animations' });
     toggle(layout, { title: tr('Compact mode'), desc: tr('Smaller tabs and toolbar, more room for pages.'), key: 'Compact' });
