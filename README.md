@@ -134,8 +134,8 @@ A theme is one file: colors, fonts, corner roundness and border width, a few opt
 name of a **kit**. The kit is what makes themes look unlike each other: it draws the shapes, the decorations
 and the animations. The six kits are IGYO, Specimen, Bunker, Protocol, Victory and Encore, and the IGYO kit
 has seven color themes (IGYO Dark, IGYO Light, Midnight, Forest, Ocean, Rose and Sunset: IGYO Dark's greys
-with a gold-to-pink glow on the active tab, under the toolbar, in the loading line, switches and buttons, an
-amber star for a page that is a bookmark, and on New Tab the Sunset icon's tile, mauve running down to peach,
+with a gold-to-pink glow on the active tab, in the loading line, switches and buttons, an amber star for a
+page that is a bookmark, and on New Tab the Sunset icon's tile, mauve running down to peach,
 behind a white clock and a gold-to-pink search button). A new profile starts on
 Automatic, which follows Windows between IGYO Dark and IGYO Light. Menu > Themes opens the gallery, and so does
 the Themes button in the New Tab page's Customize.
@@ -354,6 +354,15 @@ data folder, and `IGYO.exe --selftest <report file>` runs the built-in checks in
   answers the page; files named `dev*` are never shipped).
 
 ## How it was tested
+
+**1.0.11.** The one change since 1.0.10: the Sunset theme no longer draws a line under the toolbar. Checked
+like this:
+
+- **The running browser**, the Debug build on a throwaway data folder, on a Windows desktop that is never shown,
+  4 checks: in the Sunset theme there is no line under the toolbar, the top bar has IGYO Dark's own greys, and
+  the active tab's outline and the loading line still run from #FFC355 to #FF7596.
+- **The setup program**, the 28 checks of 1.0.10 below, with the program and its entry at 1.0.11 and the
+  installed Sunset theme without the line; the installed copy passes its built-in checks (294).
 
 **1.0.10.** What changed since 1.0.9 was checked like this; the checks made for earlier versions follow, and
 were not all repeated.
@@ -842,6 +851,9 @@ and what is not tested at the end.
   restore), menus by keyboard, the theme editor, the bookmark manager, profiles, a private window, the ad
   block counter, the full-page screenshot, docked developer tools, and starting with saved tabs or from a
   link. Those checks were not repeated on this build.
+
+**Not tested in 1.0.11:** the top bar without its line on a real screen (it was read back from the running
+browser).
 
 **Not tested in 1.0.10:** a real call: Google Meet, Microsoft Teams or any other call site, a real camera or
 microphone, and screen sharing (no screen was shared in the checks; what keeps a tab in a call awake was tried
