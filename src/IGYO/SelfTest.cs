@@ -1226,12 +1226,13 @@ namespace IGYO
             Check("themes: a look that was taken out (Guild) opens the default one",
                 ThemeStore.Normalize("guild") == ThemeStore.Auto && ThemeStore.Find("guild") == null && ThemeStore.Resolve("guild")?.id.StartsWith("igyo-") == true,
                 ThemeStore.Normalize("guild"));
-            // IGYO Dark: the acid accent with dark text on it (Periwinkle, its accent before, is one to choose), and a
-            // plain slate picture for New Tab in both IGYO themes, which New Tab shows the way it shows pictures.
+            // IGYO Dark: the Periwinkle accent (IGYO's own Periwinkle, the one offered as an accent) with dark text on it
+            // (Acid, its accent from 17 to 19 Nov 2026, is one to choose), and a plain slate picture for New Tab in both
+            // IGYO themes, which New Tab shows the way it shows pictures.
             var igyoDark = ThemeStore.Find("igyo-dark");
             var igyoDarkLook = igyoDark != null ? Theme.From(igyoDark, null) : null;
-            Check("themes: IGYO Dark is acid with readable text on it, Periwinkle is offered, both IGYO themes bring New Tab's slate",
-                igyoDarkLook != null && igyoDarkLook.Accent.ToArgb() == System.Drawing.Color.FromArgb(0xC5, 0xF1, 0x35).ToArgb()
+            Check("themes: IGYO Dark is Periwinkle with readable text on it, Periwinkle is the accent offered under that name, both IGYO themes bring New Tab's slate",
+                igyoDarkLook != null && igyoDarkLook.Accent.ToArgb() == System.Drawing.Color.FromArgb(0x8A, 0xA4, 0xFF).ToArgb()
                 && Contrast(igyoDarkLook.AccentText, igyoDarkLook.Accent) >= 7
                 && ThemeStore.LegacyAccents.TryGetValue("Periwinkle", out var periwinkle) && periwinkle == "#8AA4FF"
                 && igyoDark.wallpaper.StartsWith("data:image/png;base64,") && ThemeStore.Find("igyo-light")?.wallpaper == igyoDark.wallpaper,

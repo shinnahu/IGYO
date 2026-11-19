@@ -355,6 +355,16 @@ data folder, and `IGYO.exe --selftest <report file>` runs the built-in checks in
 
 ## How it was tested
 
+**1.0.12.** The one change since 1.0.11: IGYO Dark's accent color is Periwinkle (#8AA4FF) in place of Acid
+(#C5F135). Acid is still offered as an accent, and Specimen keeps it. Checked like this:
+
+- **Built-in checks.** `IGYO.exe --selftest`, 294 checks; IGYO Dark's check now asks for Periwinkle, with the
+  text on it at 7:1 or more.
+- **The running browser**, the Debug build on a throwaway data folder, on a Windows desktop that is never shown,
+  2 checks: in IGYO Dark, the interface and New Tab both have the Periwinkle accent, with dark text on it.
+- **The setup program**, the checks of 1.0.10 below and one more, that the installed IGYO Dark has the
+  Periwinkle accent, with the program and its entry at 1.0.12; the installed copy passes its built-in checks.
+
 **1.0.11.** The one change since 1.0.10: the Sunset theme no longer draws a line under the toolbar. Checked
 like this:
 
@@ -851,6 +861,8 @@ and what is not tested at the end.
   restore), menus by keyboard, the theme editor, the bookmark manager, profiles, a private window, the ad
   block counter, the full-page screenshot, docked developer tools, and starting with saved tabs or from a
   link. Those checks were not repeated on this build.
+
+**Not tested in 1.0.12:** IGYO Dark's Periwinkle on a real screen (it was read back from the running browser).
 
 **Not tested in 1.0.11:** the top bar without its line on a real screen (it was read back from the running
 browser).
