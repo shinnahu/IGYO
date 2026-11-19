@@ -71,6 +71,7 @@ namespace IGYOSetup
             ["Includes Microsoft's WebView2 engine. Installing means accepting Microsoft's licence terms for it."] = new[] { "Incluye el motor WebView2 de Microsoft. Al instalar aceptas los términos de licencia de Microsoft para ese motor.", "Microsoft の WebView2 エンジンが含まれます。インストールすると、そのライセンス条項に同意したことになります。" },
             ["Read the terms"] = new[] { "Leer los términos", "条項を読む" },
             ["Color"] = new[] { "Color", "カラー" },
+            ["Sunset"] = new[] { "Atardecer", "サンセット" },
             ["Periwinkle"] = new[] { "Pervinca", "ペリウィンクル" },
             ["Acid"] = new[] { "Ácido", "アシッド" },
             ["Yellow"] = new[] { "Amarillo", "イエロー" },
@@ -100,6 +101,7 @@ namespace IGYOSetup
     {
         public bool Silent, Desktop = true, StartMenu = true, Launch = true;
         public string Color;   // the color picked in the window (#RRGGBB): the theme's accent and the profile's circle; null leaves them
+        public string Theme;   // with it, the theme it stands for ("sunset"): the browser starts in it, with its own accent
         public string Dir = DefaultDir, ShortcutDir, RegKey = InstallInfo.DefaultRegKey, EarlierRoot;
 
         public static string ProgramsRoot =>
@@ -109,7 +111,8 @@ namespace IGYOSetup
 
         // /S  /D=<folder>  /NOSHORTCUTS  /NOLAUNCH  (and, for testing: /SHORTCUTDIR=<folder>  /REGKEY=<name>,
         // /EARLIERROOT=<folder>: look for an install under the browser's earlier names there instead of in Programs, and
-        // /COLOR=#RRGGBB: a silent install that carries a color, as if it had been picked in the window)
+        // /COLOR=#RRGGBB: a silent install that carries a color, as if it had been picked in the window, and with it
+        // /THEME=sunset: the Sunset pick)
         public static SetupOptions Parse(string[] args)
         {
             var o = new SetupOptions();
@@ -122,6 +125,7 @@ namespace IGYOSetup
                 else if (u.StartsWith("/REGKEY=")) o.RegKey = a.Substring(8).Trim('"');
                 else if (u.StartsWith("/EARLIERROOT=")) o.EarlierRoot = a.Substring(13).Trim('"');
                 else if (u.StartsWith("/COLOR=")) o.Color = a.Substring(7).Trim('"');
+                else if (u.StartsWith("/THEME=")) o.Theme = a.Substring(7).Trim('"').ToLowerInvariant();
                 else if (u == "/NOSHORTCUTS") o.Desktop = o.StartMenu = false;
                 else if (u == "/NOLAUNCH") o.Launch = false;
             }
@@ -181,7 +185,12 @@ namespace IGYOSetup
             if (IsWindows10()) GrantEngineAccess(Path.Combine(dir, "runtime"));
 
             var marker = new InstallInfo.Marker { RegKey = o.RegKey, Version = Version };
-            if (InstallInfo.IsColor(o.Color)) { marker.Color = o.Color.ToUpperInvariant(); marker.ColorId = Guid.NewGuid().ToString("N"); }
+            if (InstallInfo.IsColor(o.Color))
+            {
+                marker.Color = o.Color.ToUpperInvariant();
+                marker.ColorId = Guid.NewGuid().ToString("N");
+                if (InstallInfo.IsThemeId(o.Theme)) marker.Theme = o.Theme;
+            }
             var desktop = o.ShortcutDir ?? Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
             var startMenu = o.ShortcutDir ?? Environment.GetFolderPath(Environment.SpecialFolder.Programs);
             if (o.Desktop)
@@ -422,36 +431,67 @@ namespace IGYOSetup
         }
     }
 
-    // The setup window: the icon itself (the white star on its periwinkle tile) on dark slate, and a color to pick for
-    // whatever can be pressed, periwinkle until another is picked. The pick is also what the browser
-    // starts with: the theme's accent and the color of the profile's circle. Three choices, one big button, smooth progress.
+    // The setup window: the icon itself (the white star on its sunset tile) on dark slate, and a color to pick for
+    // whatever can be pressed: Sunset (the icon's own tile, mauve to peach) until another is picked. The pick
+    // is also what the browser starts with: Sunset starts it in the Sunset theme, with that theme's own colors, and any
+    // other is the theme's accent; either is the color of the profile's circle. Three choices, one big button, smooth progress.
     sealed class SetupForm : Form
     {
         static readonly Color Slate = Color.FromArgb(0x24, 0x26, 0x2C),   // the header
             Deep = Color.FromArgb(0x1C, 0x1E, 0x23),                       // the rest of the window
             Well = Color.FromArgb(0x15, 0x16, 0x1A),                       // the box with the folder in it
             Bone = Color.FromArgb(0xEE, 0xEF, 0xEB),                       // text
-            // The icon as the program wears it by default (Assets\AppIcons\icons.json, "periwinkle"; tools\make-app-icons.ps1):
-            TileTop = Color.FromArgb(0x9D, 0xB1, 0xFF),                    // its tile, periwinkle running down
-            TileBottom = Color.FromArgb(0x4F, 0x5F, 0xE0),                 //   to deep blue
-            Star = Color.White,                                            // its star
+            Star = Color.White,                                            // the icon's star (its tile: TileColors)
             Muted = Color.FromArgb(0x9A, 0xA1, 0xA9), Faint = Color.FromArgb(0x6C, 0x72, 0x7B),
             Line = Color.FromArgb(0x34, 0x37, 0x3F), Off = Color.FromArgb(0x3A, 0x3D, 0x46), Bad = Color.FromArgb(0xFF, 0x8A, 0x80);
 
-        // The colors to pick from, round the color wheel and beige last; periwinkle unless another is picked. (The browser
-        // offers the same as accents, in the same order.) A menu shows the picked one with its name; it opens a list of all.
+        // The icon as the program wears it by default (Assets\AppIcons\icons.json, "sunset"; tools\make-app-icons.ps1): its
+        // tile runs down from mauve through pink to peach, his 19 Nov 2026 tile, with a sharp step at 0.3 of the way.
+        static readonly Color[] TileColors =
+        {
+            Color.FromArgb(0x97, 0x6F, 0xA3), Color.FromArgb(0xCB, 0x73, 0xA3), Color.FromArgb(0xD5, 0x7A, 0x9B),
+            Color.FromArgb(0xF1, 0xA6, 0x7F), Color.FromArgb(0xF0, 0xAC, 0x82), Color.FromArgb(0xF0, 0xAC, 0x82),
+        };
+        static readonly float[] TileStops = { 0f, 0.3f, 0.3f, 0.5f, 0.8f, 1f };
+
+        // What to pick from: Sunset first (the theme; its pink is the circle's color), then the colors round the color
+        // wheel and beige last. (The browser offers the same colors as accents, in the same order.) Sunset unless another
+        // is picked. A menu shows the picked one with its name; it opens a list of all.
+        const int SunsetPick = 0;
+        const string SunsetTheme = "sunset";
+        static readonly Color SunPink = Hex(0xFF7596);   // the Sunset theme's pink: the profile's circle, what words on it are told by
+        // What Sunset paints with: the icon's own tile colors, mauve running through its two pinks to peach, as soft as the
+        // icon, spread evenly (on the icon the pink turns to peach within a fifth of the way and stays flat after it, which
+        // across a button or a switch looked like a cut).
+        static readonly Color[] SunColors = { Hex(0x976FA3), Hex(0xCB73A3), Hex(0xD57A9B), Hex(0xF0AC82) };
+        static readonly float[] SunStops = { 0f, 0.45f, 0.55f, 1f };
         static readonly (string Name, Color Value)[] Swatches =
         {
+            ("Sunset", SunPink),
             ("Rose", Hex(0xE11D48)), ("Amber", Hex(0xD97706)), ("Yellow", Hex(0xFFD500)), ("Acid", Hex(0xC5F135)), ("Green", Hex(0x16A34A)), ("Teal", Hex(0x0D9488)),
             ("Blue", Hex(0x2563EB)), ("Periwinkle", Hex(0x8AA4FF)), ("Violet", Hex(0x7C3AED)), ("Hot pink", Hex(0xFE58C9)), ("Sakura", Hex(0xFF99C5)), ("Beige", Hex(0xD9C6A2)),
         };
-        int picked = Array.FindIndex(Swatches, c => c.Name == "Periwinkle"), hoverSwatch = -1;
+        int picked = SunsetPick, hoverSwatch = -1;
         bool menuOpen;
         Rectangle menuBox;
         Color Accent => Swatches[picked].Value;                        // buttons, switches, progress
         Color AccentLit => Mix(Accent, Color.White, 0.2f);             // the same under the pointer
         Color AccentInk => Ink(Accent);                                // what stands on it
         Rectangle[] swatchRects = new Rectangle[Swatches.Length];
+
+        // What a pick paints with, over the given box: Sunset the icon's tile colors, running left to right (his word,
+        // 19 Nov 2026: the icon's own top-to-bottom was tried first); any other its own color. Lighter under the pointer;
+        // alpha: how much of it shows.
+        static Brush PaintFor(int pick, RectangleF box, bool lit = false, int alpha = 255)
+        {
+            Color Lit(Color c) => Color.FromArgb(alpha, lit ? Mix(c, Color.White, 0.2f) : c);
+            if (pick != SunsetPick) return new SolidBrush(Lit(Swatches[pick].Value));
+            var area = new RectangleF(box.X - 1, box.Y - 1, Math.Max(2, box.Width + 2), Math.Max(2, box.Height + 2));
+            var brush = new LinearGradientBrush(area, Lit(SunColors[0]), Lit(SunColors[SunColors.Length - 1]), LinearGradientMode.Horizontal);
+            brush.InterpolationColors = new ColorBlend { Colors = SunColors.Select(Lit).ToArray(), Positions = SunStops };
+            return brush;
+        }
+        Brush AccentPaint(RectangleF box, bool lit = false, int alpha = 255) => PaintFor(picked, box, lit, alpha);
 
         static Color Hex(int rgb) => Color.FromArgb((rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255);
         static string HexOf(Color c) => "#" + c.R.ToString("X2") + c.G.ToString("X2") + c.B.ToString("X2");
@@ -481,11 +521,9 @@ namespace IGYOSetup
         public SetupForm(SetupOptions o)
         {
             options = o;
-            // Run again over an install, the window starts on the color picked then, so that installing again without
-            // touching it changes nothing the browser was given before (see ProfileStore.TakeSetupColor).
-            var before = InstallInfo.ReadMarker(o.Dir)?.Color;
-            int earlier = InstallInfo.IsColor(before) ? Array.FindIndex(Swatches, c => string.Equals(HexOf(c.Value), before, StringComparison.OrdinalIgnoreCase)) : -1;
-            if (earlier >= 0) picked = earlier;
+            // The window starts on Sunset, also over an install that had another color picked (his word, 19 Nov 2026):
+            // left on it, the update brings the Sunset look (see ProfileStore.TakeSetupColor); the color picked then
+            // can be picked again.
             Text = Words.T("{0} Setup", InstallInfo.AppName);
             try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
             AutoScaleMode = AutoScaleMode.Dpi;
@@ -547,20 +585,24 @@ namespace IGYOSetup
             int w = ClientSize.Width, pad = S(36);
 
             // Header: the star large and faint behind, in the picked color, and the icon itself beside the name: the white
-            // star on its periwinkle tile.
+            // star on its sunset tile.
             var header = new Rectangle(0, 0, w, S(150));
             using (var back = new SolidBrush(Slate)) g.FillRectangle(back, header);
             var clip = g.Clip;
             g.SetClip(header);
-            using (var big = Mark.Shape(new RectangleF(w - S(206), -S(16), S(182), S(182))))   // most of it in the header
-            using (var faint = new SolidBrush(Color.FromArgb(22, Accent)))
+            var bigBox = new RectangleF(w - S(206), -S(16), S(182), S(182));   // most of it in the header
+            using (var big = Mark.Shape(bigBox))
+            using (var faint = AccentPaint(bigBox, alpha: 22))
                 g.FillPath(faint, big);
             g.Clip = clip;
             using (var hairline = new Pen(Line)) g.DrawLine(hairline, 0, header.Bottom - 1, w, header.Bottom - 1);
             var icon = new RectangleF(pad - S(2), S(39), S(72), S(72));
             using (var tile = Rounded(Rectangle.Round(icon), (int)Math.Round(icon.Width * 44.48 / 256)))   // the icon's corner: 44.48 of its 256
-            using (var tint = new LinearGradientBrush(new PointF(0, icon.Top - 1), new PointF(0, icon.Bottom + 1), TileTop, TileBottom))
+            using (var tint = new LinearGradientBrush(new PointF(0, icon.Top - 1), new PointF(0, icon.Bottom + 1), TileColors[0], TileColors[TileColors.Length - 1]))
+            {
+                tint.InterpolationColors = new ColorBlend { Colors = TileColors, Positions = TileStops };
                 g.FillPath(tint, tile);
+            }
             using (var mark = Mark.OnTile(icon))
             using (var star = new SolidBrush(Star))
                 g.FillPath(star, mark);
@@ -614,7 +656,7 @@ namespace IGYOSetup
                 using (var path = Rounded(bar, bar.Height / 2)) using (var back = new SolidBrush(Line)) g.FillPath(back, path);
                 var fillRect = new Rectangle(bar.X, bar.Y, Math.Max(bar.Height, (int)(bar.Width * shown / 100f)), bar.Height);
                 using (var path = Rounded(fillRect, bar.Height / 2))
-                using (var brush = new SolidBrush(Accent))
+                using (var brush = AccentPaint(bar))   // (Sunset's colors run along the whole bar: the fill uncovers them)
                     g.FillPath(brush, path);
             }
             int said = installing || shown > 0 ? y + S(64) : y + S(46);   // under the progress bar; higher when there is none (a message after a failed run)
@@ -652,7 +694,8 @@ namespace IGYOSetup
                 using (var b = new SolidBrush(back)) g.FillPath(b, path);
                 using (var pen = new Pen(menuOpen ? Faint : Line)) g.DrawPath(pen, path);
             }
-            using (var dot = new SolidBrush(Accent)) g.FillEllipse(dot, new Rectangle(menuBox.X + S(12), menuBox.Y + (menuBox.Height - S(16)) / 2, S(16), S(16)));
+            var dotBox = new Rectangle(menuBox.X + S(12), menuBox.Y + (menuBox.Height - S(16)) / 2, S(16), S(16));
+            using (var dot = AccentPaint(dotBox)) g.FillEllipse(dot, dotBox);
             TextRenderer.DrawText(g, Words.T(Swatches[picked].Name), Font, new Rectangle(menuBox.X + S(38), menuBox.Y, menuBox.Width - S(70), menuBox.Height), Bone, back,
                 TextFormatFlags.VerticalCenter | TextFormatFlags.Left);
             int cx = menuBox.Right - S(18), cy = menuBox.Y + menuBox.Height / 2;
@@ -681,7 +724,7 @@ namespace IGYOSetup
                 if (i == hoverSwatch) using (var path = Rounded(Rectangle.Inflate(r, -S(2), -S(2)), S(6))) using (var b = new SolidBrush(back)) g.FillPath(b, path);
                 var dot = new Rectangle(r.X + S(10), r.Y + (r.Height - S(14)) / 2, S(14), S(14));
                 if (i == picked) using (var ring = new Pen(Bone, Math.Max(1.5f, S(2)))) g.DrawEllipse(ring, Rectangle.Inflate(dot, S(3), S(3)));
-                using (var b = new SolidBrush(Swatches[i].Value)) g.FillEllipse(b, dot);
+                using (var b = PaintFor(i, dot)) g.FillEllipse(b, dot);
                 TextRenderer.DrawText(g, Words.T(Swatches[i].Name), Font, new Rectangle(r.X + S(34), r.Y, r.Width - S(36), r.Height), i == picked ? Bone : Muted, back,
                     TextFormatFlags.VerticalCenter | TextFormatFlags.Left);
             }
@@ -708,10 +751,28 @@ namespace IGYOSetup
             installButton = new Rectangle(ClientSize.Width - S(36) - w, ClientSize.Height - S(28) - h, w, h);
             var fill = !enabled ? Off : hoverInstall ? AccentLit : Accent;
             using (var path = Rounded(installButton, S(10)))
-            using (var brush = new SolidBrush(fill))
+            using (var brush = enabled ? AccentPaint(installButton, hoverInstall) : new SolidBrush(Off))
                 g.FillPath(brush, path);
-            using (var font = new Font("Segoe UI Semibold", 10.5f))
-                TextRenderer.DrawText(g, text, font, installButton, enabled ? AccentInk : Muted, fill, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            using (var font = new Font("Segoe UI", 10.5f, FontStyle.Bold))   // (bold: his word, 19 Nov 2026)
+            {
+                if (enabled && picked == SunsetPick)
+                {
+                    // White on Sunset, as the icon's star (his word). On a gradient there is no one color to draw the words
+                    // against, so they are smoothed in grey, over a faint plum shadow that keeps them clear on the peach.
+                    var hint = g.TextRenderingHint;
+                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+                    using (var shade = new SolidBrush(Color.FromArgb(90, 0x3C, 0x14, 0x32)))
+                    using (var ink = new SolidBrush(Color.White))
+                    using (var center = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+                    {
+                        var below = installButton; below.Offset(0, Math.Max(1, S(1)));
+                        g.DrawString(text, font, shade, below, center);
+                        g.DrawString(text, font, ink, installButton, center);
+                    }
+                    g.TextRenderingHint = hint;
+                }
+                else TextRenderer.DrawText(g, text, font, installButton, enabled ? AccentInk : Muted, fill, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            }
         }
 
         Rectangle DrawLink(Graphics g, string text, Point at, Color back)
@@ -727,7 +788,7 @@ namespace IGYOSetup
         void DrawToggle(Graphics g, Rectangle r, bool on)
         {
             using (var path = Rounded(r, r.Height / 2))
-            using (var brush = new SolidBrush(on ? Accent : Off))
+            using (var brush = on ? AccentPaint(r) : new SolidBrush(Off))
                 g.FillPath(brush, path);
             int d = r.Height - S(6);
             var knob = new Rectangle(on ? r.Right - d - S(3) : r.X + S(3), r.Y + S(3), d, d);
@@ -833,6 +894,7 @@ namespace IGYOSetup
             options.Desktop = desktop;
             options.StartMenu = startMenu;
             options.Color = HexOf(Accent);
+            options.Theme = picked == SunsetPick ? SunsetTheme : null;
             bool waiting = false;   // while the engine of a copy that was just closed is waited for, the line says so
             var progress = new Progress<int>(p => { target = p; if (!waiting) status = p < 92 ? Words.T("Copying files… {0}%", p) : Words.T("Creating shortcuts…"); });
             try

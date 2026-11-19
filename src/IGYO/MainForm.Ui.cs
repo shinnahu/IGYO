@@ -744,6 +744,12 @@ namespace IGYO
             yield return Sub(L.T("Put background tabs to sleep after"), sleep);
             yield return Sub(L.T("Unload sleeping tabs after"), unload);
             yield return Item(L.T("Sleep when the window is minimized"), null, () => { Settings.SleepWhenMinimized = !Settings.SleepWhenMinimized; app.SaveSettings(); }, true, Settings.SleepWhenMinimized);
+            // The site on show, kept awake or not (Settings > Memory saver has the whole list). When a site of the list
+            // covers it ("google.com" for meet.google.com), that is the one named, and taken off.
+            var entry = AwakeSites.EntryFor(Settings.AwakeSites, current?.Url);
+            var site = entry ?? AwakeSites.SiteOf(current?.Url);
+            if (site != null)
+                yield return Item(L.T("Never put {0} to sleep", site), null, () => app.SetAwakeSite(site, entry == null), true, entry != null);
             yield return Item(L.T("Give memory back to Windows"), null, () => { Settings.ReleaseMemory = !Settings.ReleaseMemory; app.SaveSettings(); }, true, Settings.ReleaseMemory);
             yield return MenuEntry.Line();
             yield return Item(L.T("Memory in use…"), null, () => OpenSettings("memory"));

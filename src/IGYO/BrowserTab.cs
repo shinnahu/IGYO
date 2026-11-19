@@ -198,6 +198,8 @@ namespace IGYO
                         core.AddWebResourceRequestedFilter("https://" + store + path + "*", CoreWebView2WebResourceContext.All, CoreWebView2WebResourceRequestSourceKinds.All);
                 _ = core.AddScriptToExecuteOnDocumentCreatedAsync(ExtensionStore.PageScript);
             }
+            // Whether the page still holds the camera, the microphone or the screen (see PageTools.CaptureWatchScript).
+            _ = core.AddScriptToExecuteOnDocumentCreatedAsync(PageTools.CaptureWatchScript);
             core.ContextMenuRequested += (_, e) =>
             {
                 owner.ExpectDevTools(this);   // "Inspect" opens DevTools: dock them
@@ -376,21 +378,49 @@ namespace IGYO
             Changed?.Invoke(this);
         }
 
+        // ----- what keeps it running in the background -----
+        // A tab in the background is put to sleep and later unloaded (MainForm.Housekeeping), but not while it plays
+        // sound, floats a video or a window of its own in picture in picture, is in a call (it holds the camera, the
+        // microphone or the screen, or plays a call's voices or pictures), or is on a site of Settings > Memory
+        // saver's list. Whether it floats something or is in a call is asked of the page when the tab is left, before
+        // anything is done to it, and every round while it is so (see PageTools.InUseScript).
         public bool InPictureInPicture { get; private set; }
+        public bool InCall { get; private set; }
+        public bool OnAwakeList => AwakeSites.Covers(owner.App.Settings.AwakeSites, Url);
+        public DateTime LastSleepTry { get; private set; } = DateTime.MinValue;
 
-        // A video floating in picture in picture needs its page to keep running, even when its tab isn't shown.
-        public async Task<bool> CheckPictureInPictureAsync()
+        // Asks the page and every frame in it. True when it floats something or is in a call, and also when the page
+        // gave no answer in time (it is then left as it is, and asked again later). A sleeping page is neither.
+        public async Task<bool> CheckInUseAsync()
         {
             var core = Core;
-            if (core == null || core.IsSuspended) return InPictureInPicture = false;
             try
             {
-                var result = await core.ExecuteScriptAsync(
-                    "(() => { const d = [document]; for (const f of document.querySelectorAll('iframe')) { try { if (f.contentDocument) d.push(f.contentDocument); } catch (e) {} } return d.some(x => !!x.pictureInPictureElement); })()");
-                InPictureInPicture = result == "true";
+                if (core == null || core.IsSuspended) { InPictureInPicture = InCall = false; return false; }
             }
-            catch { InPictureInPicture = false; }
-            return InPictureInPicture;
+            catch { return false; }
+            var script = PageTools.InUseScript;
+            var asks = new System.Collections.Generic.List<Task<string>> { Answer(core.ExecuteScriptAsync(script)) };
+            foreach (var frame in frames.ToArray())
+                try { if (frame.IsDestroyed() == 0) asks.Add(Answer(frame.ExecuteScriptAsync(script))); } catch { }
+            var all = Task.WhenAll(asks);
+            await Task.WhenAny(all, Task.Delay(3000));
+            if (Core != core) return false;   // unloaded meanwhile
+            if (!asks[0].IsCompleted || asks[0].Result == null) return true;
+            int found = 0;
+            foreach (var ask in asks)
+                if (ask.IsCompleted && int.TryParse(ask.Result, out int n)) found |= n;
+            bool callBegan = (found & 2) != 0 && !InCall;
+            InPictureInPicture = (found & 1) != 0;
+            InCall = (found & 2) != 0;
+            if (callBegan && !owner.IsShowing(this))
+                try { core.MemoryUsageTargetLevel = CoreWebView2MemoryUsageTargetLevel.Normal; } catch { }   // (see Hide)
+            return InPictureInPicture || InCall;
+        }
+
+        static async Task<string> Answer(Task<string> asking)
+        {
+            try { return await asking; } catch { return null; }
         }
 
         public async void Hide()
@@ -398,14 +428,16 @@ namespace IGYO
             HiddenSince = DateTime.Now;
             MemoryReleased = false;
             if (View == null) return;
-            if (await CheckPictureInPictureAsync())
+            await CheckInUseAsync();
+            if (InPictureInPicture)
             {
                 View?.SendToBack();   // stays "visible" behind the shown tab, so the floating video keeps its controls
                 return;
             }
             if (View == null || owner.IsShowing(this)) return;
             View.Visible = false;
-            if (Core != null && !IsPlayingAudio)
+            // (The engine is told it may use less memory for the page, but not while sound or a call runs in it.)
+            if (Core != null && !IsPlayingAudio && !InCall)
                 try { Core.MemoryUsageTargetLevel = CoreWebView2MemoryUsageTargetLevel.Low; } catch { }
         }
 
@@ -413,7 +445,8 @@ namespace IGYO
         public async Task SleepAsync()
         {
             var core = Core;
-            if (core == null || State != TabState.Live || IsPlayingAudio || View == null || View.Visible) return;
+            if (core == null || State != TabState.Live || IsPlayingAudio || InCall || InPictureInPicture || View == null || View.Visible) return;
+            LastSleepTry = DateTime.Now;
             try
             {
                 core.MemoryUsageTargetLevel = CoreWebView2MemoryUsageTargetLevel.Low;
@@ -434,7 +467,7 @@ namespace IGYO
         // Releases the page completely; it reloads from its address when the tab is opened again.
         public void Unload()
         {
-            if (View == null || IsPlayingAudio || InPictureInPicture) return;
+            if (View == null || IsPlayingAudio || InPictureInPicture || InCall || owner.IsShowing(this)) return;
             if (Core != null && !string.IsNullOrEmpty(Core.Source)) Url = Core.Source;
             pendingNavigation = string.IsNullOrEmpty(Url) || Url == "about:blank" ? null : Url;   // the New Tab page comes back too
             DisposeView();

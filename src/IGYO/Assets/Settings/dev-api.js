@@ -143,6 +143,8 @@
     nudge();
   }).catch((error) => console.warn('[dev] could not read the app icons from the dev server', error));
 
+  let awakeSites = ['chat.example.com'];   // sites whose tabs never sleep (Memory saver)
+
   const state = () => ({
     app,
     settings: Object.assign({}, settings, { EffectiveScreenshotFolder: settings.ScreenshotFolder || 'C:\\Users\\You\\Pictures\\IGYO' }),
@@ -151,6 +153,7 @@
     extensionsFolder: 'C:\\Users\\You\\AppData\\Local\\IGYO\\Extensions', extensionsOn: false,
     sleepOptions: [['Never', 0], ['1 minute', 1], ['5 minutes', 5], ['15 minutes', 15], ['1 hour', 60]].map(([label, value]) => ({ label, value })),
     unloadOptions: [['Never', 0], ['15 minutes', 15], ['30 minutes', 30], ['1 hour', 60], ['4 hours', 240]].map(([label, value]) => ({ label, value })),
+    awakeSites: awakeSites.slice(),
     theme: chosenTheme,
     themeProfile: 'Default',   // (the profile whose look this is: each has its own)
     activeTheme: previewing ? previewing.id || 'preview' : chosenTheme === 'auto' ? 'igyo-dark' : chosenTheme,
@@ -350,6 +353,15 @@
       }
       case 'bridge/program-remove': claude.programs = claude.programs.filter((p) => p.path !== a.path); nudge(); return OK;
       case 'bridge/activity-clear': claude.activity = []; nudge(); return OK;
+      case 'memory/site-add': {
+        // (roughly as the app reads it: a name or an address, without "www.")
+        let host = '';
+        try { host = new URL(/:\/\//.test(a.site || '') ? a.site : 'https://' + (a.site || '').trim()).hostname.replace(/^www\./, '').replace(/\.$/, ''); } catch { host = ''; }
+        if (!host || !(host.includes('.') || host === 'localhost')) return { error: "That isn't the name or address of a website." };
+        if (!awakeSites.includes(host)) awakeSites.push(host);
+        nudge(); return OK;
+      }
+      case 'memory/site-remove': awakeSites = awakeSites.filter((s) => s !== a.site); nudge(); return OK;
       case 'profile/add': {
         const name = String(a.name || '').trim();
         if (!name) return { error: 'Give the profile a name.' };
@@ -423,7 +435,8 @@
         const engine = 380 + Math.round(Math.random() * 60);
         return { total: engine + 61, engine, processes: 7, own: 61, tabs: [
           { title: 'Settings', state: 'Active' }, { title: 'Field notes and base planning: a wiki page with a long title', state: 'Open' },
-          { title: 'lofi beats to browse to', state: 'Open' }, { title: 'An old tab that went to sleep a while ago and has a rather long title for a tab', state: 'Sleeping' },
+          { title: 'lofi beats to browse to', state: 'Sound' }, { title: 'An old tab that went to sleep a while ago and has a rather long title for a tab', state: 'Sleeping' },
+          { title: 'Weekly call', state: 'Call' }, { title: 'Team chat', state: 'Kept' },
           { title: 'Recipes — empanadas', state: 'Unloaded' }, { title: 'Work tracker', state: 'Active' },
         ] };
       }

@@ -1,0 +1,38 @@
+{
+  "format": "igyo-theme/1",
+  "id": "sunset",
+  "name": "Sunset",
+  "author": "IGYO",
+  "description": "IGYO Dark's quiet greys, lit by a gold-to-pink glow.",
+  "kit": "igyo",
+  "scheme": "dark",
+  "colors": {
+    "frame": "#17181c",
+    "frameInk": "#e6e8ee",
+    "surface": "#24262c",
+    "surface2": "#2c2e35",
+    "page": "#1a1b20",
+    "field": "#17181c",
+    "ink": "#eceef3",
+    "ink2": "#a5abb8",
+    "ink3": "#767d8b",
+    "line": "#35373f",
+    "accent": "#ff7596",
+    "accentInk": "#2b0f19",
+    "accent2": "#ffc355",
+    "good": "#4ade80",
+    "warn": "#fbbf24",
+    "bad": "#ff5a5f"
+  },
+  "vars": {
+    "--sun-a": "#ffc355",
+    "--sun-b": "#ff7596",
+    "--sun-ink": "#2b0f19",
+    "--sun-line": "linear-gradient(90deg, #ffc355, #ff7596)"
+  },
+  "fonts": {},
+  "shape": { "radius": 10, "border": 1 },
+  "options": { "tabs": "float", "window": "round" },
+  "fx": { "tabIn": "grow", "loader": "line", "click": "none", "title": "none", "notice": "none" },
+  "css": ".i .i-arrow { display: none; } .i .i-chevron { display: inline; } .tc-toolbar::after { content: \"\"; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; pointer-events: none; background: var(--sun-line); box-shadow: 0 0 6px color-mix(in oklab, var(--sun-b) 55%, transparent), 0 0 14px color-mix(in oklab, var(--sun-a) 30%, transparent); opacity: .85; } :root:not([data-active]) .tc-toolbar::after { opacity: .4; box-shadow: none; } :root[data-fullscreen] .tc-toolbar::after { display: none; } .tc-progress { z-index: 1; } :root[data-fx-loader=\"line\"] .tc-progress > i { width: 42%; background: linear-gradient(90deg, transparent, var(--sun-a) 30%, var(--sun-b) 70%, transparent); box-shadow: 0 0 8px var(--sun-b), 0 0 16px color-mix(in oklab, var(--sun-a) 60%, transparent); } :root:not([data-o-tabs=\"attached\"]) .tc-tab { border: 1px solid transparent; } :root:not([data-o-tabs=\"attached\"]) .tc-tab.is-active { background: linear-gradient(var(--c-surface), var(--c-surface)) padding-box, var(--sun-line) border-box; box-shadow: var(--shadow-1), 0 0 12px color-mix(in oklab, var(--sun-b) 22%, transparent); } .t-switch input:checked + i { background: var(--sun-line); } .t-btn.is-primary, .t-btn.is-primary:hover { background: var(--sun-line); color: var(--sun-ink); } .t-btn.is-primary:hover { filter: brightness(1.06); } .st-nav-item[aria-current=\"page\"]::before { background: linear-gradient(180deg, var(--sun-a), var(--sun-b)); } #go { background: linear-gradient(45deg, var(--sun-a), var(--sun-b)); color: #24262c; } #time { font-family: \"Google Sans Flex\", var(--f-display); } #backdrop:not(.photo) { background-color: #f0ac82; background-image: linear-gradient(180deg, #976fa3 0%, #cb73a3 25%, #d57a9b 35%, #f1a67f 50%, #f0ac82 80%); } body.nt:not(.has-image) { --text: #fff; --text-2: rgba(255, 255, 255, .9); } body.nt:not(.has-image) #clock { text-shadow: 0 2px 18px rgba(60, 20, 50, .22); } body.nt:not(.has-image) .name { text-shadow: 0 1px 6px rgba(60, 20, 50, .45); } .tc-omni-star.is-on { color: #ffbc43; }"
+}

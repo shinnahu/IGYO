@@ -279,7 +279,7 @@
   ST.section('memory', {
     render(page) {
       const col = column(page);
-      header(col, tr('Memory saver'), tr('Sleeping tabs keep their page but stop running. Unloaded tabs give back all their memory and reload when you open them. Tabs playing sound never sleep.'));
+      header(col, tr('Memory saver'), tr('Sleeping tabs keep their page but stop running. Unloaded tabs give back all their memory and reload when you open them. Tabs never sleep while they play sound, float a video in picture in picture or are in a call (using the camera, the microphone or screen sharing).'));
       const card = group(col);
       const minutes = (title, key, options) => choice(card, {
         title, options: (state) => state[options] || [],
@@ -295,6 +295,34 @@
       toggle(card, {
         title: tr('Give memory back to Windows'), key: 'ReleaseMemory',
         desc: tr('A tab left in the background for 30 seconds, and all of IGYO once you have been in another program for a minute, let go of the memory they are not using, so that Windows can pass it on when another program needs it. It stays reserved for IGYO, nothing is paused, and whatever is needed again comes back by itself.'),
+      });
+
+      // Sites whose tabs never sleep and are never unloaded: for pages IGYO can't tell are busy (a chat that should
+      // ring, a recording, a call it doesn't recognize). The main menu's Memory saver adds or removes the site on show.
+      const awake = group(col, tr('Never put these sites to sleep'));
+      const box = h('input', { type: 'text', class: 't-input', spellcheck: false, placeholder: 'example.com', 'aria-label': tr('A website to keep awake') });
+      const add = async () => {
+        const site = box.value.trim();
+        if (site && settled(await api.post('memory/site-add', { site }))) box.value = '';
+      };
+      box.addEventListener('keydown', (event) => { if (event.key === 'Enter') add(); });
+      row(awake, {
+        title: tr('Add a site'),
+        desc: tr('Its tabs are never put to sleep or unloaded, also in the background, and neither are those of the names under it (example.com covers chat.example.com). In the menu, Memory saver does the same for the site on show.'),
+        end: [button(tr('Add'), add)], below: box,
+      });
+      const awakeList = h('div');
+      awake.append(awakeList);
+      let awakeSignature = null;
+      onSync((state) => {
+        const list = state.awakeSites || [];
+        const signature = JSON.stringify(list);
+        if (signature === awakeSignature) return;
+        awakeSignature = signature;
+        const keep = document.createElement('div');
+        for (const site of list)
+          row(keep, { title: site, end: [button(tr('Remove'), async () => settled(await api.post('memory/site-remove', { site })))] });
+        awakeList.replaceChildren(...keep.childNodes);
       });
 
       // Memory in use, read every few seconds while this section is on screen.
@@ -316,7 +344,14 @@
           h('span', { class: 'st-mem-part is-engine', text: tr('Web pages and engine: {0} in {1} processes', mb(m.engine), m.processes) }),
           h('span', { class: 'st-mem-part', text: tr('Windows, tabs and toolbar: {0}', mb(m.own)) }));
         tabs.replaceChildren(...(m.tabs || []).map((tab) => h('div', { class: 'st-mem-tab' },
-          h('span', { class: 't-chip st-state is-' + String(tab.state).toLowerCase(), text: ({ Active: tr('Active'), Sleeping: tr('Sleeping'), Unloaded: tr('Unloaded'), Open: tr('Open') })[tab.state] || tab.state }),
+          h('span', {
+            class: 't-chip st-state is-' + String(tab.state).toLowerCase(),
+            text: ({
+              Active: tr('Active'), Sleeping: tr('Sleeping'), Unloaded: tr('Unloaded'), Open: tr('Open'),
+              // kept awake in the background, and why
+              Call: tr('In a call'), Floating: tr('Picture in picture'), Sound: tr('Playing sound'), Kept: tr('Kept awake'),
+            })[tab.state] || tab.state,
+          }),
           h('span', { class: 'st-mem-title', text: tab.title }))));
       }
       read();

@@ -537,6 +537,19 @@ namespace IGYO
             SettingsChanged?.Invoke();
         }
 
+        // Puts a site on the list of sites whose tabs never sleep, or takes it off (Settings > Memory saver, and the main
+        // menu's Memory saver). What was typed may be a whole address; false when it names no site.
+        public bool SetAwakeSite(string text, bool on)
+        {
+            var site = AwakeSites.SiteOf(text);
+            if (site == null) return false;
+            var list = Settings.AwakeSites;
+            if (on && !list.Contains(site)) list.Add(site);
+            else if (!on) list.Remove(site);
+            SaveSettings();
+            return true;
+        }
+
         void OnSystemPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
         {
             // (Every profile on Automatic, or the picker's look, follows Windows: all windows look again.)

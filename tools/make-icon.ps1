@@ -15,6 +15,8 @@
 #   -Tile2            with a second color the tile runs from -Tile (top left) to -Tile2 (bottom right)
 #                     (his spark's tile runs straight down, top to bottom)
 #   -TileMid          with -Tile2: a third color the tile passes through halfway
+#   -Stops            instead: every color the tile passes through and where, from the top (0) to the bottom (1), as
+#                     "0:#976FA3,0.3:#CB73A3,0.3:#D57A9B,…"; two at one place make a sharp step (his 19 Nov 2026 tile)
 #   -Rim, -RimWidth   a line around the tile's edge, in that color, this wide on the 512 px tile
 # The app icons to choose from in Settings (Assets\AppIcons) are drawn by tools\make-app-icons.ps1 with these switches.
 # The ball:
@@ -34,7 +36,7 @@
 # Before that, until earlier on 17 Nov 2026, it was a white star on #24262C with the large mark in every frame:
 #   -Shape star -Tile '#24262C' -Ink '#FFFFFF' -SmallScale 0.8 -MidScale 0 -SmallBold 1 -SmallPinch 0.36 -StubsFrom 0
 param([Parameter(Mandatory)][string]$OutFile, [string]$PngOut, [int]$PngSize = 256, [string]$SvgOut, [string]$SvgColor = '#FFFFFF', [double]$SmallScale = 0.94,
-      [double]$MidScale = 0.9, [string]$Tile = '', [string]$Tile2 = '', [string]$TileMid = '', [string]$Ink = '', [string]$Edge = '', [double]$EdgePx = 0.9,
+      [double]$MidScale = 0.9, [string]$Tile = '', [string]$Tile2 = '', [string]$TileMid = '', [string]$Stops = '', [string]$Ink = '', [string]$Edge = '', [double]$EdgePx = 0.9,
       [double]$SmallBold = 2.6,
       [double]$SmallPinch = 0.7, [int]$StubsFrom = 64, [string]$Rim = '', [double]$RimWidth = 16,
       [ValidateSet('spark', 'thorns', 'ball', 'star')][string]$Shape = 'spark', [double]$Spikes = 1, [double[]]$BallFill = @(0.92, 0.88, 0.8, 0.74),
@@ -43,6 +45,13 @@ param([Parameter(Mandatory)][string]$OutFile, [string]$PngOut, [int]$PngSize = 2
 Add-Type -AssemblyName System.Drawing
 # The colors when none are given: his star white on the slate running down to near-black; the thorned swirl in acid on
 # the dark tile; the earlier marks dark on the acid tile.
+if ($Stops) {
+  # (positions in the invariant culture, whatever Windows' own is)
+  $stopList = @($Stops -split ',' | ForEach-Object { $at, $color = $_.Trim() -split ':', 2; [pscustomobject]@{ At = [single]::Parse($at, [Globalization.CultureInfo]::InvariantCulture); Color = $color.Trim() } })
+  if ($stopList.Count -lt 2 -or $stopList[0].At -ne 0 -or $stopList[-1].At -ne 1) { throw '-Stops runs from 0 (the top) to 1 (the bottom), with at least two colors' }
+  for ($i = 1; $i -lt $stopList.Count; $i++) { if ($stopList[$i].At -lt $stopList[$i - 1].At) { throw '-Stops must go from the top down' } }
+  $Tile = $stopList[0].Color; $Tile2 = $stopList[-1].Color
+}
 if ($Shape -eq 'spark' -and -not $Tile -and -not $Tile2) { $Tile = '#595B6B'; $Tile2 = '#222328' }
 if (-not $Tile) { $Tile = if ($Shape -eq 'thorns') { '#16171B' } else { '#C5F135' } }
 if (-not $Ink) { $Ink = if ($Shape -eq 'spark') { '#FFFFFF' } elseif ($Shape -eq 'thorns') { '#C5F135' } else { '#16171B' } }
@@ -474,7 +483,12 @@ function New-IconBitmap([int]$size) {
     $to = if ($Shape -eq 'spark') { New-Object System.Drawing.PointF 0, ($n + 1) } else { New-Object System.Drawing.PointF $n, $n }
     $brush = New-Object System.Drawing.Drawing2D.LinearGradientBrush -ArgumentList $from, $to,
       ([System.Drawing.ColorTranslator]::FromHtml($Tile)), ([System.Drawing.ColorTranslator]::FromHtml($Tile2))
-    if ($TileMid) {
+    if ($Stops) {
+      $blend = New-Object System.Drawing.Drawing2D.ColorBlend $stopList.Count
+      $blend.Colors = [System.Drawing.Color[]]@($stopList | ForEach-Object { [System.Drawing.ColorTranslator]::FromHtml($_.Color) })
+      $blend.Positions = [single[]]@($stopList | ForEach-Object { $_.At })
+      $brush.InterpolationColors = $blend
+    } elseif ($TileMid) {
       $blend = New-Object System.Drawing.Drawing2D.ColorBlend 3
       $blend.Colors = [System.Drawing.Color[]]@(([System.Drawing.ColorTranslator]::FromHtml($Tile)), ([System.Drawing.ColorTranslator]::FromHtml($TileMid)), ([System.Drawing.ColorTranslator]::FromHtml($Tile2)))
       $blend.Positions = [single[]]@(0, 0.5, 1)

@@ -43,6 +43,17 @@ namespace IGYO
             // in Settings stays.
             public string Color { get; set; } = "";
             public string ColorId { get; set; } = "";
+            // A theme picked with that color ("sunset": IGYO's Sunset theme, with its own accent and the color for the
+            // circle), "" when the pick was a color alone.
+            public string Theme { get; set; } = "";
+        }
+
+        // A theme's id as setup writes it: letters, digits and dashes.
+        public static bool IsThemeId(string text)
+        {
+            if (string.IsNullOrEmpty(text) || text.Length > 40) return false;
+            foreach (var c in text) if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-')) return false;
+            return true;
         }
 
         // "#RRGGBB" only.

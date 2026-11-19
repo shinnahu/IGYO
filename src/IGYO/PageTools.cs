@@ -39,6 +39,60 @@ namespace IGYO
             return Json.Str(Json.Obj(Json.Get(response, "result")), "value") ?? "error";
         }
 
+        // ----- what keeps a tab in the background awake: a call, a floating window -----
+        // A tab left in the background is put to sleep and later unloaded (MainForm.Housekeeping), which would end a call
+        // or a recording. So before that the page is asked (InUseScript, in the page and in every frame of it).
+        // The camera, the microphone and the screen: a script given to every document as it is created watches the
+        // page's requests for them (getUserMedia, getDisplayMedia) through stand-ins that behave exactly like the
+        // engine's own, and keeps the tracks the engine hands out, so that whether any of them still runs can be asked.
+        // That is all it does. It sits behind a name made up anew every time IGYO starts.
+#if DEBUG
+        static readonly string CaptureKey = "__igyoCaptureForChecks";
+#else
+        static readonly string CaptureKey = "__t" + Guid.NewGuid().ToString("N").Substring(0, 18);
+#endif
+
+        const string CaptureWatchText = @"(() => {
+  const KEY = '%KEY%';
+  const media = window.MediaDevices && MediaDevices.prototype;
+  if (!media || window[KEY]) return;
+  const tracks = new Set();
+  const keep = (stream) => { try { for (const t of stream.getTracks()) tracks.add(t); } catch (e) { /* not a stream */ } };
+  for (const name of ['getUserMedia', 'getDisplayMedia']) {
+    const own = media[name];
+    if (typeof own !== 'function') continue;
+    media[name] = new Proxy(own, { apply(target, self, args) {
+      const asked = Reflect.apply(target, self, args);
+      try { asked.then(keep, () => {}); } catch (e) { /* answered as ever */ }
+      return asked;
+    } });
+  }
+  Object.defineProperty(window, KEY, { value: () => {
+    for (const t of tracks) { if (t.readyState === 'live') return true; tracks.delete(t); }
+    return false;
+  } });
+})();";
+
+        public static string CaptureWatchScript => CaptureWatchText.Replace("%KEY%", CaptureKey);
+
+        // Asked of the page and of each frame in it; it only reads. 1: a video, or a window of the page's own, floats in
+        // picture in picture. 2: the page is in a call: it still holds the camera, the microphone or the screen, or a
+        // player in it plays a stream that is running (a call's voices and pictures come that way). 3: both.
+        const string InUseText = @"(() => {
+  let found = 0;
+  try { if (document.pictureInPictureElement || (window.documentPictureInPicture && documentPictureInPicture.window)) found |= 1; } catch (e) { }
+  try { const held = window['%KEY%']; if (typeof held === 'function' && held()) found |= 2; } catch (e) { }
+  if (!(found & 2)) {
+    const running = (s) => { try { return !!s && typeof s.getTracks === 'function' && s.getTracks().some((t) => t.readyState === 'live'); } catch (e) { return false; } };
+    const look = (root) => { for (const el of root.querySelectorAll('video, audio')) if (running(el.srcObject)) return true; return false; };
+    const deep = (root) => { for (const el of root.querySelectorAll('*')) if (el.shadowRoot && (look(el.shadowRoot) || deep(el.shadowRoot))) return true; return false; };
+    try { if (look(document) || deep(document)) found |= 2; } catch (e) { }
+  }
+  return found;
+})()";
+
+        public static string InUseScript => InUseText.Replace("%KEY%", CaptureKey);
+
         // Saves the whole page, top to bottom, as a PNG. Returns the file path.
         public static async Task<string> CaptureFullPageAsync(CoreWebView2 core, string folder, string title)
         {

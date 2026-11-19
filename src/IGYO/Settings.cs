@@ -67,6 +67,7 @@ namespace IGYO
         public bool SleepWhenMinimized { get; set; } = true;
         public bool ReleaseMemory { get; set; } = true;        // hand memory that isn't being used back to Windows early (MemoryCare)
         public double MinimizedSleepSeconds { get; set; } = 30;
+        public List<string> AwakeSites { get; set; } = new List<string>();   // sites whose tabs never sleep or unload (see AwakeSites)
 
         public static readonly Dictionary<string, string> SearchEngines = new Dictionary<string, string>
         {
@@ -133,6 +134,7 @@ namespace IGYO
             TranslateRecent = TranslateRecent ?? new List<string>();
             seen.Clear();
             TranslateRecent.RemoveAll(id => !TranslateLang.IsKnown(id) || id.Length == 0 || !seen.Add(id));
+            AwakeSites = IGYO.AwakeSites.Clean(AwakeSites);
             SyncToolButtons();
         }
 

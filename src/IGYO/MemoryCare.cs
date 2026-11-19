@@ -10,7 +10,8 @@ namespace IGYO
     // Memory that is not being used is let go of early, instead of being held until Windows has to take it:
     //   - a tab that has been in the background for half a minute (its page keeps running: nothing is paused,
     //     and whatever it touches again comes back by itself);
-    //   - all of IGYO, once no IGYO window has been the one in use for a minute (and nothing is playing);
+    //   - all of IGYO, once no IGYO window has been the one in use for a minute (and nothing is playing, floating in
+    //     picture in picture or in a call);
     //   - once after starting, what only starting up needed.
     // What goes down is the "memory in use" Task Manager shows for each process (its private working set).
     // What this does not do: the memory stays reserved for the process (committed) until the tab is unloaded,
@@ -46,7 +47,7 @@ namespace IGYO
             try
             {
                 bool inUse = app.Windows.Any(w => w.IsInUse);
-                bool playing = app.Windows.Any(w => w.Tabs.Any(t => t.IsPlayingAudio || t.InPictureInPicture));
+                bool playing = app.Windows.Any(w => w.Tabs.Any(t => t.IsPlayingAudio || t.InPictureInPicture || (t.InCall && !w.IsShowing(t))));
                 if (inUse || playing)
                 {
                     lastInUse = now;
@@ -59,13 +60,27 @@ namespace IGYO
                 }
                 else if (!awayDone && (now - lastInUse).TotalSeconds >= AwaySeconds)
                 {
-                    awayDone = true;   // once per time away: doing it again and again would only make pages stutter
-                    ReleaseEverything();
+                    // A call on show counts as in use, whatever program is in front (its window may be the one being
+                    // shared): the tabs on show are asked, as tabs in the background were when they were left.
+                    if (await CallOnShowAsync()) lastInUse = now;
+                    else
+                    {
+                        awayDone = true;   // once per time away: doing it again and again would only make pages stutter
+                        ReleaseEverything();
+                    }
                 }
                 else await ReleaseHiddenTabsAsync();
             }
             catch (Exception ex) { ErrorLog.Write(ex); }
             finally { busy = false; }
+        }
+
+        async Task<bool> CallOnShowAsync()
+        {
+            foreach (var window in app.Windows.ToList())
+                foreach (var tab in window.Tabs.Where(window.IsShowing).ToList())
+                    if (tab.State == TabState.Live && await tab.CheckInUseAsync() && tab.InCall) return true;
+            return false;
         }
 
         void ReleaseEverything()
@@ -96,7 +111,7 @@ namespace IGYO
                     if (tab.Core == null) continue;
                     uint frame;
                     try { frame = tab.Core.FrameId; } catch { continue; }
-                    bool hidden = !window.IsShowing(tab) && !tab.IsPlayingAudio && !tab.InPictureInPicture;
+                    bool hidden = !window.IsShowing(tab) && !tab.IsPlayingAudio && !tab.InPictureInPicture && !tab.InCall && !tab.OnAwakeList;
                     if (!hidden) keep.Add(frame);
                     else if (tab.MemoryReleased) continue;
                     else if (tab.State == TabState.Live && (DateTime.Now - tab.HiddenSince).TotalSeconds >= HiddenSeconds) due.Add(tab);

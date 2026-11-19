@@ -57,10 +57,13 @@ Run `IGYOSetup.exe` from [Releases](https://github.com/shinnahu/IGYO/releases/la
 shortcuts and an entry in Settings > Apps > Installed apps, where you can uninstall it. The setup window is
 in English, Spanish or Japanese, following Windows.
 
-The setup window asks for one color, from twelve. It becomes IGYO's own accent, which every profile that has
-not chosen an accent of its own takes, and so does the window that asks which profile to open; it is also the
-accent and the circle color of your first profile. Run again over an install, the window starts on the color
-picked then, so an update installed without touching it changes neither.
+The setup window asks for one color, from thirteen. The first, Sunset, is picked unless you choose another: it
+starts IGYO in the Sunset theme with that theme's own colors, its pink is the circle color of your first
+profile, and while it is picked, setup's own button, switches and progress bar wear the Sunset icon's tile
+colors, mauve running left to right into peach. Any other color becomes IGYO's own accent, which every profile that has not chosen an
+accent of its own takes, and so does the window that asks which profile to open; it is also the accent and the
+circle color of your first profile. The window starts on Sunset also over an install that had another color
+picked: an update left on it brings the Sunset look, and the earlier color can be picked again to keep that.
 
 Silent install: `IGYOSetup.exe /S` (optional `/D=<folder>`, `/NOSHORTCUTS`, `/NOLAUNCH`).
 
@@ -122,7 +125,7 @@ Default apps, where you choose it. Uninstalling takes IGYO off that list.
 | Full-page screenshot | Ctrl+Shift+S saves the whole page as a PNG (Pictures\IGYO). |
 | Print, zoom, full screen | Print: Ctrl+P. Zoom: Ctrl + / Ctrl − / Ctrl+0, Ctrl with the mouse wheel, or Menu > Zoom. While a page is not at 100%, a magnifier in the address bar says so (with a + above 100%, a − below) and opens a small box with the figure, − and +, and Reset. The box also comes up by itself when the zoom changes, and goes about two seconds after the last change. A zoom set with the keys, the menu or the box stays with the tab, also when it goes to another site. Full screen: F11; in full screen, the pointer at the very top of the screen brings down a round ✕ that leaves it, as in Chrome (also for a page's own full screen, such as a video's). |
 | Customizing | Settings (Ctrl+,) is a page in a tab: themes, the app icon, toolbar buttons and tools, compact mode, bookmarks bar, search engine (Google, DuckDuckGo, Bing, Brave, Ecosia, Startpage or your own), New Tab page on or off, reopen tabs, folders, profiles, privacy, the bookmark manager. |
-| App icon | Settings > Appearance > App icon offers twelve icons: IGYO's star on tiles of different colors (Periwinkle unless another is chosen). The one chosen is IGYO's icon at once, in its windows (Alt+Tab, the window's picture on the taskbar) and on its shortcuts: the desktop and Start menu shortcuts setup made, and IGYO's pins on the taskbar. Only shortcuts that start this IGYO are changed, and nothing of them but the icon. One icon for all profiles. When an update makes the shortcuts again, the next start puts the chosen icon back on them. |
+| App icon | Settings > Appearance > App icon offers twelve icons: IGYO's star on tiles of different colors (Sunset, mauve running down to peach, unless another is chosen). The one chosen is IGYO's icon at once, in its windows (Alt+Tab, the window's picture on the taskbar) and on its shortcuts: the desktop and Start menu shortcuts setup made, and IGYO's pins on the taskbar. Only shortcuts that start this IGYO are changed, and nothing of them but the icon. One icon for all profiles. When an update makes the shortcuts again, the next start puts the chosen icon back on them. |
 | If something goes wrong | Unexpected errors are written to `errors.log` in the data folder and IGYO keeps going, with a small notice that links to the file. |
 
 ## Themes
@@ -130,7 +133,10 @@ Default apps, where you choose it. Uninstalling takes IGYO off that list.
 A theme is one file: colors, fonts, corner roundness and border width, a few options and effects, and the
 name of a **kit**. The kit is what makes themes look unlike each other: it draws the shapes, the decorations
 and the animations. The six kits are IGYO, Specimen, Bunker, Protocol, Victory and Encore, and the IGYO kit
-has six color themes (IGYO Dark, IGYO Light, Midnight, Forest, Ocean and Rose). A new profile starts on
+has seven color themes (IGYO Dark, IGYO Light, Midnight, Forest, Ocean, Rose and Sunset: IGYO Dark's greys
+with a gold-to-pink glow on the active tab, under the toolbar, in the loading line, switches and buttons, an
+amber star for a page that is a bookmark, and on New Tab the Sunset icon's tile, mauve running down to peach,
+behind a white clock and a gold-to-pink search button). A new profile starts on
 Automatic, which follows Windows between IGYO Dark and IGYO Light. Menu > Themes opens the gallery, and so does
 the Themes button in the New Tab page's Customize.
 
@@ -149,7 +155,7 @@ A theme file from someone else is safe to import: only known kinds of values are
 IGYO's own, and CSS in it cannot load anything from the internet or run scripts.
 
 **Fonts.** Five kits have their own typefaces; the IGYO kit uses the fonts Windows already has, apart from
-the New Tab clock of IGYO Dark and IGYO Light (Google Sans Flex). The ten families come with IGYO as 30 font
+the New Tab clock of IGYO Dark, IGYO Light and Sunset (Google Sans Flex). The ten families come with IGYO as 30 font
 files (0.7 MB) in `Assets\Shared\fonts`. They are never installed in
 Windows: only IGYO's own pages load them. Each family is under the SIL Open Font License 1.1, with its
 licence text beside the files.
@@ -211,10 +217,15 @@ protect you from are in [docs/claude-bridge.md](docs/claude-bridge.md).
 - After **30 minutes it is unloaded**: its memory is given up for good, the tab stays in the strip, and the page
   loads again when you click it.
 - When the window is minimized, the tab on show sleeps too, after 30 seconds, and wakes when you restore it.
-- Tabs playing sound, or with a video floating in picture in picture, never sleep. Tabs reopened from last time
-  load only when you click them.
+- A tab never sleeps and is never unloaded while it plays sound, floats a video or a window of its own in
+  picture in picture, or is in a call: while its page holds the camera, the microphone or the screen, or plays a
+  call's voices or pictures. IGYO asks the page before it puts a tab to sleep or unloads it, also the tab on show
+  of a minimized window. Tabs reopened from last time load only when you click them.
+- Sites can be kept awake for good, for pages IGYO can't tell are busy (a chat that should ring, a recording):
+  Settings > Memory saver > "Never put these sites to sleep", or the menu's Memory saver for the site on show. A
+  site covers the names under it (example.com covers chat.example.com).
 - Settings > Memory saver changes both times (or sets them to Never) and shows the memory in use right now and the
-  state of each tab.
+  state of each tab, and why a tab in the background is kept awake.
 - All tabs and windows share one engine. Its extension support only runs when the extensions folder holds
   something as IGYO starts; with an extension that keeps a background worker, one more process and about
   9 MB were measured (two runs each, 97 MB without and 106 MB with it, in a copy with one tab). Ad block
@@ -343,6 +354,56 @@ data folder, and `IGYO.exe --selftest <report file>` runs the built-in checks in
   answers the page; files named `dev*` are never shipped).
 
 ## How it was tested
+
+**1.0.10.** What changed since 1.0.9 was checked like this; the checks made for earlier versions follow, and
+were not all repeated.
+
+- **Built-in checks.** `IGYO.exe --selftest`, 294 checks, in the Debug build. New among them: setup's Sunset pick
+  (the theme becomes IGYO's own and the first profile's, with its own accent and its pink for the circle; a
+  theme this IGYO doesn't have is taken as a color only); the app icons with
+  Sunset's new tile the default and Periwinkle still one to choose; Sunset's 32-pixel picture with its star in
+  the middle and its tile's color at the side; the sites kept awake (what typed text becomes a site, which
+  addresses a site covers, the list put right when read).
+- **App icons.** Drawn again by `make-app-icons.ps1`: the eleven icons kept came out byte for byte the same.
+  Sunset's 128-pixel picture down its left edge matches its colors within one step in each channel.
+- **The setup window**, drawn into pictures from a build of setup without its payload: Sunset in its header,
+  Sunset first in the color list and picked, the Sunset icon's tile colors spread evenly from left to right on
+  the button, the switches, the color's dot and the progress bar, and the button's words bold and white.
+- **The setup program**, built with `build.ps1` and installed silently into a test folder under test registry keys,
+  28 checks: Tacit 1.0.6 replaced as before (setup refuses while it runs, then swaps it out), with the Sunset pick;
+  the program file as built (1.0.10, as its entry says), the engine whole (253 files, no Widevine), the twelve app icons with Sunset the
+  default, the Sunset theme; the program's and the setup's own icon equal Sunset's 32-pixel picture; the install
+  marker carries the pick; the installed copy passes its built-in checks (294); started, it took the pick (IGYO and
+  the first profile in the Sunset theme with its own accent, a pink circle) and gave the shortcuts the app icon
+  chosen before; uninstalling left nothing. IGYO 1.0.9 as published, with Periwinkle picked, made setup refuse
+  while it was open and was replaced at once after it was ended, its engine still running; it started again on
+  its data and kept the look picked before. The built setup's window starts on Sunset, also over an install that
+  had Periwinkle picked, its button mauve at the left and peach at the right.
+- **The running browser**, the Debug build on the engine IGYO ships (157) with a throwaway data folder, on a
+  Windows desktop that is never shown, driven through the engine's debugging protocol, with the engine's
+  stand-in camera and microphone, local test pages and sleep after 6 seconds, unload after 30 (and 5 seconds
+  when minimized), 23 checks, 22 passed:
+  - in the background, a plain page and a page that took the microphone and let it go slept and were unloaded;
+    a page holding the camera and microphone without showing them, a page playing another connection's stream
+    (a call made inside the page), a page floating a video, a page floating a window of its own, and a page on
+    a site of the list stayed awake; once each call ended and each floating window was closed, those tabs
+    slept;
+  - minimized, the tab on show stayed awake during its call and slept once the call had ended;
+  - Settings > Memory saver named why each tab was awake; a whole address typed into the list was kept as its
+    site, text that is no site was refused, Remove took a site off, and the list was saved; the menu's Memory
+    saver named the site on show, and the site of the list that covers it;
+  - one check failed, on the test's own expectation: the page floating a video also played a running stream,
+    so Settings named it "In a call", which IGYO says before "Picture in picture".
+  Not tried: a real camera, microphone or screen (screen sharing was not started at all), and Google Meet,
+  Microsoft Teams or any other real call site.
+- **The Settings page** on the development server: the twelve icons in rows of six, Sunset worn.
+- **The Sunset theme.** The built-in checks find its text readable and its kit in place. On the
+  development server: the interface (tab strip, toolbar, menu, a dialog's main button, the loading line), New
+  Tab and Settings (switches, the section marker, the theme's card). In the Debug build on a throwaway data
+  folder, 7 checks: the top bar has IGYO Dark's own greys, the line under the toolbar and the active tab's
+  outline run from #FFC355 to #FF7596, and New Tab's ground is the Sunset icon's tile gradient (its colors at
+  its places, the tile's sharp step between its two pinks blended over a tenth of the height) with a white
+  clock and a search button running from #FFC355 to #FF7596 at 45 degrees.
 
 **1.0.9.** What changed since 1.0.8 was checked like this; the checks made for earlier versions follow, and
 were not all repeated.
@@ -781,6 +842,13 @@ and what is not tested at the end.
   restore), menus by keyboard, the theme editor, the bookmark manager, profiles, a private window, the ad
   block counter, the full-page screenshot, docked developer tools, and starting with saved tabs or from a
   link. Those checks were not repeated on this build.
+
+**Not tested in 1.0.10:** a real call: Google Meet, Microsoft Teams or any other call site, a real camera or
+microphone, and screen sharing (no screen was shared in the checks; what keeps a tab in a call awake was tried
+with the engine's stand-in camera and microphone and a call made inside a local page, so whether a given call
+site's page shows its call the ways IGYO looks for is not known from them); the Sunset theme and the setup
+window on a real screen (the theme was read back from the running browser and drawn on the development
+server; the setup window was drawn into pictures by a test program, not clicked).
 
 **Not tested in 1.0.9:** a newly chosen icon on the real taskbar, Start menu and desktop (what was checked is
 the windows' icons and the shortcut files, read back; whether Windows draws the change at once is not known

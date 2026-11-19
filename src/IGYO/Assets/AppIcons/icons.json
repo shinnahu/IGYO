@@ -1,11 +1,11 @@
 {
-  "default": "periwinkle",
+  "default": "sunset",
   "icons": [
+    { "id": "sunset", "name": "Sunset", "star": "#FFFFFF", "stops": "0:#976FA3,0.3:#CB73A3,0.3:#D57A9B,0.5:#F1A67F,0.8:#F0AC82,1:#F0AC82" },
     { "id": "periwinkle", "name": "Periwinkle", "star": "#FFFFFF", "tile": "#9DB1FF", "tile2": "#4F5FE0" },
     { "id": "teal", "name": "Teal", "star": "#00FD45", "tile": "#028A73", "tile2": "#003831" },
     { "id": "slate", "name": "Slate", "star": "#FFFFFF", "tile": "#595B6B", "tile2": "#222328" },
     { "id": "rose", "name": "Rose", "star": "#FFFFFF", "tile": "#FF5A6E", "tile2": "#C8102E" },
-    { "id": "sunset", "name": "Sunset", "star": "#FFFFFF", "tile": "#FF8A3D", "tile2": "#E3369E" },
     { "id": "yellow", "name": "Yellow", "star": "#16171B", "tile": "#FFE45C", "tile2": "#F2B200" },
     { "id": "acid", "name": "Acid", "star": "#16171B", "tile": "#DBFF6E", "tile2": "#A2D01A" },
     { "id": "violet", "name": "Violet", "star": "#FFFFFF", "tile": "#8B5CF6", "tile2": "#4C1D95" },

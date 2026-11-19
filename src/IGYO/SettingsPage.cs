@@ -149,6 +149,7 @@ namespace IGYO
                 ["extensions"] = owner.ExtensionsForSettings(), // this window's profile's extensions, one card each
                 ["sleepOptions"] = Options(SleepOptions),
                 ["unloadOptions"] = Options(UnloadOptions),
+                ["awakeSites"] = s.AwakeSites.ToList(),          // sites whose tabs never sleep (Memory saver)
                 // This window's profile's look: each profile has its own (see BrowserApp)
                 ["theme"] = ThemeStore.Normalize(app.ThemeOf(owner.Profile)),
                 ["activeTheme"] = owner.ThemeDef.id,
@@ -452,6 +453,15 @@ namespace IGYO
                     return;
                 case "bridge/activity-clear":
                     app.Bridge.ClearActivity();
+                    Answer(Ok);
+                    return;
+
+                // ----- memory saver: sites whose tabs never sleep -----
+                case "memory/site-add":
+                    Answer(app.SetAwakeSite(Str("site"), true) ? Ok : Error(L.T("That isn't the name or address of a website.")));
+                    return;
+                case "memory/site-remove":
+                    app.SetAwakeSite(Str("site"), false);
                     Answer(Ok);
                     return;
 

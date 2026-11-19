@@ -41,19 +41,23 @@ namespace IGYO
         // The color picked in setup's window (install.json in the install folder, with an id of that pick) is taken once:
         // the id is kept in settings, so a later choice in Settings is never undone by it. It becomes IGYO's own accent
         // (the one every profile that never chose its own has, a new profile starts with, and the profile picker shows),
-        // and the first profile's accent and the color of its circle. Setup run again with the color it gave before (it
-        // starts on that one) leaves the first profile as it is. Only these objects change; the caller saves them when
-        // this says so.
+        // and the first profile's accent and the color of its circle. A pick that is a theme (Sunset) makes that theme
+        // IGYO's own and the first profile's instead, with the theme's own accent, and its color is the circle's. Setup
+        // run again with the color it gave before (it starts on that one) leaves the first profile as it is. Only these
+        // objects change; the caller saves them when this says so.
         public bool TakeSetupColor(Settings settings, string installDir)
         {
             var marker = InstallInfo.ReadMarker(installDir);
             if (marker == null || !IsColor(marker.Color) || string.IsNullOrEmpty(marker.ColorId) || marker.ColorId == settings.SetupColorApplied) return false;
             var color = marker.Color.ToUpperInvariant();
-            settings.Accent = color;
+            var theme = InstallInfo.IsThemeId(marker.Theme) && ThemeStore.Find(marker.Theme) != null ? marker.Theme : null;
+            settings.Accent = theme != null ? "" : color;   // ("": the theme's own)
+            if (theme != null) settings.Theme = theme;
             if (!string.Equals(color, settings.SetupColor, StringComparison.OrdinalIgnoreCase))
             {
-                Default.Accent = color;
+                Default.Accent = theme != null ? "" : color;
                 Default.Color = color;
+                if (theme != null) Default.Theme = theme;
             }
             settings.SetupColor = color;
             settings.SetupColorApplied = marker.ColorId;

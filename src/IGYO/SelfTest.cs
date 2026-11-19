@@ -1067,6 +1067,31 @@ namespace IGYO
             var copy = Json.Deserialize<Settings>(Json.Write(s));
             Check("settings round trip", copy.SearchEngine == "Bing" && copy.SleepAfterMinutes == 7.5 && copy.Theme == "Midnight" && copy.Compact);
 
+            // Sites whose tabs never sleep (Memory saver): what is typed becomes a site, a site covers the names under
+            // it, and the list read from settings is put right.
+            Check("awake sites: names and addresses become sites, other things are refused",
+                AwakeSites.SiteOf("meet.google.com") == "meet.google.com" && AwakeSites.SiteOf("  https://Meet.Google.com/abc-defg-hij?x=1 ") == "meet.google.com"
+                && AwakeSites.SiteOf("www.example.com") == "example.com" && AwakeSites.SiteOf("http://www.example.com:8080/") == "example.com"
+                && AwakeSites.SiteOf("[*.]zoom.us") == "zoom.us" && AwakeSites.SiteOf("*.zoom.us") == "zoom.us" && AwakeSites.SiteOf("localhost:3000") == "localhost"
+                && AwakeSites.SiteOf("teams.microsoft.com.") == "teams.microsoft.com" && AwakeSites.SiteOf("bücher.example") == "xn--bcher-kva.example"
+                && AwakeSites.SiteOf("") == null && AwakeSites.SiteOf("meet") == null && AwakeSites.SiteOf("not a site") == null
+                && AwakeSites.SiteOf("ftp://example.com") == null && AwakeSites.SiteOf("file:///C:/x.html") == null
+                && AwakeSites.SiteOf(SettingsPage.Url) == null && AwakeSites.SiteOf("www.") == null);
+            var awake = new List<string> { "google.com", "teams.microsoft.com" };
+            Check("awake sites: a site covers its own pages and the names under it, nothing else",
+                AwakeSites.Covers(awake, "https://meet.google.com/abc") && AwakeSites.Covers(awake, "https://google.com/")
+                && AwakeSites.EntryFor(awake, "https://meet.google.com/x") == "google.com" && AwakeSites.Covers(awake, "https://TEAMS.microsoft.com/v2/")
+                && !AwakeSites.Covers(awake, "https://notgoogle.com/") && !AwakeSites.Covers(awake, "https://microsoft.com/")
+                && !AwakeSites.Covers(awake, "https://google.com.evil.example/") && !AwakeSites.Covers(awake, "about:blank")
+                && !AwakeSites.Covers(awake, "") && !AwakeSites.Covers(null, "https://google.com/"));
+            var listed = new Settings { AwakeSites = new List<string> { "Meet.Google.com", "meet.google.com", "nonsense here", null, "www.example.com" } };
+            listed.BringUpToDate();
+            var listedCopy = Json.Deserialize<Settings>(Json.Write(listed));
+            Check("awake sites: the list is kept once each, in order, without what isn't a site, and survives saving",
+                string.Join(",", listed.AwakeSites) == "meet.google.com,example.com" && string.Join(",", listedCopy.AwakeSites) == "meet.google.com,example.com"
+                && new Settings().AwakeSites.Count == 0,
+                string.Join(",", listed.AwakeSites));
+
             // The tools pinned to the toolbar. Settings saved by an earlier version only say which of its three
             // buttons were shown: those stay where they were.
             try
@@ -1252,6 +1277,24 @@ namespace IGYO
                 Check("setup's color: IGYO's own accent and the first profile's accent and circle, once; a later choice stays, the same color again leaves it",
                     pickFirst && pickTook && pickShared && !pickAgain && pickStays && pickSame && pickNew && pickSilent,
                     "first " + pickFirst + ", took " + pickTook + ", shared " + pickShared + ", again " + pickAgain + ", stays " + pickStays + ", same " + pickSame + ", new " + pickNew + ", silent " + pickSilent);
+
+                // The Sunset pick is a theme: it becomes IGYO's own and the first profile's (over a theme and an accent
+                // that profile had), with the theme's own accent, and its pink is the circle's. A theme setup names that
+                // this IGYO doesn't have leaves only the color, as any other pick.
+                var sunStore = new ProfileStore();
+                sunStore.Profiles.Add(new Profile { Id = "Default", Name = "Personal", Color = "#2563EB", Theme = "specimen", Accent = "#8AA4FF" });
+                var sunSettings = new Settings { Accent = "#8AA4FF" };
+                InstallInfo.WriteMarker(setupDir, new InstallInfo.Marker { Color = "#FF7596", ColorId = "sun-1", Theme = "sunset" });
+                bool sunTook = sunStore.TakeSetupColor(sunSettings, setupDir) && sunSettings.Theme == "sunset" && sunSettings.Accent == ""
+                    && sunStore.Default.Theme == "sunset" && sunStore.Default.Accent == "" && sunStore.Default.Color == "#FF7596"
+                    && ThemeStore.Resolve(ThemeStore.ChosenFor(sunStore.Default, sunSettings)).id == "sunset";
+                var oddStore = new ProfileStore();
+                oddStore.Profiles.Add(new Profile { Id = "Default", Name = "Personal" });
+                var oddSettings = new Settings();
+                InstallInfo.WriteMarker(setupDir, new InstallInfo.Marker { Color = "#FF7596", ColorId = "sun-2", Theme = "no-such-theme" });
+                bool sunUnknown = oddStore.TakeSetupColor(oddSettings, setupDir) && oddSettings.Theme == "auto" && oddSettings.Accent == "#FF7596" && oddStore.Default.Theme == null;
+                Check("setup's Sunset: the theme becomes IGYO's own and the first profile's, with its own accent and its pink for the circle; an unknown theme is only a color",
+                    sunTook && sunUnknown, "took " + sunTook + ", unknown " + sunUnknown);
             }
             finally { try { Directory.Delete(setupDir, true); } catch { } }
 
@@ -1376,11 +1419,12 @@ namespace IGYO
         {
             var list = Json.Obj(Json.Parse(File.ReadAllText(Path.Combine(AppIcons.Dir, "icons.json"))));
             var listed = Json.Arr(Json.Get(list, "icons")).Select(Json.Obj).ToList();
-            Check("app icons: all twelve are read with their files, Periwinkle is the default, an unknown one is the default",
-                AppIcons.All.Count == 12 && listed.Count == 12 && AppIcons.Default == "periwinkle" && AppIcons.All[0].Id == "periwinkle"
+            Check("app icons: all twelve are read with their files, Sunset (his own) is the default and Periwinkle still a choice, an unknown one is the default",
+                AppIcons.All.Count == 12 && listed.Count == 12 && AppIcons.Default == "sunset" && AppIcons.All[0].Id == "sunset"
                 && AppIcons.All.All(c => File.Exists(AppIcons.IcoFile(c.Id)) && File.Exists(Path.Combine(AppIcons.Dir, c.Id + ".png")))
-                && AppIcons.Resolve("") == "periwinkle" && AppIcons.Resolve("teal") == "teal" && AppIcons.Resolve("..\\app") == "periwinkle"
-                && !AppIcons.IsChoice("") && !AppIcons.IsChoice("Teal") && AppIcons.IsChoice("slate"),
+                && AppIcons.Resolve("") == "sunset" && AppIcons.Resolve("teal") == "teal" && AppIcons.Resolve("..\\app") == "sunset"
+                && AppIcons.Resolve("periwinkle") == "periwinkle"
+                && !AppIcons.IsChoice("") && !AppIcons.IsChoice("Teal") && AppIcons.IsChoice("slate") && AppIcons.IsChoice("periwinkle"),
                 string.Join(",", AppIcons.All.Select(c => c.Id)) + " default " + AppIcons.Default);
 
             // Each icon as a window gets it: its 32 px picture has the star in the middle and the tile's color at the side
@@ -1391,7 +1435,8 @@ namespace IGYO
                 string id = Json.Str(item, "id");
                 System.Drawing.Color Hex(string key) => System.Drawing.ColorTranslator.FromHtml(Json.Str(item, key));
                 var star = Hex("star");
-                var side = Json.Str(item, "tileMid") != null ? Hex("tileMid")
+                var side = Json.Str(item, "stops") != null ? StopAt(Json.Str(item, "stops"), 16.5 / 32)
+                    : Json.Str(item, "tileMid") != null ? Hex("tileMid")
                     : Json.Str(item, "tile2") != null ? Mix(Hex("tile"), Hex("tile2")) : Hex("tile");
                 using (var bmp = new System.Drawing.Bitmap(32, 32))
                 {
@@ -1447,6 +1492,21 @@ namespace IGYO
 
         static System.Drawing.Color Mix(System.Drawing.Color a, System.Drawing.Color b) =>
             System.Drawing.Color.FromArgb((a.R + b.R) / 2, (a.G + b.G) / 2, (a.B + b.B) / 2);
+
+        // The color of a tile drawn through "stops" ("0:#976FA3,0.3:#CB73A3,…", from the top down) at a place from 0 to 1.
+        static System.Drawing.Color StopAt(string stops, double at)
+        {
+            var list = stops.Split(',').Select(s => s.Split(':')).Select(p => (at: double.Parse(p[0], System.Globalization.CultureInfo.InvariantCulture), color: System.Drawing.ColorTranslator.FromHtml(p[1].Trim()))).ToList();
+            for (int i = 1; i < list.Count; i++)
+            {
+                var (a, b) = (list[i - 1], list[i]);
+                if (at > b.at || b.at <= a.at) continue;
+                double f = (at - a.at) / (b.at - a.at);
+                int Step(int x, int y) => (int)Math.Round(x + (y - x) * f);
+                return System.Drawing.Color.FromArgb(Step(a.color.R, b.color.R), Step(a.color.G, b.color.G), Step(a.color.B, b.color.B));
+            }
+            return list[list.Count - 1].color;
+        }
 
         static bool Near(System.Drawing.Color a, System.Drawing.Color b, int by = 24) =>
             Math.Abs(a.R - b.R) <= by && Math.Abs(a.G - b.G) <= by && Math.Abs(a.B - b.B) <= by;

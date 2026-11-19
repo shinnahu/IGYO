@@ -255,7 +255,8 @@
   .st-state { flex: none; justify-content: flex-start; min-width: 92px; }
   .st-state::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: var(--r-pill); background: currentColor; opacity: .35; }
   .st-state.is-active::before { background: var(--c-good); opacity: 1; }
-  .st-state.is-open::before { opacity: .8; }
+  .st-state.is-open::before, .st-state.is-call::before, .st-state.is-floating::before,
+  .st-state.is-sound::before, .st-state.is-kept::before { opacity: .8; }
 
   /* ----- the Claude bridge (Privacy): its lists of sites and programs, and what Claude asked for ----- */
 

@@ -1338,41 +1338,66 @@ namespace IGYO
                 ShowNotice(L.T("The browser engine stopped."), L.T("Restart the browser"), () => app.Restart(this));
         }
 
+        bool housekeeping;   // a round still asking pages when the next one is due: that one is left out
+
         async void Housekeeping()
         {
-            var now = DateTime.Now;
-            app.Memory.Tick();
-            if (WindowState == FormWindowState.Minimized && Settings.SleepWhenMinimized && !sleptWhileMinimized && current != null
-                && (now - minimizedAt).TotalSeconds >= Settings.MinimizedSleepSeconds)
-            {
-                sleptWhileMinimized = true;
-                await current.SleepAsync();
-                MemoryTrim.Trim();
-            }
-            foreach (var tab in tabs.ToList())
-            {
-                if (tab.InPictureInPicture && tab != current)
-                {
-                    if (!await tab.CheckPictureInPictureAsync()) tab.Hide();   // the floating video was closed
-                    continue;
-                }
-                if (tab == current || tab.IsPlayingAudio || tab.State == TabState.Unloaded) continue;
-                var idle = (now - tab.HiddenSince).TotalMinutes;
-                if (Settings.UnloadAfterMinutes > 0 && idle >= Settings.UnloadAfterMinutes) tab.Unload();
-                else if (Settings.SleepAfterMinutes > 0 && tab.State == TabState.Live && idle >= Settings.SleepAfterMinutes) await tab.SleepAsync();
-            }
-#if DEBUG
-            // Test builds only: lets the automated test see each tab's state.
+            if (housekeeping) return;
+            housekeeping = true;
             try
             {
-                File.WriteAllText(Path.Combine(AppPaths.DataDir, $"debug-tabs-{Profile.Id}{(IsPrivate ? "-private" : "")}.json"), Json.Write(tabs.Select(t => new Dictionary<string, object>
+                var now = DateTime.Now;
+                app.Memory.Tick();
+                // The tab on show sleeps once the window has been minimized a while, but not while it plays, floats
+                // something, is in a call or is on a site kept awake: then it is asked again next round.
+                var shown = current;
+                if (WindowState == FormWindowState.Minimized && Settings.SleepWhenMinimized && !sleptWhileMinimized && shown != null
+                    && (now - minimizedAt).TotalSeconds >= Settings.MinimizedSleepSeconds
+                    && !shown.IsPlayingAudio && !shown.OnAwakeList && !await shown.CheckInUseAsync()
+                    && WindowState == FormWindowState.Minimized && !sleptWhileMinimized && shown == current)
                 {
-                    ["title"] = t.Title, ["url"] = t.Url, ["state"] = t.State.ToString(), ["current"] = t == current,
-                    ["visible"] = t.View?.Visible ?? false, ["suspended"] = t.Core?.IsSuspended ?? false, ["sleep"] = t.LastSleepResult,
-                }).ToArray()));
-            }
-            catch { }
+                    sleptWhileMinimized = true;
+                    await shown.SleepAsync();
+                    MemoryTrim.Trim();
+                }
+                foreach (var tab in tabs.ToList())
+                {
+                    if (tab == current || tab.State == TabState.Unloaded) continue;
+                    // Floating a video or in a call: asked again every round. Once that ends, its time in the
+                    // background starts over (Hide), as if it had just been left.
+                    if (tab.InPictureInPicture || tab.InCall)
+                    {
+                        if (!await tab.CheckInUseAsync() && tab != current && tabs.Contains(tab)) tab.Hide();
+                        continue;
+                    }
+                    if (tab.IsPlayingAudio || tab.OnAwakeList) continue;
+                    var idle = (now - tab.HiddenSince).TotalMinutes;
+                    bool unload = Settings.UnloadAfterMinutes > 0 && idle >= Settings.UnloadAfterMinutes;
+                    bool sleep = !unload && Settings.SleepAfterMinutes > 0 && tab.State == TabState.Live && idle >= Settings.SleepAfterMinutes
+                        && (DateTime.Now - tab.LastSleepTry).TotalSeconds >= 60;   // (the engine may decline: tried again a minute later)
+                    if (!unload && !sleep) continue;
+                    // A call or a floating window that began after the tab was left is found here, before anything is
+                    // done to it. (A sleeping page can't have begun one.)
+                    if (tab.State == TabState.Live && await tab.CheckInUseAsync()) continue;
+                    if (tab == current || !tabs.Contains(tab)) continue;   // chosen or closed meanwhile
+                    if (unload) tab.Unload();
+                    else await tab.SleepAsync();
+                }
+#if DEBUG
+                // Test builds only: lets the automated test see each tab's state.
+                try
+                {
+                    File.WriteAllText(Path.Combine(AppPaths.DataDir, $"debug-tabs-{Profile.Id}{(IsPrivate ? "-private" : "")}.json"), Json.Write(tabs.Select(t => new Dictionary<string, object>
+                    {
+                        ["title"] = t.Title, ["url"] = t.Url, ["state"] = t.State.ToString(), ["current"] = t == current,
+                        ["visible"] = t.View?.Visible ?? false, ["suspended"] = t.Core?.IsSuspended ?? false, ["sleep"] = t.LastSleepResult,
+                        ["call"] = t.InCall, ["pip"] = t.InPictureInPicture, ["audio"] = t.IsPlayingAudio, ["listed"] = t.OnAwakeList,
+                    }).ToArray()));
+                }
+                catch { }
 #endif
+            }
+            finally { housekeeping = false; }
         }
 
         // ----- address bar -----
@@ -1991,10 +2016,21 @@ namespace IGYO
                 ["tabs"] = app.Windows.SelectMany(w => w.tabs.Select(tab => new Dictionary<string, object>
                 {
                     ["title"] = Ui.Trim(tab.Title, 90),
-                    ["state"] = tab == w.current ? "Active" : tab.State == TabState.Sleeping ? "Sleeping" : tab.State == TabState.Unloaded ? "Unloaded" : "Open",   // names of states: the Settings page puts them into words
+                    ["state"] = MemoryStateOf(w, tab),
                 })).ToList(),
             };
         }
+
+        // Names of states: the Settings page puts them into words. A tab in the background that is kept awake says why.
+        static string MemoryStateOf(MainForm w, BrowserTab tab) =>
+            tab == w.current ? "Active"
+            : tab.State == TabState.Sleeping ? "Sleeping"
+            : tab.State == TabState.Unloaded ? "Unloaded"
+            : tab.InCall ? "Call"
+            : tab.InPictureInPicture ? "Floating"
+            : tab.IsPlayingAudio ? "Sound"
+            : tab.OnAwakeList ? "Kept"
+            : "Open";
 
         // Its name, and the color of its circle: the circle before the name shows the colors it can have.
         async void AddProfile()
