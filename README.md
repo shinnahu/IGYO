@@ -1,7 +1,6 @@
 # IGYO
 
-IGYO (異形, *igyō*: "strange-looking") is a web browser for Windows. It was called Tacit until November 2026:
-installing IGYO over Tacit replaces it and keeps your profiles, bookmarks, sign-ins, settings and extensions.
+IGYO (異形, *igyō*: "strange-looking") is a web browser for Windows.
 
 ![IGYO: a short tour](screenshots/igyo.gif)
 
