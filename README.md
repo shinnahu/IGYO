@@ -1,6 +1,6 @@
 # IGYO
 
-IGYO (異形, *igyō*: "strange-looking") is a web browser for Windows.
+IGYO (異形, *igyō*) is a web browser for Windows.
 
 ![IGYO: a short tour](screenshots/igyo.gif)
 
