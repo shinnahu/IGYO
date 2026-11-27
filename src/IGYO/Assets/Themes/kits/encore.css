@@ -70,7 +70,7 @@ body { font-weight: 600; }
 .tc-newtab {
   width: 30px; height: 30px; margin-left: 4px; border-radius: 50%;
   background: var(--c-accent-2); color: var(--c-ink); border: 2px solid var(--en-ink); box-shadow: 2px 3px 0 var(--en-ink);
-  transition: transform var(--t-1) linear, box-shadow var(--t-1) linear;
+  transition: transform var(--t-1) linear, box-shadow var(--t-1) linear, translate var(--t-2) var(--spring);   /* (along with a dragged tab, which springs too) */
 }
 .tc-newtab:hover { background: var(--en-white); }
 .tc-newtab:active { transform: translate(2px, 3px); box-shadow: none; }

@@ -357,12 +357,13 @@ data folder, and `IGYO.exe --selftest <report file>` runs the built-in checks in
 **1.0.13.** The tab strip behaves more like Chrome's, compared with screen recordings of Chrome made on this PC:
 
 - Maximized, the + reaches up to the top of the screen like the tabs: the pointer there lights it up and a click
-  opens a tab. Before, that room dragged the window. (In Encore the + sign spins on hover, not the whole button,
-  so that reach stays under the pointer.)
+  opens a tab. Before, that room was part of the strip's room for dragging the window. (In Encore the + sign
+  spins on hover, not the whole button, so that reach stays under the pointer.)
 - A dragged tab changes places with the tab beside it once it is halfway over it, either way. Before, it had
   to cover that tab completely.
 - A tab can be dragged on past the last tab, along the strip's empty room, with the + just after it; let go
-  there, it slides back and is the last tab.
+  there, it slides back and is the last tab. (In Encore, whose dragged tab springs after the pointer, the +
+  springs along with it.)
 - A closed tab shrinks away where it stood while the tabs after it close up. Before, the tab after it jumped
   into its place at once, and the closed tab shrank behind it, dropping from about half its width to almost
   nothing in one step. Tabs open, close and slide aside in 200 ms with a quadratic ease-out, which matched
@@ -370,16 +371,21 @@ data folder, and `IGYO.exe --selftest <report file>` runs the built-in checks in
 
 Checked like this:
 
+- **Built-in checks.** `IGYO.exe --selftest` in the Debug build of 1.0.13: 294 passed, none failed.
 - **The interface on the development server**, in a 1600×700 view, the animations paused and set to fixed
-  times. Closing the first, a middle and the last tab: the closed tab stays in its place and shrinks, the
-  tab after it (or the +) ends exactly where the closed one began, and nothing moves when it is removed (IGYO
-  Dark, Sunset with its bordered tabs, Bunker, Protocol, Victory). Opening a tab: it grows from nothing and
-  the strip does not scroll. Dragging: the tab changed places at 114 px of a 226 px step and back below
-  that. Dragged far right in IGYO Dark, Bunker, Protocol, Victory and Specimen: it stopped where the strip's
-  empty room ends, the + stood just after it, the readouts' room and everything else in the strip stayed put,
-  and the strip did not scroll; let go, the tab was last and the room was given back. Maximized, the point at
-  the very top above the + belongs to the + and not to the window's drag area; a pointer moved there lit
-  it up (IGYO Dark, and Encore, where it stayed lit), and a click there opened a tab.
+  times. Closing a tab (the first, a middle and the last one in IGYO Dark; a middle one in Sunset with its
+  bordered tabs, Bunker, Protocol, Victory, Specimen and Encore): the closed tab stays in its place and
+  shrinks, the tab after it (or the +) ends exactly where the closed one began, and nothing moves when it is
+  removed. Opening a tab in the looks where tabs grow in (IGYO Dark, Sunset, Specimen): it grows from nothing,
+  the + goes along, and the strip does not scroll. The rest in IGYO Dark, Bunker, Protocol, Victory, Specimen
+  and Encore. Dragging: the tab changed places just past half a step and not before, and in IGYO Dark back
+  again below it (at 114 px of a 226 px step). Dragged far right: it stopped where the strip's empty room
+  ends, the + stood just after it as far from it as at rest, the readouts' room and everything else in the
+  strip stayed put, and the strip did not scroll; let go, the tab was last and the room was given back (the
+  stand-in for the app was told the new order: looked at in IGYO Dark, Specimen and Encore). Maximized, the
+  point at the very top above the + is the +'s own; it is marked as no room to drag the window by (looked at
+  in IGYO Dark, Specimen and Encore); a pointer moved there lit the + up (IGYO Dark, and Encore, where it
+  stayed lit), and a click there opened a tab (IGYO Dark).
 - **The running browser**, the Debug build on a throwaway data folder, on a Windows desktop that is never
   shown, maximized: Windows' hit test at the top of the screen above the + now answers "client" through the
   page's own window, as above a tab; the empty strip beside it answers "caption" (it drags the window).
