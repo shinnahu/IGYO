@@ -70,11 +70,14 @@ body { font-weight: 600; }
 .tc-newtab {
   width: 30px; height: 30px; margin-left: 4px; border-radius: 50%;
   background: var(--c-accent-2); color: var(--c-ink); border: 2px solid var(--en-ink); box-shadow: 2px 3px 0 var(--en-ink);
-  transition: rotate var(--t-3) var(--spring), transform var(--t-1) linear, box-shadow var(--t-1) linear;
+  transition: transform var(--t-1) linear, box-shadow var(--t-1) linear;
 }
-.tc-newtab:hover { background: var(--en-white); rotate: 90deg; }
+.tc-newtab:hover { background: var(--en-white); }
 .tc-newtab:active { transform: translate(2px, 3px); box-shadow: none; }
-.tc-newtab .i { stroke-width: 3; }
+/* the + spins, not the button: turned with it, the button's reach to the screen's edge (Ui\chrome.css,
+   .tc-newtab-reach) would swing away from the pointer, and back, over and over */
+.tc-newtab .i { stroke-width: 3; transition: rotate var(--t-3) var(--spring); }
+.tc-newtab:hover .i { rotate: 90deg; }
 
 /* the combo */
 :root:not([data-o-combo="off"]) .tc-strip-fill { min-width: 132px; padding-right: 12px; }

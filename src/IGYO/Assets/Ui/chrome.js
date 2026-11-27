@@ -136,6 +136,7 @@
   // ----- tabs -----
 
   const tabsEl = $('tabs');
+  const newtabEl = $('newtab');
   const tabEls = new Map();   // tab id -> its element
   let dragging = null;
   // The card over a tab the mouse rests on (see "the card over a tab" below).
@@ -211,7 +212,18 @@
   }
 
   function renderTabs() {
-    const seen = new Set();
+    // (The room between two tabs, which a tab opening or closing brings or takes with it: chrome.css, tc-tab-grow.)
+    const gap = stripIsVertical() ? 0 : parseFloat(getComputedStyle(tabsEl).columnGap) || 0;
+    tabsEl.style.setProperty('--tab-gap', gap + 'px');
+    // Closed tabs are marked as leaving first, so that keeping the app's order (below) steps over them: each shrinks
+    // away where it stood, and the tabs after it close up as it goes, as in Chrome. (Marked afterwards, a closed tab
+    // was moved behind the tab after it, which jumped into its place.)
+    const open = new Set(S.tabs.map((t) => t.id));
+    for (const [id, node] of tabEls) {
+      if (open.has(id)) continue;
+      tabEls.delete(id);
+      leaveStrip(node);
+    }
     const added = [];
     let previous = null;
     S.tabs.forEach((t, index) => {
@@ -223,7 +235,6 @@
         if (!firstTabs) added.push(node);
       }
       updateTab(node, t, index);
-      seen.add(t.id);
       if (!dragging) {
         // Keep the app's order (elements that are animating away are stepped over).
         let expected = previous ? previous.nextSibling : tabsEl.firstChild;
@@ -232,14 +243,7 @@
       }
       previous = node;
     });
-    for (const [id, node] of tabEls) {
-      if (seen.has(id)) continue;
-      tabEls.delete(id);
-      node.classList.remove('is-entering');
-      node.classList.add('is-leaving');
-      node.addEventListener('animationend', () => node.remove(), { once: true });
-      setTimeout(() => node.remove(), 600);   // also when animations are off
-    }
+    for (const node of added) setEdges(node);   // (where it ended up: a kit may border the last tab differently)
     firstTabs = false;
     const activeNode = tabEls.get(S.active);
     // The tab showing is brought into view when it changes, not on every update, so the strip stays where you scrolled it.
@@ -260,6 +264,25 @@
       const shown = tabEls.get(card.id);
       if (shown && shown === card.node) showCard(shown); else hideCard(true);
     }
+  }
+
+  // A closed tab shrinks to nothing from the width it has now (chrome.css, tc-tab-leave), so it starts going at once
+  // even in a full strip, where tabs are narrower than their widest; then it is gone.
+  function leaveStrip(node) {
+    node.classList.remove('is-entering');
+    if (!stripIsVertical()) node.style.maxWidth = node.offsetWidth + 'px';
+    setEdges(node);
+    node.classList.add('is-leaving');
+    // (its own animation only: one ending inside it, like a title's, does not take it away early)
+    const gone = (event) => { if (!event || event.target === node) node.remove(); };
+    node.addEventListener('animationend', gone);
+    setTimeout(gone, 600);   // also when animations are off
+  }
+
+  // A tab's borders, which it takes as a margin while it grows in or shrinks away (chrome.css, tc-tab-grow).
+  function setEdges(node) {
+    const style = getComputedStyle(node);
+    node.style.setProperty('--tab-edges', (parseFloat(style.borderLeftWidth) || 0) + (parseFloat(style.borderRightWidth) || 0) + 'px');
   }
 
   function markActive() {
@@ -310,6 +333,8 @@
       node.classList.remove('is-dragging');
       node.style.transform = '';
       dragging = null;
+      plusBack();
+      closeDragRoom();
       // The tab leaves this strip; the strip itself keeps the mouse for the rest of the drag.
       try { tabsEl.setPointerCapture(event.pointerId); } catch { /* the pointer is already gone */ }
       const at = mouse(e);
@@ -345,6 +370,7 @@
         }
         active = true;
         dragging = node;
+        if (node._slide) node._slide.cancel();   // (taken again while still sliding to its place)
         node.classList.add('is-dragging');
         try { node.setPointerCapture(event.pointerId); } catch { /* the pointer is already gone */ }
       }
@@ -359,12 +385,7 @@
         return;
       }
       if (!active) return;
-      const from = node.style.transform;
-      node.style.transform = '';
-      node.classList.remove('is-dragging');
-      node.animate([{ transform: from }, { transform: 'none' }], { duration: 160, easing: 'cubic-bezier(.2,.8,.2,1)' });
-      dragging = null;
-      commitPlace(node);
+      settle(node);
     };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
@@ -373,32 +394,116 @@
   }
 
   // A tab being dragged, drawn where the mouse has it along the strip (pos: the mouse along the strip; grab: where
-  // on the tab the mouse holds it; this view's pixels), and moved among the others once it is past half of one.
+  // on the tab the mouse holds it; this view's pixels). As in Chrome, it goes on past the last tab into the strip's
+  // empty room, as far as that reaches, with the + just after it (see "room past the last tab", below), and it takes
+  // the place nearest to where it is drawn: it changes places with a tab beside it once it is halfway over that tab,
+  // either way, and the tab it passed slides over into the place it left.
+  // How tabs (and the +) slide: as in Chrome, 200 ms, slowing down evenly as they go, like tabs opening and closing
+  // (chrome.css, "motion"). Not at all with animations off.
+  const moving = () => root.dataset.anim !== 'off' && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const slide = () => ({ duration: moving() ? 200 : 0, easing: 'cubic-bezier(.33, .67, .67, 1)' });
   function dragAlong(node, pos, grab) {
     const vertical = stripIsVertical();
     const shift = (d) => (vertical ? `translateY(${d}px)` : `translateX(${d}px)`);
     const place = (n) => (vertical ? n.offsetTop : n.offsetLeft);
     const extent = (n) => (vertical ? n.offsetHeight : n.offsetWidth);
+    const room = openDragRoom(vertical);
+    const live = liveTabs();
+    const last = live[live.length - 1];
+    const end = place(last) + extent(last);   // where the tabs end (the dragged one counted in its place)
     const box = tabsEl.getBoundingClientRect();
     const scroll = vertical ? tabsEl.scrollTop : tabsEl.scrollLeft;
-    const room = (vertical ? tabsEl.scrollHeight : tabsEl.scrollWidth) - extent(node);
     const reach = pos - (vertical ? box.top : box.left) - grab + scroll;
-    const wanted = Math.max(0, Math.min(room, reach));   // where it is drawn: never past either end of the strip
-    node.style.transform = shift(wanted - place(node));
-    // Its new place is worked out from where the mouse has taken it, even past an end: held to the strip, a tab
-    // could never get past the middle of the last one, so it could not be dragged to the last place.
-    const centre = reach + extent(node) / 2;
-    const others = liveTabs().filter((n) => n !== node);
-    const index = others.filter((n) => place(n) + extent(n) / 2 < centre).length;
-    if (index === liveTabs().indexOf(node)) return;
-    const before = others.map((n) => [n, n.getBoundingClientRect()]);
-    tabsEl.insertBefore(node, others[index] || null);
-    for (const [n, was] of before) {
-      const is = n.getBoundingClientRect();
-      const d = vertical ? was.top - is.top : was.left - is.left;
-      if (d) n.animate([{ transform: shift(d) }, { transform: 'none' }], { duration: 170, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    const drawn = Math.max(0, Math.min(end + room - extent(node), reach));   // never past the start, nor the room's end
+    // The places, one after another, as they would be with the dragged tab taken out and put in at each one.
+    const others = live.filter((n) => n !== node);
+    const space = live.length > 1 ? place(live[1]) - place(live[0]) - extent(live[0]) : 0;   // between two tabs
+    let index = 0;
+    for (let i = 0, at = place(live[0]), nearest = Infinity; i <= others.length; i++) {
+      if (Math.abs(drawn - at) < nearest) { nearest = Math.abs(drawn - at); index = i; }
+      if (i < others.length) at += extent(others[i]) + space;
     }
-    node.style.transform = shift(wanted - place(node));
+    if (index !== live.indexOf(node)) {
+      const before = others.map((n) => [n, n.getBoundingClientRect()]);
+      tabsEl.insertBefore(node, others[index] || null);
+      for (const [n, was] of before) {
+        // From where it is seen now, also when it is still sliding from the last change.
+        if (n._slide) n._slide.cancel();
+        const is = n.getBoundingClientRect();
+        const d = vertical ? was.top - is.top : was.left - is.left;
+        n._slide = d ? n.animate([{ transform: shift(d) }, { transform: 'none' }], slide()) : null;
+      }
+    }
+    node.style.transform = shift(drawn - place(node));
+    // The + stands just after the last tab, or just after the dragged one while that is farther along.
+    const past = Math.max(0, Math.min(room, drawn + extent(node) - end));
+    newtabEl.style.translate = past ? (vertical ? `0 ${past}px` : `${past}px 0`) : '';
+  }
+
+  // A dragged tab let go: it slides from where it was drawn into its place, the + slides back after the last tab,
+  // and the room the drag took is given back once they are there. Where it stands becomes its place.
+  function settle(node) {
+    const from = node.style.transform;
+    node.style.transform = '';
+    node.classList.remove('is-dragging');
+    if (dragging === node) dragging = null;
+    node._slide = from && from !== 'none' ? node.animate([{ transform: from }, { transform: 'none' }], slide()) : null;
+    closeDragRoom([node._slide, plusBack()]);
+    commitPlace(node);
+  }
+
+  function plusBack() {
+    const past = newtabEl.style.translate;
+    if (!past || past === 'none') return null;
+    newtabEl.style.translate = '';
+    return newtabEl.animate([{ translate: past }, { translate: '0 0' }], slide());
+  }
+
+  // ----- room past the last tab -----
+  // In Chrome a tab can be dragged past the last one, all the way along the strip's empty room. Here that room is
+  // .tc-strip-fill, past the +: what it has beyond its own least size (a kit sets that to keep its readouts there)
+  // can be lent. While a tab is dragged the tab list takes it as room at its end (padding, given back by a margin as
+  // far below zero, so nothing else in the strip moves and the dragged tab is not cut off there), and it gives it
+  // back once the tab has slid into its place. A full strip, already scrolling, has none to lend.
+  const fillEl = document.querySelector('.tc-strip-fill');
+  const dragRoom = { lent: 0, vertical: false, turn: 0 };
+
+  function openDragRoom(vertical) {
+    dragRoom.turn++;   // (a room still to be given back after the last drag stays: see closeDragRoom)
+    let spare = 0;
+    if (fillEl) {
+      const style = getComputedStyle(fillEl);
+      const least = parseFloat(vertical ? style.minHeight : style.minWidth) || 0;
+      spare = Math.max(0, Math.floor((vertical ? fillEl.offsetHeight : fillEl.offsetWidth) - least));
+    }
+    if (spare === dragRoom.lent && vertical === dragRoom.vertical) return spare;
+    resetDragRoom();
+    if (spare) {
+      const [padding, margin] = vertical ? ['paddingBottom', 'marginBottom'] : ['paddingRight', 'marginRight'];
+      const style = getComputedStyle(tabsEl);
+      tabsEl.style[padding] = parseFloat(style[padding]) + spare + 'px';
+      tabsEl.style[margin] = parseFloat(style[margin]) - spare + 'px';
+    }
+    dragRoom.lent = spare;
+    dragRoom.vertical = vertical;
+    return spare;
+  }
+
+  function resetDragRoom() {
+    for (const name of ['paddingRight', 'marginRight', 'paddingBottom', 'marginBottom']) tabsEl.style[name] = '';
+    dragRoom.lent = 0;
+  }
+
+  // Given back once what slides back through it (slides: the tab's and the +'s, or none) is in place; at the latest
+  // after a while, as a hidden window's animations wait, and the lent room would not drag the window meanwhile. A
+  // drag that begins first keeps the room.
+  function closeDragRoom(slides) {
+    const turn = ++dragRoom.turn;
+    const close = () => { if (turn === dragRoom.turn) resetDragRoom(); };
+    const sliding = (slides || []).filter(Boolean);
+    if (!sliding.length) { close(); return; }
+    Promise.all(sliding.map((a) => a.finished.catch(() => {}))).then(close);
+    setTimeout(close, 600);
   }
 
   // Where a dragged tab now stands among the others becomes its place, and the app is told.
@@ -418,12 +523,7 @@
   let held = null;
   function putDown(node) {
     held = null;
-    if (dragging === node) dragging = null;
-    const from = node.style.transform;
-    node.style.transform = '';
-    node.classList.remove('is-dragging');
-    if (from && from !== 'none') node.animate([{ transform: from }, { transform: 'none' }], { duration: 160, easing: 'cubic-bezier(.2,.8,.2,1)' });
-    commitPlace(node);
+    settle(node);
   }
   Host.on('placeTab', (m) => {
     const node = tabEls.get(m.id);
@@ -435,6 +535,7 @@
         if (held) putDown(held);
         held = node;
         dragging = node;
+        if (node._slide) node._slide.cancel();
         node.classList.add('is-dragging');
         hideCard(true);
       }
@@ -717,8 +818,9 @@
     });
   }
 
-  $('newtab').innerHTML = icon('plus');
-  $('newtab').addEventListener('click', () => Host.cmd('newTab'));
+  // (with its reach to the screen's edge: see "the screen's edges")
+  newtabEl.innerHTML = icon('plus') + '<span class="tc-newtab-reach" aria-hidden="true"></span>';
+  newtabEl.addEventListener('click', () => Host.cmd('newTab'));
 
   // ----- toolbar -----
 
@@ -1662,9 +1764,11 @@
   // (chrome.css, .tc-tab-reach), as far as the strip's edge, and the pointer thrown against the top of the screen is on
   // the tab itself, lit up the way every kit lights a tab under the pointer. (In a list down the side: to the left.)
   // Only that far: the reach stays inside the strip, so it never makes the strip scroll.
+  // The + reaches up the same way (.tc-newtab-reach), so there too the pointer lights it up and a click opens a tab,
+  // as in Chrome, where that room would otherwise drag the window.
   function measureTabReach() {
     const vertical = stripIsVertical();
-    for (const node of tabEls.values()) {
+    for (const node of [...tabEls.values(), newtabEl]) {
       const reach = Math.max(0, Math.floor(vertical ? node.offsetLeft : node.offsetTop)) + 'px';
       if (node._reach === reach) continue;
       node._reach = reach;

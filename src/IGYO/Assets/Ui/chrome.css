@@ -176,6 +176,7 @@
   .tc-tab-ghost > .tc-tab::before { display: none; }
 
   .tc-newtab {
+    position: relative;
     display: grid; place-items: center; flex: none;
     width: 28px; height: 28px; margin-left: 4px; padding: 0; border: 0; border-radius: var(--r-m);
     background: transparent; color: inherit;
@@ -185,6 +186,12 @@
   .tc-newtab:hover { background: color-mix(in oklab, var(--c-frame-ink) 10%, transparent); }
   .tc-newtab:active { transform: scale(.92); }
   .tc-newtab .i { width: 16px; height: 16px; }
+  /* Maximized, the + reaches up to the screen's top edge like the tabs (.tc-tab-reach; how far: chrome.js,
+     measureTabReach), so the pointer thrown against the top of the screen above it lights it up and a click there
+     opens a tab, as in Chrome. That room is the button's then, not room to drag the window by. */
+  .tc-newtab-reach { display: none; position: absolute; left: 0; right: 0; bottom: 100%; height: calc(var(--tab-reach, 0px) + 6px); app-region: no-drag; }
+  :root[data-max]:not([data-fullscreen]) .tc-newtab-reach { display: block; }
+  .tc-tabs[data-axis="y"] ~ .tc-newtab .tc-newtab-reach { left: auto; right: 100%; top: 0; bottom: 0; width: calc(var(--tab-reach, 0px) + 6px); height: auto; }
 
   .tc-private {
     display: inline-flex; align-items: center; gap: 6px; flex: none;
@@ -642,14 +649,20 @@
 
   /* ----- motion ----- */
 
-  .tc-tab.is-entering { animation: tc-tab-grow var(--t-2) var(--ease) both; }
+  /* Tabs opening and closing move as in Chrome (measured from screen recordings of it): 200 ms, slowing down evenly
+     as they go (a quadratic ease-out); the tabs beside them close up or make room at the same pace. The same motion
+     moves tabs aside while one is dragged (chrome.js, slide). */
+  .tc-tab.is-entering { animation: tc-tab-grow 200ms cubic-bezier(.33, .67, .67, 1) both; }
+  /* (what is in a tab still too narrow for it is cut off, as in a closing tab: sticking out past the strip's end, it
+     made the strip scroll for a moment as the new tab was brought into view) */
+  .tc-tab.is-entering { overflow: hidden; }
   :root[data-fx-tabin="pop"] .tc-tab.is-entering { animation: tc-tab-pop var(--t-3) var(--spring) both; }
   :root[data-fx-tabin="drop"] .tc-tab.is-entering { animation: tc-tab-drop var(--t-3) var(--spring) both; }
   :root[data-fx-tabin="slide"] .tc-tab.is-entering { animation: tc-tab-slide var(--t-2) var(--ease) both; }
   :root[data-fx-tabin="wipe"] .tc-tab.is-entering { animation: tc-tab-wipe var(--t-3) var(--ease) both; }
   :root[data-fx-tabin="glitch"] .tc-tab.is-entering { animation: tc-tab-glitch 320ms steps(6) both; }
   :root[data-fx-tabin="none"] .tc-tab.is-entering { animation: none; }
-  .tc-tab.is-leaving { animation: tc-tab-leave var(--t-2) var(--ease) both; pointer-events: none; overflow: hidden; }
+  .tc-tab.is-leaving { animation: tc-tab-leave 200ms cubic-bezier(.33, .67, .67, 1) both; pointer-events: none; overflow: hidden; }
 
   @keyframes tc-claude-beat { from { transform: scale(1); } to { transform: scale(1.6); } }
   @keyframes tc-spin { to { rotate: 360deg; } }
@@ -663,8 +676,14 @@
   @keyframes tc-load-mask { from { mask-position: -70% 0; } to { mask-position: 170% 0; } }
   @keyframes tc-load-stripes { to { background-position: 39.720px 0; } }
   @keyframes tc-load-blocks { 0% { clip-path: inset(0 100% 0 0); } 70%, 100% { clip-path: inset(0 0 0 0); } }
-  @keyframes tc-tab-grow { from { flex-basis: 0; min-width: 0; max-width: 0; padding-left: 0; padding-right: 0; opacity: 0; } }
-  @keyframes tc-tab-leave { to { flex-basis: 0; min-width: 0; max-width: 0; padding-left: 0; padding-right: 0; margin: 0; opacity: 0; } }
+  /* A tab grows in and shrinks away by its widest size (max-width) alone: flex-basis can't move smoothly between auto
+     and 0 and flips halfway, so with it in, a closing tab dropped from half its width to almost nothing at once. A
+     closing tab starts from the width it has (chrome.js, leaveStrip). The room between it and the tab before it
+     (--tab-gap, the strip's gap) and its borders (--tab-edges: they can't shrink smoothly, as the engine draws a border
+     thinner than a pixel a pixel wide) come and go with it as a margin, so nothing jumps when it is gone. Both are
+     set by chrome.js. */
+  @keyframes tc-tab-grow { from { min-width: 0; max-width: 0; padding-left: 0; padding-right: 0; margin-left: calc((var(--tab-gap, 0px) + var(--tab-edges, 0px)) * -1); opacity: 0; } }
+  @keyframes tc-tab-leave { to { min-width: 0; max-width: 0; padding-left: 0; padding-right: 0; margin: 0 0 0 calc((var(--tab-gap, 0px) + var(--tab-edges, 0px)) * -1); opacity: 0; } }
   @keyframes tc-tab-pop { from { opacity: 0; transform: scale(.6); } }
   @keyframes tc-tab-drop { from { opacity: 0; transform: translateY(-110%); } }
   @keyframes tc-tab-slide { from { opacity: 0; transform: translateX(-24px); } }
