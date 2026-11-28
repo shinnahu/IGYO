@@ -10,7 +10,7 @@ namespace IGYO
     {
         // Appearance
         public string Language { get; set; } = "auto";         // a language's id ("es", "ja"…), "en", or "auto": the one Windows is shown in
-        public string Theme { get; set; } = "auto";            // a theme's id, or "auto": IGYO Light or IGYO Dark with Windows
+        public string Theme { get; set; } = ThemeStore.Default; // a theme's id (Subculture to start with), or "auto": IGYO Light or IGYO Dark with Windows
         public string Accent { get; set; } = "";               // "" keeps the theme's own accent; otherwise a color like #7C3AED
         public string AppIcon { get; set; } = "";              // the icon IGYO wears (an id in Assets\AppIcons\icons.json); "" is the default one
         public bool Compact { get; set; }

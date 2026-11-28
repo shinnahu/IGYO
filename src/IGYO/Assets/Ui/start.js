@@ -64,6 +64,8 @@
   Host.on('translateClose', (m) => T.translate.hide(m.id));
   // The zoom was just changed (Ctrl and the wheel, a zoom key, the menu): its box comes up for a moment.
   Host.on('zoomShow', () => T.zoom.show('auto'));
+  // The tab search (MainForm.TabSearch.cs): asked for from the mark at the strip's start, or with Ctrl+Shift+A.
+  Host.on('tabSearch', (m) => T.tabSearch.show(m, ui.brand));
   Host.on('dialog', (m) => T.dialog.show(m).then((result) => Host.post(Object.assign({ t: 'dialog', id: m.id }, result))));
   Host.on('notice', (m) => T.notice.show(m));
   Host.on('suggestions', (m) => {

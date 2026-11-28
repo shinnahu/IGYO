@@ -7,7 +7,7 @@ family are in the LICENSE-<name>.txt files in this folder, taken from the same p
 
 The files are the Latin (and, where the family has one, extended Latin) parts of each family as packaged by the
 Fontsource project (https://fontsource.org), downloaded unchanged from the jsDelivr CDN on 14 Nov 2026
-(Cormorant Garamond on 17 Nov 2026). Averia Libre was taken unchanged from its package as the npm registry serves
+(Cormorant Garamond on 17 Nov 2026, Dela Gothic One on 27 Nov 2026). Averia Libre was taken unchanged from its package as the npm registry serves
 it (https://registry.npmjs.org/@fontsource/averia-libre/-/averia-libre-5.3.0.tgz, SHA-1
 86213453a28d4a8442c327cf594781714a667954 as the registry lists it) on 17 Nov 2026, and Google Sans Flex the same way
 (https://registry.npmjs.org/@fontsource/google-sans-flex/-/google-sans-flex-5.3.2.tgz, SHA-1
@@ -85,6 +85,16 @@ Cormorant Garamond
   cormorant-garamond-latin-ext-300-normal.woff2
     19080 bytes, SHA-256 7e86fb56e35ccb1ecc5d71110d9097ef9132bce69b6a296528f05f25aa1657d2
     https://cdn.jsdelivr.net/npm/@fontsource/cormorant-garamond@5.3.0/files/cormorant-garamond-latin-ext-300-normal.woff2
+
+Dela Gothic One
+  Copyright 2020 The Dela Gothic Project Authors (https://github.com/syakuzen/DelaGothic)
+  Font version: Version 1.005. Package: @fontsource/dela-gothic-one 5.3.0. License: LICENSE-dela-gothic-one.txt
+  dela-gothic-one-latin-400-normal.woff2
+    13804 bytes, SHA-256 00ffa61fea9edb126e8e4fd3cf2b46e96ad158a0c1078b3cd22a3f6964993a88
+    https://cdn.jsdelivr.net/npm/@fontsource/dela-gothic-one@5.3.0/files/dela-gothic-one-latin-400-normal.woff2
+  dela-gothic-one-latin-ext-400-normal.woff2
+    9108 bytes, SHA-256 56c74de18537d2c3b6b9d2f933857594adc2b3bee41f12c8a7cce63334f36c17
+    https://cdn.jsdelivr.net/npm/@fontsource/dela-gothic-one@5.3.0/files/dela-gothic-one-latin-ext-400-normal.woff2
 
 Fredoka
   Copyright 2016 The Fredoka Project Authors (https://github.com/hafontia/Fredoka-One)

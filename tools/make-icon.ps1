@@ -1,9 +1,13 @@
-# Draws the IGYO icon (his white ten-point star on a slate tile running from #595B6B at the top to #222328 at the bottom)
-# as a multi-size .ico and a PNG logo.
-# -SvgOut also writes the mark by itself as an SVG (white unless -SvgColor); -GlyphOut writes its outline for a
-# 24 x 24 icon grid, as the path data Assets\Shared\icons.js holds for the favourites icon of the Specimen kit.
-# The defaults draw the icon IGYO ships with: his own icon, the same in every frame.
-#   -Shape            spark (the mark now), thorns, ball or star (the marks before it, see below)
+# Draws the IGYO icon (the 異 seal: 異 carved out of a square stamp, white on black) as a multi-size .ico and a PNG logo.
+# -SvgOut also writes the mark by itself as an SVG (white unless -SvgColor; for the seal, its kanji alone, without the
+# stamp); -GlyphOut writes the spark's outline for a 24 x 24 icon grid, as the path data Assets\Shared\icons.js holds
+# for the favourites icon of the Specimen and Ura kits (that icon keeps the star).
+# The defaults draw the icon IGYO ships with, the same in every frame.
+#   -Shape            seal (the mark now), spark, thorns, ball or star (the marks before it, see below)
+# The seal (27 Nov 2026, his "I like 異 seal ... Leave the same one in the book", made with the make-logo skill): 異,
+# the first kanji of 異形 (IGYO), in Dela Gothic One, carved out of a stamp that fills the icon box, its corners round
+# by 36.57 of 256 (73.14 on the 512 canvas). -Tile is the stamp's color (#0B0B0B unless given), -Ink the kanji's
+# (#FFFFFF unless given); a stamp that runs from one color to another runs straight down, as the spark's tile did.
 # The spark (17 Nov 2026 night, his "Go with this one" with the icon as SVG): his star exactly as his path draws it, on
 # his 256 x 256 box, the tile's corner 44.48 of 256 (88.96 on the 512 canvas), the slate running top to bottom.
 # The thorned swirl before it (T2) was acid on the dark tile: -Shape thorns.
@@ -39,7 +43,7 @@ param([Parameter(Mandatory)][string]$OutFile, [string]$PngOut, [int]$PngSize = 2
       [double]$MidScale = 0.9, [string]$Tile = '', [string]$Tile2 = '', [string]$TileMid = '', [string]$Stops = '', [string]$Ink = '', [string]$Edge = '', [double]$EdgePx = 0.9,
       [double]$SmallBold = 2.6,
       [double]$SmallPinch = 0.7, [int]$StubsFrom = 64, [string]$Rim = '', [double]$RimWidth = 16,
-      [ValidateSet('spark', 'thorns', 'ball', 'star')][string]$Shape = 'spark', [double]$Spikes = 1, [double[]]$BallFill = @(0.92, 0.88, 0.8, 0.74),
+      [ValidateSet('seal', 'spark', 'thorns', 'ball', 'star')][string]$Shape = 'seal', [double]$Spikes = 1, [double[]]$BallFill = @(0.92, 0.88, 0.8, 0.74),
       [double[]]$ThornFill = @(0.86, 0.82, 0.8, 0.78),
       [string]$GlyphOut)
 Add-Type -AssemblyName System.Drawing
@@ -52,9 +56,10 @@ if ($Stops) {
   for ($i = 1; $i -lt $stopList.Count; $i++) { if ($stopList[$i].At -lt $stopList[$i - 1].At) { throw '-Stops must go from the top down' } }
   $Tile = $stopList[0].Color; $Tile2 = $stopList[-1].Color
 }
+if ($Shape -eq 'seal' -and -not $Tile -and -not $Tile2) { $Tile = '#0B0B0B' }
 if ($Shape -eq 'spark' -and -not $Tile -and -not $Tile2) { $Tile = '#595B6B'; $Tile2 = '#222328' }
 if (-not $Tile) { $Tile = if ($Shape -eq 'thorns') { '#16171B' } else { '#C5F135' } }
-if (-not $Ink) { $Ink = if ($Shape -eq 'spark') { '#FFFFFF' } elseif ($Shape -eq 'thorns') { '#C5F135' } else { '#16171B' } }
+if (-not $Ink) { $Ink = if ($Shape -in 'seal', 'spark') { '#FFFFFF' } elseif ($Shape -eq 'thorns') { '#C5F135' } else { '#16171B' } }
 
 Add-Type -ReferencedAssemblies System.Drawing -TypeDefinition @'
 using System;
@@ -453,6 +458,61 @@ public static class IGYOSpark
         return sb.Append('Z').ToString();
     }
 }
+
+// The mark since 27 Nov 2026 (his "I like 異 seal ... Leave the same one in the book"): 異, the first kanji of 異形
+// (IGYO), carved out of a square stamp. Made with the make-logo skill (design.how): Dela Gothic One's 異 (SIL Open Font
+// License 1.1), outlined, on the stamp's own box: the stamp fills the 256 x 256 icon box, its corners round by 36.57
+// (6 of its 42), and these are the kanji's contours on it, each a start point and then three points a curve. The
+// kanji's counters are contours of their own: filled with the alternate rule, they keep the stamp's color.
+// src\Setup\Setup.cs draws the same (its Mark class): change both together.
+public static class IGYOSeal
+{
+    public const double Corner = 36.57;   // the stamp's corner, of its 256
+    static readonly float[][] Glyph =
+    {
+        new[] { 168.78f, 168.35f, 176.46f, 170.1f, 184.5f, 171.52f, 192.91f, 172.62f, 201.29f, 173.67f, 212.15f, 174.81f, 225.52f, 176.03f, 220.93f, 180.5f, 215.67f, 186.66f, 209.74f, 194.5f, 205.55f, 199.78f, 202.77f, 203.15f, 201.39f, 204.62f, 179.12f, 202.06f, 154.66f, 195.92f, 128f, 186.21f, 102.89f, 195.8f, 78.43f, 201.94f, 54.61f, 204.62f, 53.27f, 203.15f, 50.51f, 199.78f, 46.32f, 194.5f, 40.35f, 186.66f, 35.07f, 180.5f, 30.48f, 176.03f, 43.89f, 174.81f, 54.78f, 173.67f, 63.15f, 172.62f, 71.52f, 171.52f, 79.56f, 170.1f, 87.28f, 168.35f, 68.96f, 168.35f, 50.63f, 168.35f, 32.3f, 168.35f, 32.3f, 160.16f, 32.3f, 151.97f, 32.3f, 143.79f, 46.36f, 143.79f, 60.42f, 143.79f, 74.48f, 143.79f, 74.48f, 142.51f, 74.48f, 141.23f, 74.48f, 139.95f, 61.7f, 139.95f, 48.92f, 139.95f, 36.14f, 139.95f, 36.14f, 132.45f, 36.14f, 124.95f, 36.14f, 117.46f, 48.92f, 117.46f, 61.7f, 117.46f, 74.48f, 117.46f, 74.48f, 116.09f, 74.48f, 114.73f, 74.48f, 113.37f, 62.39f, 113.37f, 50.31f, 113.37f, 38.22f, 113.37f, 38.22f, 92.69f, 38.22f, 72.01f, 38.22f, 51.32f, 98.09f, 51.32f, 157.97f, 51.32f, 217.84f, 51.32f, 217.84f, 72.01f, 217.84f, 92.69f, 217.84f, 113.37f, 205.73f, 113.37f, 193.63f, 113.37f, 181.52f, 113.37f, 181.52f, 114.73f, 181.52f, 116.09f, 181.52f, 117.46f, 194.3f, 117.46f, 207.08f, 117.46f, 219.86f, 117.46f, 219.86f, 124.95f, 219.86f, 132.45f, 219.86f, 139.95f, 207.08f, 139.95f, 194.3f, 139.95f, 181.52f, 139.95f, 181.52f, 141.23f, 181.52f, 142.51f, 181.52f, 143.79f, 195.58f, 143.79f, 209.64f, 143.79f, 223.7f, 143.79f, 223.7f, 151.97f, 223.7f, 160.16f, 223.7f, 168.35f, 205.39f, 168.35f, 187.08f, 168.35f, 168.78f, 168.35f },
+        new[] { 128f, 185.6f, 133.69f, 179.85f, 139.38f, 174.1f, 145.07f, 168.35f, 133.71f, 168.35f, 122.35f, 168.35f, 110.99f, 168.35f, 116.66f, 174.1f, 122.33f, 179.85f, 128f, 185.6f },
+        new[] { 109.59f, 89.9f, 100.79f, 89.9f, 92f, 89.9f, 83.2f, 89.9f, 83.2f, 91.18f, 83.2f, 92.46f, 83.2f, 93.74f, 92f, 93.74f, 100.79f, 93.74f, 109.59f, 93.74f, 109.59f, 92.46f, 109.59f, 91.18f, 109.59f, 89.9f },
+        new[] { 172.8f, 89.9f, 164.02f, 89.9f, 155.25f, 89.9f, 146.47f, 89.9f, 146.47f, 91.18f, 146.47f, 92.46f, 146.47f, 93.74f, 155.25f, 93.74f, 164.02f, 93.74f, 172.8f, 93.74f, 172.8f, 92.46f, 172.8f, 91.18f, 172.8f, 89.9f },
+        new[] { 146.47f, 74.67f, 155.25f, 74.67f, 164.02f, 74.67f, 172.8f, 74.67f, 172.8f, 73.45f, 172.8f, 72.23f, 172.8f, 71.01f, 164.02f, 71.01f, 155.25f, 71.01f, 146.47f, 71.01f, 146.47f, 72.23f, 146.47f, 73.45f, 146.47f, 74.67f },
+        new[] { 109.59f, 74.67f, 109.59f, 73.45f, 109.59f, 72.23f, 109.59f, 71.01f, 100.79f, 71.01f, 92f, 71.01f, 83.2f, 71.01f, 83.2f, 72.23f, 83.2f, 73.45f, 83.2f, 74.67f, 92f, 74.67f, 100.79f, 74.67f, 109.59f, 74.67f },
+        new[] { 139.4f, 113.37f, 131.82f, 113.37f, 124.24f, 113.37f, 116.66f, 113.37f, 116.66f, 114.73f, 116.66f, 116.09f, 116.66f, 117.46f, 124.24f, 117.46f, 131.82f, 117.46f, 139.4f, 117.46f, 139.4f, 116.09f, 139.4f, 114.73f, 139.4f, 113.37f },
+        new[] { 139.4f, 139.95f, 131.82f, 139.95f, 124.24f, 139.95f, 116.66f, 139.95f, 116.66f, 141.23f, 116.66f, 142.51f, 116.66f, 143.79f, 124.24f, 143.79f, 131.82f, 143.79f, 139.4f, 143.79f, 139.4f, 142.51f, 139.4f, 141.23f, 139.4f, 139.95f },
+    };
+
+    // The kanji on a canvas of 256 * scale, moved by (ox, oy).
+    public static GraphicsPath ToPath(double scale, double ox, double oy)
+    {
+        var path = new GraphicsPath(FillMode.Alternate);
+        foreach (var c in Glyph)
+        {
+            var pts = new PointF[c.Length / 2];
+            for (int i = 0; i < pts.Length; i++) pts[i] = new PointF((float)(c[2 * i] * scale + ox), (float)(c[2 * i + 1] * scale + oy));
+            path.StartFigure();
+            path.AddBeziers(pts);
+            path.CloseFigure();
+        }
+        return path;
+    }
+
+    // The kanji by itself, without its stamp, as SVG path data on the 256 box, to be filled even-odd (its counters
+    // stay open): Assets\Shared\mark.svg, which Settings shows in one color, the text's (his word, 27 Nov 2026: "on
+    // settings the icon on the sidebar shouldn't have a tile and the kanji would be white"). Its own box: KanjiBox.
+    public const string KanjiBox = "30.48 51.32 195.04 153.3";
+    public static string SvgPathData(string digits = "0.##")
+    {
+        Func<double, string> f = v => v.ToString(digits, CultureInfo.InvariantCulture);
+        var sb = new StringBuilder();
+        foreach (var g in Glyph)
+        {
+            sb.Append("M" + f(g[0]) + " " + f(g[1]));
+            for (int i = 2; i + 5 < g.Length; i += 6)
+                sb.Append("C" + f(g[i]) + " " + f(g[i + 1]) + " " + f(g[i + 2]) + " " + f(g[i + 3]) + " " + f(g[i + 4]) + " " + f(g[i + 5]));
+            sb.Append('Z');
+        }
+        return sb.ToString();
+    }
+}
 '@
 
 function New-RoundedRect([float]$x, [float]$y, [float]$w, [float]$h, [float]$r) {
@@ -476,11 +536,12 @@ function New-IconBitmap([int]$size) {
   $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
   $g.Clear([System.Drawing.Color]::Transparent)
 
-  # Tile: flat -Tile (acid #C5F135 by default), or running to -Tile2, with a line around its edge when -Rim is given
-  # (his spark's slate runs straight down; the others ran from the top left corner to the bottom right one)
+  # Tile (the seal's stamp): flat -Tile, or running to -Tile2, with a line around its edge when -Rim is given
+  # (the seal's stamp and his spark's slate run straight down; the others ran from the top left corner to the bottom right one)
+  $down = $Shape -in 'seal', 'spark'
   $tileBrush = if ($Tile -eq 'none') { $null } elseif ($Tile2) {
-    $from = if ($Shape -eq 'spark') { New-Object System.Drawing.PointF 0, -1 } else { New-Object System.Drawing.PointF 0, 0 }
-    $to = if ($Shape -eq 'spark') { New-Object System.Drawing.PointF 0, ($n + 1) } else { New-Object System.Drawing.PointF $n, $n }
+    $from = if ($down) { New-Object System.Drawing.PointF 0, -1 } else { New-Object System.Drawing.PointF 0, 0 }
+    $to = if ($down) { New-Object System.Drawing.PointF 0, ($n + 1) } else { New-Object System.Drawing.PointF $n, $n }
     $brush = New-Object System.Drawing.Drawing2D.LinearGradientBrush -ArgumentList $from, $to,
       ([System.Drawing.ColorTranslator]::FromHtml($Tile)), ([System.Drawing.ColorTranslator]::FromHtml($Tile2))
     if ($Stops) {
@@ -496,7 +557,8 @@ function New-IconBitmap([int]$size) {
     }
     $brush
   } else { New-Object System.Drawing.SolidBrush -ArgumentList ([System.Drawing.ColorTranslator]::FromHtml($Tile)) }
-  $corner = if ($Shape -eq 'spark') { 88.96 } else { 122 }   # on the 512 canvas (his tile: 44.48 of 256)
+  # on the 512 canvas (the seal's stamp: 36.57 of 256; his spark's tile: 44.48 of 256)
+  $corner = if ($Shape -eq 'seal') { 2 * [IGYOSeal]::Corner } elseif ($Shape -eq 'spark') { 88.96 } else { 122 }
   if ($Tile -ne 'none') { $g.FillPath($tileBrush, (New-RoundedRect 0 0 $n $n ($corner * $k))) }
   if ($Rim) {
     $rw = $RimWidth * $k
@@ -507,7 +569,10 @@ function New-IconBitmap([int]$size) {
 
   # The mark, in -Ink (#16171B by default), larger in the small frames, where every pixel counts
   $inkBrush = New-Object System.Drawing.SolidBrush -ArgumentList ([System.Drawing.ColorTranslator]::FromHtml($Ink))
-  if ($Shape -eq 'spark') {
+  if ($Shape -eq 'seal') {
+    # the kanji where the stamp's box puts it, in every frame
+    $g.FillPath($inkBrush, [IGYOSeal]::ToPath($n / 256.0, 0, 0))
+  } elseif ($Shape -eq 'spark') {
     # his star where his box puts it, in every frame
     $g.FillPath($inkBrush, [IGYOSpark]::ToPath($n / 256.0, 0, 0))
   } elseif ($Shape -eq 'thorns') {
@@ -581,12 +646,15 @@ if ($PngOut) {
   $logo.Dispose()
 }
 if ($SvgOut) {
-  $d = if ($Shape -eq 'spark') { [IGYOSpark]::SvgPathData() } elseif ($Shape -eq 'thorns') { [IGYOThorns]::SvgPathData() } elseif ($Shape -eq 'ball') { [IGYOBall]::SvgPathData($Spikes) } else { [IGYOMark]::SvgPathData() }
-  $box = if ($Shape -eq 'spark') { '28.57 26.67 198.89 202.64' } else { '0 0 512 512' }   # his star: its own box
-  $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + $box + '"><path fill="' + $SvgColor + '" d="' + $d + '"/></svg>'
+  $d = if ($Shape -eq 'seal') { [IGYOSeal]::SvgPathData() } elseif ($Shape -eq 'spark') { [IGYOSpark]::SvgPathData() } elseif ($Shape -eq 'thorns') { [IGYOThorns]::SvgPathData() } elseif ($Shape -eq 'ball') { [IGYOBall]::SvgPathData($Spikes) } else { [IGYOMark]::SvgPathData() }
+  # the seal's kanji and his star: each on its own box
+  $box = if ($Shape -eq 'seal') { [IGYOSeal]::KanjiBox } elseif ($Shape -eq 'spark') { '28.57 26.67 198.89 202.64' } else { '0 0 512 512' }
+  $rule = if ($Shape -eq 'seal') { ' fill-rule="evenodd"' } else { '' }   # the kanji's counters stay open
+  $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + $box + '"><path fill="' + $SvgColor + '"' + $rule + ' d="' + $d + '"/></svg>'
   [System.IO.File]::WriteAllText($SvgOut, $svg, (New-Object System.Text.UTF8Encoding $false))
 }
 if ($GlyphOut) {
+  if ($Shape -eq 'seal') { throw "-GlyphOut: the favourites icon in icons.js keeps the spark's star; write it with -Shape spark" }
   # the ball on a 24 x 24 icon grid, 21 units tall: one path that icons.js strokes (not saved) and fills (saved)
   # (his star: 21 of the 24 units tall, centred)
   $glyph = if ($Shape -eq 'spark') { $k = 21 / 202.64; [IGYOSpark]::SvgPathData($k, 12 - 128.01 * $k, 12 - 127.99 * $k, '0.##') }

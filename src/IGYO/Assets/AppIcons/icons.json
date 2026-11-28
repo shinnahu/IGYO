@@ -1,6 +1,7 @@
 {
-  "default": "sunset",
+  "default": "ink",
   "icons": [
+    { "id": "ink", "name": "Ink", "star": "#FFFFFF", "tile": "#0B0B0B" },
     { "id": "sunset", "name": "Sunset", "star": "#FFFFFF", "stops": "0:#976FA3,0.3:#CB73A3,0.3:#D57A9B,0.5:#F1A67F,0.8:#F0AC82,1:#F0AC82" },
     { "id": "periwinkle", "name": "Periwinkle", "star": "#FFFFFF", "tile": "#9DB1FF", "tile2": "#4F5FE0" },
     { "id": "teal", "name": "Teal", "star": "#00FD45", "tile": "#028A73", "tile2": "#003831" },

@@ -1,0 +1,259 @@
+/* Kit: Ura (裏, the underground side): the subculture look, from IGYO's brand book (the 異 seal, black and white,
+   the name in Dela Gothic One) and his references (27 Nov 2026: metal and gothic street wear, chrome thorns, the
+   menus of old survival-horror and role-playing games). Black and silver, square everything, hairline frames; what
+   is chosen is framed in white and pointed at with a small ▸, as a game menu points at its line; labels in spaced
+   capitals; headings and New Tab's clock in Dela Gothic One; 異 at the left of the tab strip; site icons in color.
+   Options: cursor (on|off), mark (on|off), icons (color|mono), window (square|round). */
+
+:root {
+  --radius: 0;
+  --f-ui: "M PLUS 1", "Yu Gothic UI", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --f-display: "Dela Gothic One", "Yu Gothic UI", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", Consolas, monospace;
+  --shadow-1: none;
+  --shadow-2: 0 0 0 1px color-mix(in oklab, var(--c-ink) 22%, transparent), 0 10px 28px rgb(0 0 0 / .55);
+  --shadow-3: 0 0 0 1px color-mix(in oklab, var(--c-ink) 30%, transparent), 0 16px 44px rgb(0 0 0 / .65);
+  --focus: 0 0 0 1px var(--c-ink);
+  --icon-w: 1.500;
+  --icon-cap: square;
+  --icon-join: miter;
+  --ease: cubic-bezier(.2, 0, 0, 1);
+  --ura-hair: color-mix(in oklab, var(--c-ink) 16%, transparent);      /* the frames' hairlines */
+  --ura-silver: color-mix(in oklab, var(--c-ink) 46%, transparent);    /* a frame under the pointer */
+  --ura-cursor: "\25B6\FE0E";                                           /* ▶ as text, not as an emoji */
+  --ura-track: .14em;
+}
+
+body { letter-spacing: .01em; }
+
+/* The cursor: a small ▸ before whatever is chosen (option "cursor: off" leaves it out). */
+.tc-tab.is-active .tc-tab-title::before,
+.t-menu-item.is-active::before, .t-menu-item:focus-visible::before,
+.tc-suggest-row.is-active::before,
+.t-dialog h2::before {
+  content: var(--ura-cursor); margin-right: 7px; font-size: .72em; font-family: "Segoe UI Symbol", var(--f-ui); color: var(--c-ink);
+}
+.t-menu-item.is-active::before, .t-menu-item:focus-visible::before, .tc-suggest-row.is-active::before {
+  position: absolute; left: 4px; margin: 0;
+}
+:root[data-o-cursor="off"] .tc-tab.is-active .tc-tab-title::before,
+:root[data-o-cursor="off"] .t-menu-item.is-active::before, :root[data-o-cursor="off"] .t-menu-item:focus-visible::before,
+:root[data-o-cursor="off"] .tc-suggest-row.is-active::before,
+:root[data-o-cursor="off"] .t-dialog h2::before { content: none; }
+
+/* ----- frame ----- */
+
+.tc-tabstrip { gap: 0; box-shadow: inset 0 -1px 0 var(--ura-hair); }
+
+/* 異 at the left of the strip, white as on the seal (option "mark: off" hides it), in the middle of a cell that runs
+   from the window's edge (over the strip's own 8px) to the hairline at its right */
+.tc-brand {
+  display: flex; align-items: center; justify-content: center; align-self: stretch; box-sizing: border-box;
+  flex: none; width: 52px; padding: 0 1px 0 0; margin: 0 4px 0 -8px; box-shadow: inset -1px 0 0 var(--ura-hair);
+}
+.tc-brand-mark { display: block; width: 21px; height: 17px; background: var(--c-frame-ink); -webkit-mask: url("/shared/mark.svg") center / contain no-repeat; mask: url("/shared/mark.svg") center / contain no-repeat; }
+.tc-brand-name { display: none; }
+:root[data-o-mark="off"] .tc-brand { display: none; }
+/* it opens the tab search: lit under the pointer and while the search is open */
+.tc-brand:hover, .tc-brand.is-open { background: color-mix(in oklab, var(--c-frame-ink) 9%, transparent); }
+.tc-ts-row > .t-menu-icon { border-radius: 0; }
+.tc-ts-search { border-bottom-color: var(--ura-hair); }
+.tc-ts-close, .tc-ts-fold { border-radius: 0; }
+
+.tc-tabs { gap: 2px; }
+.tc-tab {
+  border-radius: 0; color: color-mix(in oklab, var(--c-frame-ink) 62%, transparent);
+  box-shadow: inset 0 0 0 1px transparent;
+  transition: box-shadow var(--t-1) linear, color var(--t-1) linear, background-color var(--t-1) linear;
+}
+.tc-tab + .tc-tab::before { display: none; }
+.tc-tab:hover { background: transparent; color: var(--c-frame-ink); box-shadow: inset 0 0 0 1px var(--ura-hair); }
+.tc-tab.is-active { background: var(--c-surface); color: var(--c-ink); box-shadow: inset 0 0 0 1px var(--c-ink); }
+.tc-tab-title { font-size: 11.500px; letter-spacing: .02em; }
+.tc-tab-index { font: 500 9.500px/1 var(--f-mono); letter-spacing: 0; opacity: .7; }
+.tc-tab-close { border-radius: 0; }
+.tc-tab-close:hover { background: var(--c-ink); color: var(--c-surface); }
+/* loading: an angular spiral in the 1px line of the open square it was, turning as that did: straight sides, a
+   corner about every 66 degrees, a little over two turns closing in on the middle, like the picture he sent (his
+   words, 27 Nov 2026: "keep same thickness but be more like a spiral", "keep the sides of the spiral straight but
+   having more corners like reference"; of four drawn, "I think I prefer pent-b") */
+.tc-tab-spin {
+  border: 0; border-radius: 0; background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2.02 3.81L9.61 1.43L14.17 7.18L10.74 12.99L4.69 11.95L3.62 6.52L7.81 3.92L11.24 6.56L10.13 10.12L7.01 10.27L6.07 7.92L7.54 6.68' fill='none' stroke='%23000'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2.02 3.81L9.61 1.43L14.17 7.18L10.74 12.99L4.69 11.95L3.62 6.52L7.81 3.92L11.24 6.56L10.13 10.12L7.01 10.27L6.07 7.92L7.54 6.68' fill='none' stroke='%23000'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+.tc-tab.is-dragging { box-shadow: inset 0 0 0 1px var(--c-ink), var(--shadow-3); }
+
+.tc-newtab { border-radius: 0; box-shadow: inset 0 0 0 1px var(--ura-hair); }
+/* a gothic cross in place of the + (his words, 27 Nov 2026: "Can the + of new tab be a gothic cross instead?", then
+   "gothic-f", "all ends should be pointy", "cross middle should be centered"): four equal arms crossing in the very
+   middle, each ending in a head with nearly straight sides that comes to a sharp point, and a pointed diamond where
+   they cross */
+.tc-newtab > .i { display: none; }
+.tc-newtab::before {
+  content: ""; width: 18px; height: 18px; background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M11.1 1.2H12.9V22.8H11.1ZM1.2 11.1H22.8V12.9H1.2ZM12 0.2Q13.36 3.8 15.4 6.2Q13.36 7.4 12 9.2Q10.64 7.4 8.6 6.2Q10.64 3.8 12 0.2ZM12 23.8Q10.64 20.2 8.6 17.8Q10.64 16.6 12 14.8Q13.36 16.6 15.4 17.8Q13.36 20.2 12 23.8ZM0.2 12Q3.8 10.64 6.2 8.6Q7.4 10.64 9.2 12Q7.4 13.36 6.2 15.4Q3.8 13.36 0.2 12ZM23.8 12Q20.2 13.36 17.8 15.4Q16.6 13.36 14.8 12Q16.6 10.64 17.8 8.6Q20.2 10.64 23.8 12ZM12 9Q13.2 10.8 15 12Q13.2 13.2 12 15Q10.8 13.2 9 12Q10.8 10.8 12 9Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M11.1 1.2H12.9V22.8H11.1ZM1.2 11.1H22.8V12.9H1.2ZM12 0.2Q13.36 3.8 15.4 6.2Q13.36 7.4 12 9.2Q10.64 7.4 8.6 6.2Q10.64 3.8 12 0.2ZM12 23.8Q10.64 20.2 8.6 17.8Q10.64 16.6 12 14.8Q13.36 16.6 15.4 17.8Q13.36 20.2 12 23.8ZM0.2 12Q3.8 10.64 6.2 8.6Q7.4 10.64 9.2 12Q7.4 13.36 6.2 15.4Q3.8 13.36 0.2 12ZM23.8 12Q20.2 13.36 17.8 15.4Q16.6 13.36 14.8 12Q16.6 10.64 17.8 8.6Q20.2 10.64 23.8 12ZM12 9Q13.2 10.8 15 12Q13.2 13.2 12 15Q10.8 13.2 9 12Q10.8 10.8 12 9Z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.tc-newtab:hover { background: transparent; box-shadow: inset 0 0 0 1px var(--c-frame-ink); }
+.tc-newtab:active { transform: none; }
+
+.tc-wincontrols button { border-radius: 0; }
+.tc-wincontrols button:hover { background: color-mix(in oklab, var(--c-frame-ink) 12%, transparent); }
+.tc-wincontrols button[data-win="close"]:hover { background: var(--c-bad); color: #fff; }
+.tc-private { border-radius: 0; background: none; border: 1px solid currentColor; text-transform: uppercase; letter-spacing: var(--ura-track); font-size: 9.500px; }
+
+/* Site icons keep their colors (his words, 27 Nov 2026: "Don't remove colors from favicons"), square like the rest;
+   only a theme that asks for it (option "icons: mono") shows them in one tone. */
+.tc-tab-icon img, .tc-bm img, .t-menu-icon img, .tc-suggest-icon img { border-radius: 0; }
+:root[data-o-icons="mono"] .tc-tab-icon img,
+:root[data-o-icons="mono"] .tc-bm img,
+:root[data-o-icons="mono"] .t-menu-icon img,
+:root[data-o-icons="mono"] .tc-suggest-icon img { filter: grayscale(1) contrast(1.080) brightness(1.150); }
+
+/* ----- toolbar ----- */
+
+.tc-toolbar { box-shadow: inset 0 -1px 0 var(--ura-hair); }
+.tc-btn { border-radius: 0; box-shadow: inset 0 0 0 1px transparent; }
+.tc-btn:hover, .tc-btn.is-open { background: transparent; box-shadow: inset 0 0 0 1px var(--ura-silver); }
+/* what is on (a saved page's favourites button, a tool or extension at work) is lit, with no square around it (his
+   words, 27 Nov 2026: "Remove the outline square from a favorite website", "Remove the square outline from active
+   extensions") */
+.tc-btn.is-on { color: var(--c-ink); }
+.tc-btn:active { transform: none; }
+.tc-count { border-radius: 0; background: var(--c-ink); color: var(--c-surface); font-family: var(--f-mono); }
+.tc-profile img { border-radius: 0; }
+
+.tc-omnibox { border-radius: 0; border: 1px solid var(--ura-hair); }
+.tc-omnibox:hover { border-color: var(--ura-silver); }
+.tc-omnibox.is-focused { border-color: var(--c-ink); box-shadow: none; background: var(--c-field); }
+.tc-omni-star, .tc-omni-zoom { border-radius: 0; }
+.tc-omni-star.is-on { color: var(--c-ink); }
+/* Favourites: Specimen's icon, IGYO's own mark in place of the classic star (dimmed until the page is saved, then
+   solid; Shared\icons.js), as large as Specimen draws it so it reads as itself. His words, 27 Nov 2026: "BRING THE
+   SPECIMEN FAVORITE ICON TO THE SUBCULTURE FAVORITE ICON". */
+.i .i-classic { display: none; }
+.i .i-mark { display: inline; }
+.tc-omni-star .i { width: calc(var(--omni-h) - 13px); height: calc(var(--omni-h) - 13px); }
+
+/* ----- bookmarks bar ----- */
+
+.tc-bm { border-radius: 0; font-size: 11px; letter-spacing: .03em; box-shadow: inset 0 0 0 1px transparent; }
+.tc-bm:hover, .tc-bm.is-open { background: transparent; box-shadow: inset 0 0 0 1px var(--ura-silver); color: var(--c-ink); }
+.tc-bm-empty { text-transform: uppercase; letter-spacing: var(--ura-track); font-size: 10px; }
+.tc-bookmarks { box-shadow: inset 0 -1px 0 var(--ura-hair); }
+
+/* ----- menus, dialogs, notices ----- */
+
+.t-menu { border-radius: 0; border: 1px solid var(--c-ink); box-shadow: 0 14px 40px rgb(0 0 0 / .6); }
+.t-menu-item { position: relative; border-radius: 0; padding-left: 18px; }
+.t-menu-item.is-active, .t-menu-item.is-open, .t-menu-item:focus-visible { background: color-mix(in oklab, var(--c-ink) 9%, transparent); color: var(--c-ink); }
+.t-menu-item:active { background: color-mix(in oklab, var(--c-ink) 16%, transparent); }
+.t-menu-sep { background: var(--ura-hair); }
+.t-menu-head { text-transform: uppercase; letter-spacing: var(--ura-track); font-size: 9.500px; }
+.t-menu-item .tc-menu-check { color: var(--c-ink); }
+.tc-pop { animation: ura-open var(--t-2) var(--ease) both; }
+.tc-layer.is-closing .tc-pop { animation: ura-close var(--t-1) linear both; }
+@keyframes ura-open { from { opacity: 0; clip-path: inset(0 0 100% 0); } to { opacity: 1; clip-path: inset(-12px -12px -40px -12px); } }
+@keyframes ura-close { to { opacity: 0; } }
+
+.t-dialog { border-radius: 0; border: 1px solid var(--c-ink); }
+.t-dialog h2 { font: 400 15px/1.3 var(--f-display); letter-spacing: .04em; }
+.tc-layer.is-dim .tc-scrim { background: rgb(0 0 0 / .62); }
+
+.t-btn { border-radius: 0; border: 1px solid var(--ura-silver); background: transparent; font-size: 11px; text-transform: uppercase; letter-spacing: var(--ura-track); }
+.t-btn:hover { background: transparent; border-color: var(--c-ink); color: var(--c-ink); }
+.t-btn:active { transform: none; background: color-mix(in oklab, var(--c-ink) 12%, transparent); }
+.t-btn.is-primary { background: var(--c-accent); border-color: var(--c-accent); color: var(--c-accent-ink); }
+.t-btn.is-primary:hover { background: color-mix(in oklab, var(--c-accent), var(--c-page) 14%); color: var(--c-accent-ink); }
+.t-btn.is-danger { color: var(--c-bad); border-color: var(--c-bad); }
+.t-btn.is-destructive, .t-btn.is-destructive:hover { background: var(--c-bad); border-color: var(--c-bad); color: #fff; }
+.t-btn.is-ghost { border-color: transparent; }
+.t-iconbtn { border-radius: 0; }
+.t-iconbtn:hover { background: transparent; box-shadow: inset 0 0 0 1px var(--ura-silver); }
+.t-input, .t-select, .t-textarea, .t-swatch { border-radius: 0; border-color: var(--ura-hair); }
+.t-input:hover, .t-select:hover, .t-textarea:hover { border-color: var(--ura-silver); }
+.t-input:focus, .t-select:focus, .t-textarea:focus { border-color: var(--c-ink); box-shadow: none; }
+.t-switch i { border-radius: 0; background: transparent; border: 1px solid var(--ura-silver); }
+.t-switch i::after { border-radius: 0; background: var(--c-ink-2); box-shadow: none; }
+.t-switch input:checked + i { background: var(--c-accent); border-color: var(--c-accent); }
+.t-switch input:checked + i::after { background: var(--c-accent-ink); }
+.t-card { border-radius: 0; border-color: var(--ura-hair); }
+.t-chip { border-radius: 0; border: 1px solid currentColor; background: none; text-transform: uppercase; letter-spacing: .1em; font-size: 10px; }
+.t-badge { border-radius: 0; }
+.t-meter { border-radius: 0; height: 6px; background: none; border: 1px solid var(--ura-silver); }
+.t-meter > i { border-radius: 0; background: var(--c-ink); }
+.t-label { text-transform: uppercase; letter-spacing: var(--ura-track); }
+.t-title { font-family: var(--f-display); font-weight: 400; letter-spacing: .03em; }
+
+.tc-suggest, .tc-zoom { border-radius: 0; border: 1px solid var(--c-ink); }
+.tc-suggest-row { position: relative; border-radius: 0; }
+.tc-suggest-row.is-active { background: color-mix(in oklab, var(--c-ink) 9%, transparent); color: var(--c-ink); }
+.tc-suggest-row.is-active > * { color: inherit; }
+
+.tc-notice { border-radius: 0; background: var(--c-surface); color: var(--c-ink); border: 1px solid var(--c-ink); }
+.tc-notice::before { content: var(--ura-cursor); font-size: 10px; }
+:root[data-o-cursor="off"] .tc-notice::before { content: none; }
+.tc-notice-action { border-radius: 0; background: var(--c-accent); color: var(--c-accent-ink); text-transform: uppercase; letter-spacing: .1em; font-size: 10px; }
+.tc-notice-close { border-radius: 0; }
+
+:root[data-private] .tc-tabstrip { background: #000; }
+
+/* ----- New Tab page ----- */
+
+body.nt #backdrop { background-image: radial-gradient(110% 80% at 50% 45%, transparent 50%, rgb(0 0 0 / .55)); }
+/* the seal pressed in the bottom left corner, the way a print is signed: a white stamp with 異 cut through it */
+body.nt .nt-deco-a {
+  display: block; left: 26px; bottom: 24px; width: 38px; height: 38px; border-radius: 5px;
+  background: color-mix(in oklab, var(--c-ink) 90%, transparent);
+  -webkit-mask: url("/shared/mark.svg") center / 76% auto no-repeat, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: url("/shared/mark.svg") center / 76% auto no-repeat, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+/* the name written down the right edge, as on a poster */
+body.nt .nt-deco-b {
+  display: block; right: 22px; top: 50%; transform: translateY(-50%);
+  writing-mode: vertical-rl; font: 700 11px/1 "Yu Gothic UI", "Yu Gothic", sans-serif; letter-spacing: .6em;
+  color: color-mix(in oklab, var(--c-ink) 34%, transparent);
+}
+body.nt .nt-deco-b::before { content: "異形 — IGYO"; }
+/* The clock as Specimen draws it, large and thin, the date a label over it (his words, 27 Nov 2026: "can the clock
+   be gothic like Specimen?"); its kanji in Yu Mincho, the serif Windows has for Japanese. With the option "clock:
+   ja" (Subculture's) New Tab writes it as a Japanese phone does whatever the language, 18:59 under 11月27日 金曜日
+   ("Show the entire time as japanese phone does", then "18:59 (24-hour)"). */
+#clock { display: flex; flex-direction: column-reverse; align-items: center; }
+#time { font: 300 clamp(72px, 12vw, 128px)/.86 "Cormorant Garamond", "Yu Mincho", "YuMincho", serif; letter-spacing: -.02em; font-variant-numeric: lining-nums; }
+/* the part of the day, when the clock follows a language that writes one: 午前 or 午後 before the time in place of AM
+   or PM ("Put 午後 first"). The letters stay, out of sight, for screen readers, and the kanji are only drawn (the
+   empty text after "/" keeps them from being read out too). */
+#time .nt-period { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+#time[data-half]::before { margin-right: .2em; }
+#time[data-half="am"]::before { content: "午前" / ""; }
+#time[data-half="pm"]::before { content: "午後" / ""; }
+#date { margin: 0 0 16px; font: 500 12px/1.4 var(--f-ui); letter-spacing: .3em; text-transform: uppercase; color: var(--c-ink-2); }
+#search { border-radius: 0; border-color: var(--ura-silver); box-shadow: none; background: color-mix(in oklab, var(--c-page), #000 30%); }
+#search:focus-within { border-color: var(--c-ink); box-shadow: none; transform: none; }
+.nt-search-mark { display: grid; place-items: center; align-self: stretch; width: 30px; margin-right: 4px; color: var(--c-ink-2); font-size: 12px; }
+.nt-search-mark::before { content: var(--ura-cursor); }
+#search:focus-within .nt-search-mark { color: var(--c-ink); }
+#go { border-radius: 0; background: var(--c-accent); color: var(--c-accent-ink); }
+#go:hover { transform: none; background: color-mix(in oklab, var(--c-accent), var(--c-page) 14%); }
+.icon { border-radius: 0; border-color: var(--ura-hair); }
+.icon.monogram { background: var(--c-surface); color: var(--c-ink); font-family: var(--f-display); font-weight: 400; }
+:root[data-o-icons="mono"] .icon img { filter: grayscale(1) contrast(1.080) brightness(1.150); }
+.tile > a, .tile > .add { border-radius: 0; font-size: 10.500px; letter-spacing: .04em; }
+.tile > a:hover, .tile > .add:hover { backdrop-filter: none; background: transparent; box-shadow: inset 0 0 0 1px var(--ura-silver); }
+#customize { border-radius: 0; border-color: var(--ura-silver); box-shadow: none; font-size: 10px; text-transform: uppercase; letter-spacing: var(--ura-track); }
+#customize:hover { background: transparent; border-color: var(--c-ink); color: var(--c-ink); transform: none; }
+#sheet, dialog { border-radius: 0; border-color: var(--c-ink); }
+#sheet h2, dialog h2 { font-family: var(--f-display); font-weight: 400; letter-spacing: .03em; }
+.btn { border-radius: 0; border-color: var(--ura-silver); font-size: 11px; text-transform: uppercase; letter-spacing: var(--ura-track); }
+.btn:hover { background: transparent; border-color: var(--c-ink); }
+.btn.primary { background: var(--c-accent); border-color: var(--c-accent); color: var(--c-accent-ink); }
+.switch .track { border-radius: 0; background: transparent; border: 1px solid var(--ura-silver); }
+.switch .track::after { border-radius: 0; background: var(--c-ink-2); box-shadow: none; }
+.switch input:checked + .track { background: var(--c-accent); border-color: var(--c-accent); }
+.switch input:checked + .track::after { background: var(--c-accent-ink); }
+#toast { border-radius: 0; background: var(--c-surface); color: var(--c-ink); border: 1px solid var(--c-ink); box-shadow: var(--shadow-2); }
+#toast-action { border-radius: 0; background: var(--c-accent); color: var(--c-accent-ink); text-transform: uppercase; letter-spacing: .1em; }

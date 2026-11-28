@@ -11,8 +11,9 @@ using System.Windows.Forms;
 
 namespace IGYO
 {
-    // The icons IGYO can wear (Settings > Appearance > App icon): his star on tiles of other colors, listed in
-    // Assets\AppIcons\icons.json and drawn by tools\make-app-icons.ps1. The default one is also the program's own
+    // The icons IGYO can wear (Settings > Appearance > App icon): the 異 seal (異 carved out of a square stamp) in other
+    // colors, listed in Assets\AppIcons\icons.json and drawn by tools\make-app-icons.ps1. The default one, Ink (the
+    // seal in black and white), is also the program's own
     // icon (Assets\app.ico). The one chosen is every window's icon (Alt+Tab, the window's picture on the taskbar) and
     // the icon of IGYO's shortcuts: the ones setup made (the install folder's install.json lists them) and the
     // taskbar's pins that start this IGYO. One for the whole program, whatever the profile.

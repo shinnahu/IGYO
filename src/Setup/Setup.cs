@@ -71,7 +71,7 @@ namespace IGYOSetup
             ["Includes Microsoft's WebView2 engine. Installing means accepting Microsoft's licence terms for it."] = new[] { "Incluye el motor WebView2 de Microsoft. Al instalar aceptas los términos de licencia de Microsoft para ese motor.", "Microsoft の WebView2 エンジンが含まれます。インストールすると、そのライセンス条項に同意したことになります。" },
             ["Read the terms"] = new[] { "Leer los términos", "条項を読む" },
             ["Color"] = new[] { "Color", "カラー" },
-            ["Sunset"] = new[] { "Atardecer", "サンセット" },
+            ["Subculture"] = new[] { "Subcultura", "サブカル" },
             ["Periwinkle"] = new[] { "Pervinca", "ペリウィンクル" },
             ["Acid"] = new[] { "Ácido", "アシッド" },
             ["Yellow"] = new[] { "Amarillo", "イエロー" },
@@ -101,7 +101,7 @@ namespace IGYOSetup
     {
         public bool Silent, Desktop = true, StartMenu = true, Launch = true;
         public string Color;   // the color picked in the window (#RRGGBB): the theme's accent and the profile's circle; null leaves them
-        public string Theme;   // with it, the theme it stands for ("sunset"): the browser starts in it, with its own accent
+        public string Theme;   // with it, the theme it stands for ("subculture"): the browser starts in it, with its own accent
         public string Dir = DefaultDir, ShortcutDir, RegKey = InstallInfo.DefaultRegKey, EarlierRoot;
 
         public static string ProgramsRoot =>
@@ -112,7 +112,7 @@ namespace IGYOSetup
         // /S  /D=<folder>  /NOSHORTCUTS  /NOLAUNCH  (and, for testing: /SHORTCUTDIR=<folder>  /REGKEY=<name>,
         // /EARLIERROOT=<folder>: look for an install under the browser's earlier names there instead of in Programs, and
         // /COLOR=#RRGGBB: a silent install that carries a color, as if it had been picked in the window, and with it
-        // /THEME=sunset: the Sunset pick)
+        // /THEME=subculture: the Subculture pick)
         public static SetupOptions Parse(string[] args)
         {
             var o = new SetupOptions();
@@ -431,65 +431,52 @@ namespace IGYOSetup
         }
     }
 
-    // The setup window: the icon itself (the white star on its sunset tile) on dark slate, and a color to pick for
-    // whatever can be pressed: Sunset (the icon's own tile, mauve to peach) until another is picked. The pick
-    // is also what the browser starts with: Sunset starts it in the Sunset theme, with that theme's own colors, and any
-    // other is the theme's accent; either is the color of the profile's circle. Three choices, one big button, smooth progress.
+    // The setup window: the icon itself (the 異 seal, white on its black stamp) on dark slate, and a color to pick for
+    // whatever can be pressed: Subculture (white, as the icon's 異) until another is picked. The pick is also what the
+    // browser starts with: Subculture starts it in the Subculture theme, with that theme's own colors, and any other is
+    // the theme's accent; either is the color of the profile's circle. Three choices, one big button, smooth progress.
     sealed class SetupForm : Form
     {
         static readonly Color Slate = Color.FromArgb(0x24, 0x26, 0x2C),   // the header
             Deep = Color.FromArgb(0x1C, 0x1E, 0x23),                       // the rest of the window
             Well = Color.FromArgb(0x15, 0x16, 0x1A),                       // the box with the folder in it
             Bone = Color.FromArgb(0xEE, 0xEF, 0xEB),                       // text
-            Star = Color.White,                                            // the icon's star (its tile: TileColors)
+            Kanji = Color.White, Stamp = Color.FromArgb(0x0B, 0x0B, 0x0B),   // the icon: its 異, white on its black stamp
             Muted = Color.FromArgb(0x9A, 0xA1, 0xA9), Faint = Color.FromArgb(0x6C, 0x72, 0x7B),
             Line = Color.FromArgb(0x34, 0x37, 0x3F), Off = Color.FromArgb(0x3A, 0x3D, 0x46), Bad = Color.FromArgb(0xFF, 0x8A, 0x80);
 
-        // The icon as the program wears it by default (Assets\AppIcons\icons.json, "sunset"; tools\make-app-icons.ps1): its
-        // tile runs down from mauve through pink to peach, his 19 Nov 2026 tile, with a sharp step at 0.3 of the way.
-        static readonly Color[] TileColors =
-        {
-            Color.FromArgb(0x97, 0x6F, 0xA3), Color.FromArgb(0xCB, 0x73, 0xA3), Color.FromArgb(0xD5, 0x7A, 0x9B),
-            Color.FromArgb(0xF1, 0xA6, 0x7F), Color.FromArgb(0xF0, 0xAC, 0x82), Color.FromArgb(0xF0, 0xAC, 0x82),
-        };
-        static readonly float[] TileStops = { 0f, 0.3f, 0.3f, 0.5f, 0.8f, 1f };
+        // The icon as the program wears it by default (Assets\AppIcons\icons.json, "ink"; tools\make-app-icons.ps1): the
+        // 異 seal, 異 in white carved out of a black stamp (Kanji and Stamp above).
 
-        // What to pick from: Sunset first (the theme; its pink is the circle's color), then the colors round the color
-        // wheel and beige last. (The browser offers the same colors as accents, in the same order.) Sunset unless another
-        // is picked. A menu shows the picked one with its name; it opens a list of all.
-        const int SunsetPick = 0;
-        const string SunsetTheme = "sunset";
-        static readonly Color SunPink = Hex(0xFF7596);   // the Sunset theme's pink: the profile's circle, what words on it are told by
-        // What Sunset paints with: the icon's own tile colors, mauve running through its two pinks to peach, as soft as the
-        // icon, spread evenly (on the icon the pink turns to peach within a fifth of the way and stays flat after it, which
-        // across a button or a switch looked like a cut).
-        static readonly Color[] SunColors = { Hex(0x976FA3), Hex(0xCB73A3), Hex(0xD57A9B), Hex(0xF0AC82) };
-        static readonly float[] SunStops = { 0f, 0.45f, 0.55f, 1f };
+        // What to pick from: Subculture first (the theme, in its own white: the buttons, the switches, the progress and
+        // the circle's color), then the colors round the color wheel and beige last. (The browser offers the same colors
+        // as accents, in the same order.) Subculture unless another is picked (his words, 27 Nov 2026: "My bad setup
+        // button should be white I think", and of the Subculture theme: "make it default"). A menu shows the picked one
+        // with its name; it opens a list of all.
+        const int ThemePick = 0;
+        const string PickedTheme = "subculture";
         static readonly (string Name, Color Value)[] Swatches =
         {
-            ("Sunset", SunPink),
+            ("Subculture", Hex(0xF2F2F2)),
             ("Rose", Hex(0xE11D48)), ("Amber", Hex(0xD97706)), ("Yellow", Hex(0xFFD500)), ("Acid", Hex(0xC5F135)), ("Green", Hex(0x16A34A)), ("Teal", Hex(0x0D9488)),
             ("Blue", Hex(0x2563EB)), ("Periwinkle", Hex(0x8AA4FF)), ("Violet", Hex(0x7C3AED)), ("Hot pink", Hex(0xFE58C9)), ("Sakura", Hex(0xFF99C5)), ("Beige", Hex(0xD9C6A2)),
         };
-        int picked = SunsetPick, hoverSwatch = -1;
+        int picked = ThemePick, hoverSwatch = -1;
         bool menuOpen;
         Rectangle menuBox;
         Color Accent => Swatches[picked].Value;                        // buttons, switches, progress
-        Color AccentLit => Mix(Accent, Color.White, 0.2f);             // the same under the pointer
+        Color AccentLit => Lit(Accent);                                // the same under the pointer
         Color AccentInk => Ink(Accent);                                // what stands on it
         Rectangle[] swatchRects = new Rectangle[Swatches.Length];
 
-        // What a pick paints with, over the given box: Sunset the icon's tile colors, running left to right (his word,
-        // 19 Nov 2026: the icon's own top-to-bottom was tried first); any other its own color. Lighter under the pointer;
-        // alpha: how much of it shows.
+        // Under the pointer a color lights up; white can't, so it greys a little instead.
+        static Color Lit(Color c) => c.R + c.G + c.B >= 3 * 0xE6 ? Mix(c, Color.Black, 0.12f) : Mix(c, Color.White, 0.2f);
+
+        // What a pick paints with: its own color, lit under the pointer; alpha: how much of it shows.
         static Brush PaintFor(int pick, RectangleF box, bool lit = false, int alpha = 255)
         {
-            Color Lit(Color c) => Color.FromArgb(alpha, lit ? Mix(c, Color.White, 0.2f) : c);
-            if (pick != SunsetPick) return new SolidBrush(Lit(Swatches[pick].Value));
-            var area = new RectangleF(box.X - 1, box.Y - 1, Math.Max(2, box.Width + 2), Math.Max(2, box.Height + 2));
-            var brush = new LinearGradientBrush(area, Lit(SunColors[0]), Lit(SunColors[SunColors.Length - 1]), LinearGradientMode.Horizontal);
-            brush.InterpolationColors = new ColorBlend { Colors = SunColors.Select(Lit).ToArray(), Positions = SunStops };
-            return brush;
+            var c = Swatches[pick].Value;
+            return new SolidBrush(Color.FromArgb(alpha, lit ? Lit(c) : c));
         }
         Brush AccentPaint(RectangleF box, bool lit = false, int alpha = 255) => PaintFor(picked, box, lit, alpha);
 
@@ -508,7 +495,6 @@ namespace IGYOSetup
         }
 
         readonly SetupOptions options;
-        readonly Font wordmark = Pick(24f, "Bahnschrift SemiBold", "Segoe UI Semibold");
         readonly Timer animation = new Timer { Interval = 15 };
         // Microsoft's licence terms for the engine that is inside the package (the WebView2 Runtime).
         const string EngineTerms = "https://developer.microsoft.com/microsoft-edge/api/eula/webview2";
@@ -521,9 +507,9 @@ namespace IGYOSetup
         public SetupForm(SetupOptions o)
         {
             options = o;
-            // The window starts on Sunset, also over an install that had another color picked (his word, 19 Nov 2026):
-            // left on it, the update brings the Sunset look (see ProfileStore.TakeSetupColor); the color picked then
-            // can be picked again.
+            // The window starts on Subculture, also over an install that had another color picked: left on it, the
+            // update brings the Subculture look (see ProfileStore.TakeSetupColor); the color picked then can be picked
+            // again.
             Text = Words.T("{0} Setup", InstallInfo.AppName);
             try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
             AutoScaleMode = AutoScaleMode.Dpi;
@@ -547,18 +533,6 @@ namespace IGYOSetup
         }
 
         int S(int v) => LogicalToDeviceUnits(v);
-
-        // A font by the first of these names that Windows has.
-        static Font Pick(float size, params string[] families)
-        {
-            foreach (var family in families)
-            {
-                var font = new Font(family, size);
-                if (string.Equals(font.Name, family, StringComparison.OrdinalIgnoreCase)) return font;
-                font.Dispose();
-            }
-            return new Font("Segoe UI", size);
-        }
 
         [System.Runtime.InteropServices.DllImport("dwmapi.dll")]
         static extern int DwmSetWindowAttribute(IntPtr window, int attribute, ref int value, int size);
@@ -584,8 +558,8 @@ namespace IGYOSetup
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             int w = ClientSize.Width, pad = S(36);
 
-            // Header: the star large and faint behind, in the picked color, and the icon itself beside the name: the white
-            // star on its sunset tile.
+            // Header: 異 large and faint behind, in the picked color, and the icon itself beside the name: the 異 seal,
+            // white on its black stamp.
             var header = new Rectangle(0, 0, w, S(150));
             using (var back = new SolidBrush(Slate)) g.FillRectangle(back, header);
             var clip = g.Clip;
@@ -597,17 +571,16 @@ namespace IGYOSetup
             g.Clip = clip;
             using (var hairline = new Pen(Line)) g.DrawLine(hairline, 0, header.Bottom - 1, w, header.Bottom - 1);
             var icon = new RectangleF(pad - S(2), S(39), S(72), S(72));
-            using (var tile = Rounded(Rectangle.Round(icon), (int)Math.Round(icon.Width * 44.48 / 256)))   // the icon's corner: 44.48 of its 256
-            using (var tint = new LinearGradientBrush(new PointF(0, icon.Top - 1), new PointF(0, icon.Bottom + 1), TileColors[0], TileColors[TileColors.Length - 1]))
-            {
-                tint.InterpolationColors = new ColorBlend { Colors = TileColors, Positions = TileStops };
-                g.FillPath(tint, tile);
-            }
+            using (var stamp = Rounded(Rectangle.Round(icon), (int)Math.Round(icon.Width * Mark.Corner / 256)))   // the stamp's corner: 36.57 of its 256
+            using (var black = new SolidBrush(Stamp))
+                g.FillPath(black, stamp);
             using (var mark = Mark.OnTile(icon))
-            using (var star = new SolidBrush(Star))
-                g.FillPath(star, mark);
+            using (var white = new SolidBrush(Kanji))
+                g.FillPath(white, mark);
             int nameX = pad + S(94);
-            DrawTracked(g, InstallInfo.AppName, wordmark, new Point(nameX, S(40)), Bone, Slate, S(6));
+            using (var name = Wordmark.Shape(nameX, S(70), S(24)))   // the logo book's name: its baseline, and its capitals' height
+            using (var bone = new SolidBrush(Bone))
+                g.FillPath(bone, name);
             TextRenderer.DrawText(g, Words.T(InstallInfo.Tagline), Font, new Point(nameX, S(86)), Muted, Slate);
 
             int y = header.Bottom + S(26);
@@ -656,7 +629,7 @@ namespace IGYOSetup
                 using (var path = Rounded(bar, bar.Height / 2)) using (var back = new SolidBrush(Line)) g.FillPath(back, path);
                 var fillRect = new Rectangle(bar.X, bar.Y, Math.Max(bar.Height, (int)(bar.Width * shown / 100f)), bar.Height);
                 using (var path = Rounded(fillRect, bar.Height / 2))
-                using (var brush = AccentPaint(bar))   // (Sunset's colors run along the whole bar: the fill uncovers them)
+                using (var brush = AccentPaint(bar))
                     g.FillPath(brush, path);
             }
             int said = installing || shown > 0 ? y + S(64) : y + S(46);   // under the progress bar; higher when there is none (a message after a failed run)
@@ -730,20 +703,6 @@ namespace IGYOSetup
             }
         }
 
-        // Letters set a little apart, as in the logo's name; returns where the last one ends.
-        static int DrawTracked(Graphics g, string text, Font font, Point at, Color color, Color back, int spacing)
-        {
-            const TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix;
-            int x = at.X;
-            for (int i = 0; i < text.Length; i++)
-            {
-                string letter = text[i].ToString();
-                TextRenderer.DrawText(g, letter, font, new Point(x, at.Y), color, back, flags);
-                x += TextRenderer.MeasureText(g, letter, font, Size.Empty, flags).Width + (i < text.Length - 1 ? spacing : 0);
-            }
-            return x;
-        }
-
         // In the picked color: under the pointer, it lights up; while setup works, it steps back.
         void DrawButton(Graphics g, string text, bool enabled)
         {
@@ -754,25 +713,7 @@ namespace IGYOSetup
             using (var brush = enabled ? AccentPaint(installButton, hoverInstall) : new SolidBrush(Off))
                 g.FillPath(brush, path);
             using (var font = new Font("Segoe UI", 10.5f, FontStyle.Bold))   // (bold: his word, 19 Nov 2026)
-            {
-                if (enabled && picked == SunsetPick)
-                {
-                    // White on Sunset, as the icon's star (his word). On a gradient there is no one color to draw the words
-                    // against, so they are smoothed in grey, over a faint plum shadow that keeps them clear on the peach.
-                    var hint = g.TextRenderingHint;
-                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
-                    using (var shade = new SolidBrush(Color.FromArgb(90, 0x3C, 0x14, 0x32)))
-                    using (var ink = new SolidBrush(Color.White))
-                    using (var center = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
-                    {
-                        var below = installButton; below.Offset(0, Math.Max(1, S(1)));
-                        g.DrawString(text, font, shade, below, center);
-                        g.DrawString(text, font, ink, installButton, center);
-                    }
-                    g.TextRenderingHint = hint;
-                }
-                else TextRenderer.DrawText(g, text, font, installButton, enabled ? AccentInk : Muted, fill, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-            }
+                TextRenderer.DrawText(g, text, font, installButton, enabled ? AccentInk : Muted, fill, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
         }
 
         Rectangle DrawLink(Graphics g, string text, Point at, Color back)
@@ -894,7 +835,7 @@ namespace IGYOSetup
             options.Desktop = desktop;
             options.StartMenu = startMenu;
             options.Color = HexOf(Accent);
-            options.Theme = picked == SunsetPick ? SunsetTheme : null;
+            options.Theme = picked == ThemePick ? PickedTheme : null;
             bool waiting = false;   // while the engine of a copy that was just closed is waited for, the line says so
             var progress = new Progress<int>(p => { target = p; if (!waiting) status = p < 92 ? Words.T("Copying files… {0}%", p) : Words.T("Creating shortcuts…"); });
             try
@@ -918,90 +859,83 @@ namespace IGYOSetup
         }
     }
 
-    // IGYO's mark, drawn as the app's icon draws it (tools\make-icon.ps1, IGYOSpark: change both together): since 17 Nov
-    // 2026 night his own drawing, a ten-point star with softly round tips, as his SVG's cubic curves on his 256 x 256
-    // icon box, where the star stands centred (199 x 203 of it): a start, then three points a curve.
+    // IGYO's mark, drawn as the app's icon draws it (tools\make-icon.ps1, IGYOSeal: change both together): since 27 Nov
+    // 2026 the 異 seal, 異 (the first kanji of 異形, IGYO, in Dela Gothic One) carved out of a square stamp. These are
+    // the kanji's contours on the stamp's own 256 x 256 box (the stamp fills it, its corners round by Corner), each a
+    // start point and then three points a curve; its counters are contours of their own, which the alternate fill
+    // leaves the stamp's color.
     static class Mark
     {
-        static readonly float[] P =
+        public const float Corner = 36.57f;   // the stamp's corner, of its 256
+        static readonly float[][] Glyph =
         {
-            226.25f, 173.44f, 220.21f, 165.6f, 210.02f, 159.52f, 202.34f, 153.46f, 197.24f, 149.44f, 192.03f, 145.55f,
-            186.97f, 141.47f, 184.44f, 139.43f, 181.94f, 137.35f, 179.51f, 135.19f, 176.03f, 132.1f, 171.99f, 129.41f,
-            175.16f, 124.4f, 177.25f, 121.1f, 181.3f, 119.3f, 184.17f, 116.96f, 193.31f, 109.51f, 202.68f, 102.36f,
-            211.87f, 94.98f, 215.66f, 91.94f, 219.47f, 88.9f, 223.07f, 85.64f, 223.91f, 84.88f, 227.7f, 82.16f,
-            227.39f, 80.72f, 226.44f, 79.31f, 225.54f, 79.2f, 223.95f, 79.16f, 221.19f, 79.09f, 218.27f, 80.35f,
-            215.74f, 81.3f, 207.18f, 84.53f, 198.96f, 88.65f, 190.63f, 92.43f, 186.74f, 94.2f, 182.84f, 95.95f,
-            178.84f, 97.46f, 176.79f, 98.23f, 174.74f, 99.05f, 172.57f, 99.43f, 171.42f, 99.63f, 169.16f, 100.06f,
-            168.17f, 99.12f, 166.67f, 97.69f, 168.69f, 94.66f, 169.31f, 93.23f, 170.21f, 91.14f, 171.23f, 89.1f,
-            172.27f, 87.07f, 173.78f, 84.12f, 175.35f, 81.21f, 176.89f, 78.28f, 177.89f, 76.39f, 179.05f, 74.47f,
-            179.73f, 72.44f, 180.05f, 70.98f, 178.61f, 70.17f, 177.37f, 70.06f, 175.75f, 69.92f, 173.94f, 70.84f,
-            172.51f, 71.47f, 169.99f, 72.57f, 167.56f, 73.86f, 165.14f, 75.16f, 160.89f, 77.44f, 156.7f, 79.83f,
-            152.42f, 82.04f, 150.63f, 82.96f, 148.82f, 83.87f, 146.96f, 84.64f, 145.8f, 85.12f, 143.27f, 86.38f,
-            142.09f, 85.69f, 141.68f, 85.45f, 141.37f, 85.06f, 141.08f, 84.68f, 139.55f, 82.65f, 139.41f, 79.62f,
-            138.94f, 77.16f, 138.28f, 73.72f, 137.61f, 70.29f, 136.95f, 66.85f, 135.34f, 58.52f, 133.73f, 50.19f,
-            132.13f, 41.86f, 131.29f, 37.53f, 130.46f, 33.2f, 129.62f, 28.87f, 129.27f, 27.86f, 128.72f, 27.14f,
-            128f, 26.67f, 127.29f, 27.14f, 126.73f, 27.86f, 126.38f, 28.87f, 125.54f, 33.2f, 124.71f, 37.53f,
-            123.87f, 41.86f, 122.26f, 50.19f, 120.65f, 58.52f, 119.05f, 66.85f, 118.39f, 70.29f, 117.72f, 73.72f,
-            117.06f, 77.16f, 116.59f, 79.62f, 116.45f, 82.65f, 114.92f, 84.68f, 114.63f, 85.06f, 114.33f, 85.45f,
-            113.91f, 85.69f, 112.73f, 86.38f, 110.2f, 85.12f, 109.04f, 84.64f, 107.18f, 83.87f, 105.37f, 82.96f,
-            103.58f, 82.04f, 99.29f, 79.83f, 95.11f, 77.44f, 90.86f, 75.16f, 88.44f, 73.86f, 86.01f, 72.57f,
-            83.49f, 71.47f, 82.06f, 70.84f, 80.25f, 69.92f, 78.63f, 70.06f, 77.38f, 70.17f, 75.95f, 70.98f,
-            76.27f, 72.44f, 76.95f, 74.47f, 78.12f, 76.39f, 79.11f, 78.28f, 80.65f, 81.21f, 82.23f, 84.12f,
-            83.73f, 87.07f, 84.77f, 89.1f, 85.78f, 91.14f, 86.69f, 93.23f, 87.31f, 94.67f, 89.33f, 97.69f,
-            87.83f, 99.12f, 86.85f, 100.06f, 84.59f, 99.63f, 83.43f, 99.43f, 81.27f, 99.06f, 79.21f, 98.24f,
-            77.16f, 97.46f, 73.16f, 95.95f, 69.26f, 94.2f, 65.37f, 92.43f, 57.04f, 88.65f, 48.82f, 84.53f,
-            40.26f, 81.3f, 37.73f, 80.35f, 34.81f, 79.08f, 32.05f, 79.16f, 30.46f, 79.2f, 29.56f, 79.31f,
-            28.61f, 80.72f, 28.3f, 82.16f, 32.09f, 84.88f, 32.93f, 85.64f, 36.53f, 88.9f, 40.34f, 91.94f,
-            44.13f, 94.98f, 53.32f, 102.36f, 62.7f, 109.51f, 71.83f, 116.96f, 74.71f, 119.31f, 78.76f, 121.1f,
-            80.84f, 124.4f, 84.01f, 129.41f, 79.97f, 132.1f, 76.49f, 135.19f, 74.06f, 137.35f, 71.56f, 139.43f,
-            69.03f, 141.47f, 63.97f, 145.54f, 58.76f, 149.44f, 53.66f, 153.46f, 45.97f, 159.52f, 35.78f, 165.6f,
-            29.75f, 173.44f, 29.56f, 173.69f, 28.32f, 174.85f, 28.61f, 175.28f, 29.56f, 176.69f, 30.46f, 176.8f,
-            32.05f, 176.84f, 35.91f, 176.94f, 40.13f, 174.8f, 43.6f, 173.37f, 49.35f, 171f, 54.98f, 168.34f,
-            60.62f, 165.74f, 65.57f, 163.46f, 70.53f, 161.15f, 75.6f, 159.14f, 78.15f, 158.13f, 84.64f, 154.89f,
-            87.25f, 157.1f, 87.97f, 157.71f, 88.13f, 158.77f, 87.98f, 159.69f, 87.24f, 164.17f, 84.17f, 168.14f,
-            82.1f, 172.06f, 80.86f, 174.41f, 79.6f, 176.75f, 78.37f, 179.1f, 77.66f, 180.46f, 76.59f, 182.03f,
-            76.26f, 183.55f, 75.94f, 185.01f, 77.38f, 185.82f, 78.62f, 185.93f, 79.69f, 186.02f, 80.82f, 185.58f,
-            81.8f, 185.21f, 83.44f, 184.6f, 85.02f, 183.83f, 86.59f, 183.05f, 90.63f, 181.03f, 94.56f, 178.8f,
-            98.53f, 176.64f, 102.11f, 174.69f, 105.72f, 172.66f, 109.52f, 171.15f, 110.5f, 170.76f, 111.47f, 170.3f,
-            112.51f, 170.12f, 113.97f, 169.88f, 114.67f, 170.8f, 115.41f, 171.97f, 116.27f, 173.32f, 116.35f, 175.15f,
-            116.65f, 176.69f, 117.23f, 179.71f, 117.81f, 182.72f, 118.4f, 185.74f, 119.16f, 189.67f, 119.92f, 193.59f,
-            120.67f, 197.52f, 121.46f, 201.59f, 122.24f, 205.66f, 123.03f, 209.73f, 123.7f, 213.18f, 124.36f, 216.63f,
-            125.03f, 220.08f, 125.43f, 222.15f, 125.83f, 224.21f, 126.23f, 226.28f, 126.28f, 226.56f, 126.34f, 226.83f,
-            126.39f, 227.11f, 126.74f, 228.12f, 127.29f, 228.84f, 128.01f, 229.31f, 128.72f, 228.84f, 129.28f, 228.12f,
-            129.63f, 227.11f, 129.68f, 226.83f, 129.74f, 226.56f, 129.79f, 226.28f, 130.19f, 224.21f, 130.59f, 222.15f,
-            130.99f, 220.08f, 131.66f, 216.63f, 132.32f, 213.18f, 132.99f, 209.73f, 133.78f, 205.66f, 134.56f, 201.59f,
-            135.35f, 197.52f, 136.11f, 193.59f, 136.87f, 189.67f, 137.62f, 185.74f, 138.2f, 182.72f, 138.78f, 179.71f,
-            139.37f, 176.69f, 139.67f, 175.15f, 139.75f, 173.32f, 140.61f, 171.97f, 141.35f, 170.8f, 142.05f, 169.88f,
-            143.51f, 170.12f, 144.56f, 170.29f, 145.53f, 170.76f, 146.5f, 171.15f, 150.3f, 172.66f, 153.9f, 174.68f,
-            157.49f, 176.64f, 161.46f, 178.8f, 165.39f, 181.03f, 169.43f, 183.05f, 170.99f, 183.83f, 172.58f, 184.6f,
-            174.22f, 185.21f, 175.2f, 185.58f, 176.33f, 186.02f, 177.4f, 185.93f, 178.65f, 185.82f, 180.08f, 185.01f,
-            179.76f, 183.55f, 179.43f, 182.03f, 178.35f, 180.46f, 177.65f, 179.1f, 176.43f, 176.74f, 175.16f, 174.41f,
-            173.92f, 172.06f, 171.85f, 168.13f, 168.78f, 164.17f, 168.04f, 159.69f, 167.89f, 158.76f, 168.05f, 157.7f,
-            168.77f, 157.1f, 171.38f, 154.89f, 177.86f, 158.13f, 180.42f, 159.14f, 185.49f, 161.15f, 190.45f, 163.46f,
-            195.4f, 165.74f, 201.05f, 168.34f, 206.68f, 171f, 212.42f, 173.37f, 215.89f, 174.8f, 220.11f, 176.94f,
-            223.97f, 176.84f, 225.56f, 176.8f, 226.46f, 176.69f, 227.41f, 175.28f, 227.7f, 174.85f, 226.46f, 173.69f,
-            226.27f, 173.44f, 226.26f, 173.44f, 226.26f, 173.44f, 226.25f, 173.44f
+            new[] { 168.78f, 168.35f, 176.46f, 170.1f, 184.5f, 171.52f, 192.91f, 172.62f, 201.29f, 173.67f, 212.15f, 174.81f, 225.52f, 176.03f, 220.93f, 180.5f, 215.67f, 186.66f, 209.74f, 194.5f, 205.55f, 199.78f, 202.77f, 203.15f, 201.39f, 204.62f, 179.12f, 202.06f, 154.66f, 195.92f, 128f, 186.21f, 102.89f, 195.8f, 78.43f, 201.94f, 54.61f, 204.62f, 53.27f, 203.15f, 50.51f, 199.78f, 46.32f, 194.5f, 40.35f, 186.66f, 35.07f, 180.5f, 30.48f, 176.03f, 43.89f, 174.81f, 54.78f, 173.67f, 63.15f, 172.62f, 71.52f, 171.52f, 79.56f, 170.1f, 87.28f, 168.35f, 68.96f, 168.35f, 50.63f, 168.35f, 32.3f, 168.35f, 32.3f, 160.16f, 32.3f, 151.97f, 32.3f, 143.79f, 46.36f, 143.79f, 60.42f, 143.79f, 74.48f, 143.79f, 74.48f, 142.51f, 74.48f, 141.23f, 74.48f, 139.95f, 61.7f, 139.95f, 48.92f, 139.95f, 36.14f, 139.95f, 36.14f, 132.45f, 36.14f, 124.95f, 36.14f, 117.46f, 48.92f, 117.46f, 61.7f, 117.46f, 74.48f, 117.46f, 74.48f, 116.09f, 74.48f, 114.73f, 74.48f, 113.37f, 62.39f, 113.37f, 50.31f, 113.37f, 38.22f, 113.37f, 38.22f, 92.69f, 38.22f, 72.01f, 38.22f, 51.32f, 98.09f, 51.32f, 157.97f, 51.32f, 217.84f, 51.32f, 217.84f, 72.01f, 217.84f, 92.69f, 217.84f, 113.37f, 205.73f, 113.37f, 193.63f, 113.37f, 181.52f, 113.37f, 181.52f, 114.73f, 181.52f, 116.09f, 181.52f, 117.46f, 194.3f, 117.46f, 207.08f, 117.46f, 219.86f, 117.46f, 219.86f, 124.95f, 219.86f, 132.45f, 219.86f, 139.95f, 207.08f, 139.95f, 194.3f, 139.95f, 181.52f, 139.95f, 181.52f, 141.23f, 181.52f, 142.51f, 181.52f, 143.79f, 195.58f, 143.79f, 209.64f, 143.79f, 223.7f, 143.79f, 223.7f, 151.97f, 223.7f, 160.16f, 223.7f, 168.35f, 205.39f, 168.35f, 187.08f, 168.35f, 168.78f, 168.35f },
+            new[] { 128f, 185.6f, 133.69f, 179.85f, 139.38f, 174.1f, 145.07f, 168.35f, 133.71f, 168.35f, 122.35f, 168.35f, 110.99f, 168.35f, 116.66f, 174.1f, 122.33f, 179.85f, 128f, 185.6f },
+            new[] { 109.59f, 89.9f, 100.79f, 89.9f, 92f, 89.9f, 83.2f, 89.9f, 83.2f, 91.18f, 83.2f, 92.46f, 83.2f, 93.74f, 92f, 93.74f, 100.79f, 93.74f, 109.59f, 93.74f, 109.59f, 92.46f, 109.59f, 91.18f, 109.59f, 89.9f },
+            new[] { 172.8f, 89.9f, 164.02f, 89.9f, 155.25f, 89.9f, 146.47f, 89.9f, 146.47f, 91.18f, 146.47f, 92.46f, 146.47f, 93.74f, 155.25f, 93.74f, 164.02f, 93.74f, 172.8f, 93.74f, 172.8f, 92.46f, 172.8f, 91.18f, 172.8f, 89.9f },
+            new[] { 146.47f, 74.67f, 155.25f, 74.67f, 164.02f, 74.67f, 172.8f, 74.67f, 172.8f, 73.45f, 172.8f, 72.23f, 172.8f, 71.01f, 164.02f, 71.01f, 155.25f, 71.01f, 146.47f, 71.01f, 146.47f, 72.23f, 146.47f, 73.45f, 146.47f, 74.67f },
+            new[] { 109.59f, 74.67f, 109.59f, 73.45f, 109.59f, 72.23f, 109.59f, 71.01f, 100.79f, 71.01f, 92f, 71.01f, 83.2f, 71.01f, 83.2f, 72.23f, 83.2f, 73.45f, 83.2f, 74.67f, 92f, 74.67f, 100.79f, 74.67f, 109.59f, 74.67f },
+            new[] { 139.4f, 113.37f, 131.82f, 113.37f, 124.24f, 113.37f, 116.66f, 113.37f, 116.66f, 114.73f, 116.66f, 116.09f, 116.66f, 117.46f, 124.24f, 117.46f, 131.82f, 117.46f, 139.4f, 117.46f, 139.4f, 116.09f, 139.4f, 114.73f, 139.4f, 113.37f },
+            new[] { 139.4f, 139.95f, 131.82f, 139.95f, 124.24f, 139.95f, 116.66f, 139.95f, 116.66f, 141.23f, 116.66f, 142.51f, 116.66f, 143.79f, 124.24f, 143.79f, 131.82f, 143.79f, 139.4f, 143.79f, 139.4f, 142.51f, 139.4f, 141.23f, 139.4f, 139.95f },
         };
 
         static GraphicsPath Canvas(float scale, float ox, float oy)
         {
-            var pts = new PointF[P.Length / 2];
-            for (int i = 0; i < pts.Length; i++) pts[i] = new PointF(P[2 * i] * scale + ox, P[2 * i + 1] * scale + oy);
-            var path = new GraphicsPath(FillMode.Winding);
-            path.AddBeziers(pts);
-            path.CloseFigure();
+            var path = new GraphicsPath(FillMode.Alternate);
+            foreach (var c in Glyph)
+            {
+                var pts = new PointF[c.Length / 2];
+                for (int i = 0; i < pts.Length; i++) pts[i] = new PointF(c[2 * i] * scale + ox, c[2 * i + 1] * scale + oy);
+                path.StartFigure();
+                path.AddBeziers(pts);
+                path.CloseFigure();
+            }
             return path;
         }
 
-        // The star where the icon puts it on its tile.
+        // The kanji where the icon puts it on its stamp.
         public static GraphicsPath OnTile(RectangleF tile) => Canvas(tile.Width / 256f, tile.X, tile.Y);
 
-        // The star as large as fits in the box, centred in it. (Its own box on the 256 one: 28.57, 26.67, 198.89 x 202.64.)
+        // The kanji alone, as large as fits in the box, centred in it. (Its own box on the 256 one: 30.48, 51.32,
+        // 195.04 x 153.3.)
         public static GraphicsPath Shape(RectangleF box)
         {
-            const float x0 = 28.57f, y0 = 26.67f, w = 198.89f, h = 202.64f;
+            const float x0 = 30.48f, y0 = 51.32f, w = 195.04f, h = 153.3f;
             float k = Math.Min(box.Width / w, box.Height / h);
             return Canvas(k, box.X + (box.Width - w * k) / 2 - x0 * k, box.Y + (box.Height - h * k) / 2 - y0 * k);
+        }
+    }
+
+    // IGYO's name as the logo book sets it (the make-logo skill, with the 異 seal): Dela Gothic One (SIL Open Font
+    // License 1.1), tracked 20 thousandths of the em, outlined, so setup needs no font for it. Its contours in the
+    // font's units, y down, the baseline at 0 and the capitals 747 tall, the ink starting at x 0; each a start point
+    // and then three points a curve (an O's inside is a contour of its own, left open by the alternate fill).
+    static class Wordmark
+    {
+        const float Cap = 747f;
+        static readonly float[][] Contours =
+        {
+            new[] { 2523f, -369f, 2523f, -487.7f, 2558.8f, -580.3f, 2630.5f, -647f, 2702.2f, -713.7f, 2814.7f, -747f, 2968f, -747f, 3122f, -747f, 3234.8f, -713.7f, 3306.5f, -647f, 3378.2f, -580.3f, 3414f, -487.7f, 3414f, -369f, 3414f, -248.3f, 3378.3f, -155f, 3307f, -89f, 3235.7f, -23f, 3122.7f, 10f, 2968f, 10f, 2815.3f, 10f, 2703f, -23.2f, 2631f, -89.5f, 2559f, -155.8f, 2523f, -249f, 2523f, -369f },
+            new[] { 1093f, -414f, 1235.3f, -414f, 1377.7f, -414f, 1520f, -414f, 1520f, -276f, 1520f, -138f, 1520f, 0f, 1461.3f, 0f, 1402.7f, 0f, 1344f, 0f, 1337f, -59f, 1330f, -118f, 1323f, -177f, 1303f, -113.7f, 1267.3f, -66.7f, 1216f, -36f, 1164.7f, -5.3f, 1102f, 10f, 1028f, 10f, 960.7f, 10f, 900.8f, -5f, 848.5f, -35f, 796.2f, -65f, 755.2f, -108f, 725.5f, -164f, 695.8f, -220f, 681f, -285.3f, 681f, -360f, 681f, -479.3f, 716.7f, -573.7f, 788f, -643f, 859.3f, -712.3f, 970.3f, -747f, 1121f, -747f, 1207f, -747f, 1282.8f, -733f, 1348.5f, -705f, 1414.2f, -677f, 1470f, -633.7f, 1516f, -575f, 1486f, -559.7f, 1427.3f, -529f, 1340f, -483f, 1331.7f, -478.3f, 1323.3f, -473.7f, 1315f, -469f, 1289f, -495f, 1258.7f, -514.5f, 1224f, -527.5f, 1189.3f, -540.5f, 1152.7f, -547f, 1114f, -547f, 1050f, -547f, 1002.3f, -530.2f, 971f, -496.5f, 939.7f, -462.8f, 924f, -421.3f, 924f, -372f, 924f, -318.7f, 940.8f, -275.7f, 974.5f, -243f, 1008.2f, -210.3f, 1059.7f, -194f, 1129f, -194f, 1159f, -194f, 1188.2f, -198.3f, 1216.5f, -207f, 1244.8f, -215.7f, 1268.7f, -230.7f, 1288f, -252f, 1223f, -252f, 1158f, -252f, 1093f, -252f, 1093f, -306f, 1093f, -360f, 1093f, -414f },
+            new[] { 581f, -527f, 501.7f, -531f, 443f, -533.3f, 405f, -534f, 405f, -420f, 405f, -306f, 405f, -192f, 443.7f, -192.7f, 502.3f, -195f, 581f, -199f, 581f, -132.7f, 581f, -66.3f, 581f, 0f, 387.3f, 0f, 193.7f, 0f, 0f, 0f, 0f, -66.3f, 0f, -132.7f, 0f, -199f, 76.7f, -195f, 135f, -192.7f, 175f, -192f, 175f, -306f, 175f, -420f, 175f, -534f, 135f, -533.3f, 76.7f, -531f, 0f, -527f, 0f, -593.3f, 0f, -659.7f, 0f, -726f, 193.7f, -726f, 387.3f, -726f, 581f, -726f, 581f, -659.7f, 581f, -593.3f, 581f, -527f },
+            new[] { 2510f, -726f, 2503.7f, -716.3f, 2497.3f, -706.7f, 2491f, -697f, 2419.7f, -586.3f, 2358.5f, -488.5f, 2307.5f, -403.5f, 2256.5f, -318.5f, 2214f, -240.3f, 2180f, -169f, 2180f, -112.7f, 2180f, -56.3f, 2180f, 0f, 2093f, 0f, 2006f, 0f, 1919f, 0f, 1919f, -62f, 1919f, -124f, 1919f, -186f, 1894.3f, -236f, 1865.3f, -287.5f, 1832f, -340.5f, 1798.7f, -393.5f, 1751.3f, -466.3f, 1690f, -559f, 1642f, -629.7f, 1605.3f, -685.3f, 1580f, -726f, 1673.3f, -726f, 1766.7f, -726f, 1860f, -726f, 1880f, -685.3f, 1912.7f, -625f, 1958f, -545f, 2003.3f, -463.7f, 2034.3f, -406.3f, 2051f, -373f, 2074.3f, -421.7f, 2105.7f, -481.3f, 2145f, -552f, 2191f, -634.7f, 2222f, -692.7f, 2238f, -726f, 2328.7f, -726f, 2419.3f, -726f, 2510f, -726f },
+            new[] { 3177f, -369f, 3177f, -427.7f, 3160.7f, -471.3f, 3128f, -500f, 3095.3f, -528.7f, 3042f, -543f, 2968f, -543f, 2894.7f, -543f, 2841.7f, -528.7f, 2809f, -500f, 2776.3f, -471.3f, 2760f, -427.7f, 2760f, -369f, 2760f, -309.7f, 2776.3f, -265.7f, 2809f, -237f, 2841.7f, -208.3f, 2894.7f, -194f, 2968f, -194f, 3042f, -194f, 3095.3f, -208.2f, 3128f, -236.5f, 3160.7f, -264.8f, 3177f, -309f, 3177f, -369f },
+        };
+
+        // The name with its left edge at x, its baseline at baseline, its capitals cap pixels tall.
+        public static GraphicsPath Shape(float x, float baseline, float cap)
+        {
+            float k = cap / Cap;
+            var path = new GraphicsPath(FillMode.Alternate);
+            foreach (var c in Contours)
+            {
+                var pts = new PointF[c.Length / 2];
+                for (int i = 0; i < pts.Length; i++) pts[i] = new PointF(x + c[2 * i] * k, baseline + c[2 * i + 1] * k);
+                path.StartFigure();
+                path.AddBeziers(pts);
+                path.CloseFigure();
+            }
+            return path;
         }
     }
 }

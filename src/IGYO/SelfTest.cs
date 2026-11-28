@@ -1215,16 +1215,19 @@ namespace IGYO
         {
             var all = ThemeStore.All();
             Check("themes: the built-in themes load", all.Count >= 8 && all.All(t => t.BuiltIn), all.Count.ToString());
-            // A new profile starts on Automatic: IGYO Dark or IGYO Light, with Windows. Specimen stays one to choose.
+            // A new profile starts on Subculture (since 27 Nov 2026), on its own kit, Ura. Automatic (IGYO Dark or IGYO
+            // Light, with Windows) and Specimen stay ones to choose.
             var first = ThemeStore.Resolve(new Settings().Theme);
-            Check("themes: a new profile starts on Automatic (IGYO Dark or Light), and Specimen is there to choose",
-                new Settings().Theme == ThemeStore.Auto && first != null && first.BuiltIn && first.id.StartsWith("igyo-")
-                && ThemeStore.Find("igyo-dark") != null && ThemeStore.Find("igyo-light") != null && ThemeStore.Find("specimen")?.BuiltIn == true,
+            Check("themes: a new profile starts on Subculture, and Automatic (IGYO Dark or Light) and Specimen are there to choose",
+                new Settings().Theme == ThemeStore.Default && ThemeStore.Default == "subculture" && first != null && first.BuiltIn && first.id == "subculture"
+                && first.kit == "ura" && ThemeStore.ChosenFor(null, null) == "subculture"
+                && ThemeStore.Resolve(ThemeStore.Auto)?.id.StartsWith("igyo-") == true && ThemeStore.Find("igyo-dark") != null && ThemeStore.Find("igyo-light") != null
+                && ThemeStore.Find("specimen")?.BuiltIn == true,
                 first?.id ?? "none");
 
             // Guild was taken out (17 Nov 2026): a profile or settings that had it open the default look.
             Check("themes: a look that was taken out (Guild) opens the default one",
-                ThemeStore.Normalize("guild") == ThemeStore.Auto && ThemeStore.Find("guild") == null && ThemeStore.Resolve("guild")?.id.StartsWith("igyo-") == true,
+                ThemeStore.Normalize("guild") == ThemeStore.Default && ThemeStore.Find("guild") == null && ThemeStore.Resolve("guild")?.id == "subculture",
                 ThemeStore.Normalize("guild"));
             // IGYO Dark: the Periwinkle accent (IGYO's own Periwinkle, the one offered as an accent) with dark text on it
             // (Acid, its accent from 17 to 19 Nov 2026, is one to choose), and a plain slate picture for New Tab in both
@@ -1279,23 +1282,23 @@ namespace IGYO
                     pickFirst && pickTook && pickShared && !pickAgain && pickStays && pickSame && pickNew && pickSilent,
                     "first " + pickFirst + ", took " + pickTook + ", shared " + pickShared + ", again " + pickAgain + ", stays " + pickStays + ", same " + pickSame + ", new " + pickNew + ", silent " + pickSilent);
 
-                // The Sunset pick is a theme: it becomes IGYO's own and the first profile's (over a theme and an accent
-                // that profile had), with the theme's own accent, and its pink is the circle's. A theme setup names that
-                // this IGYO doesn't have leaves only the color, as any other pick.
-                var sunStore = new ProfileStore();
-                sunStore.Profiles.Add(new Profile { Id = "Default", Name = "Personal", Color = "#2563EB", Theme = "specimen", Accent = "#8AA4FF" });
-                var sunSettings = new Settings { Accent = "#8AA4FF" };
-                InstallInfo.WriteMarker(setupDir, new InstallInfo.Marker { Color = "#FF7596", ColorId = "sun-1", Theme = "sunset" });
-                bool sunTook = sunStore.TakeSetupColor(sunSettings, setupDir) && sunSettings.Theme == "sunset" && sunSettings.Accent == ""
-                    && sunStore.Default.Theme == "sunset" && sunStore.Default.Accent == "" && sunStore.Default.Color == "#FF7596"
-                    && ThemeStore.Resolve(ThemeStore.ChosenFor(sunStore.Default, sunSettings)).id == "sunset";
+                // The Subculture pick is a theme: it becomes IGYO's own and the first profile's (over a theme and an accent
+                // that profile had, and over IGYO Dark, the pick before it), with the theme's own accent, and its white
+                // is the circle's. A theme setup names that this IGYO doesn't have leaves only the color, as any other pick.
+                var themeStore = new ProfileStore();
+                themeStore.Profiles.Add(new Profile { Id = "Default", Name = "Personal", Color = "#2563EB", Theme = "specimen", Accent = "#8AA4FF" });
+                var themeSettings = new Settings { Theme = "igyo-dark", Accent = "#8AA4FF" };
+                InstallInfo.WriteMarker(setupDir, new InstallInfo.Marker { Color = "#F2F2F2", ColorId = "theme-1", Theme = "subculture" });
+                bool themeTook = themeStore.TakeSetupColor(themeSettings, setupDir) && themeSettings.Theme == "subculture" && themeSettings.Accent == ""
+                    && themeStore.Default.Theme == "subculture" && themeStore.Default.Accent == "" && themeStore.Default.Color == "#F2F2F2"
+                    && ThemeStore.Resolve(ThemeStore.ChosenFor(themeStore.Default, themeSettings)).id == "subculture";
                 var oddStore = new ProfileStore();
                 oddStore.Profiles.Add(new Profile { Id = "Default", Name = "Personal" });
                 var oddSettings = new Settings();
-                InstallInfo.WriteMarker(setupDir, new InstallInfo.Marker { Color = "#FF7596", ColorId = "sun-2", Theme = "no-such-theme" });
-                bool sunUnknown = oddStore.TakeSetupColor(oddSettings, setupDir) && oddSettings.Theme == "auto" && oddSettings.Accent == "#FF7596" && oddStore.Default.Theme == null;
-                Check("setup's Sunset: the theme becomes IGYO's own and the first profile's, with its own accent and its pink for the circle; an unknown theme is only a color",
-                    sunTook && sunUnknown, "took " + sunTook + ", unknown " + sunUnknown);
+                InstallInfo.WriteMarker(setupDir, new InstallInfo.Marker { Color = "#E11D48", ColorId = "theme-2", Theme = "no-such-theme" });
+                bool themeUnknown = oddStore.TakeSetupColor(oddSettings, setupDir) && oddSettings.Theme == ThemeStore.Default && oddSettings.Accent == "#E11D48" && oddStore.Default.Theme == null;
+                Check("setup's Subculture: the theme becomes IGYO's own and the first profile's, with its own accent and its white for the circle; an unknown theme is only a color",
+                    themeTook && themeUnknown, "took " + themeTook + ", unknown " + themeUnknown);
             }
             finally { try { Directory.Delete(setupDir, true); } catch { } }
 
@@ -1420,16 +1423,18 @@ namespace IGYO
         {
             var list = Json.Obj(Json.Parse(File.ReadAllText(Path.Combine(AppIcons.Dir, "icons.json"))));
             var listed = Json.Arr(Json.Get(list, "icons")).Select(Json.Obj).ToList();
-            Check("app icons: all twelve are read with their files, Sunset (his own) is the default and Periwinkle still a choice, an unknown one is the default",
-                AppIcons.All.Count == 12 && listed.Count == 12 && AppIcons.Default == "sunset" && AppIcons.All[0].Id == "sunset"
+            Check("app icons: all thirteen are read with their files, Ink (the 異 seal in black and white) is the default and Sunset and Periwinkle still choices, an unknown one is the default",
+                AppIcons.All.Count == 13 && listed.Count == 13 && AppIcons.Default == "ink" && AppIcons.All[0].Id == "ink"
                 && AppIcons.All.All(c => File.Exists(AppIcons.IcoFile(c.Id)) && File.Exists(Path.Combine(AppIcons.Dir, c.Id + ".png")))
-                && AppIcons.Resolve("") == "sunset" && AppIcons.Resolve("teal") == "teal" && AppIcons.Resolve("..\\app") == "sunset"
-                && AppIcons.Resolve("periwinkle") == "periwinkle"
-                && !AppIcons.IsChoice("") && !AppIcons.IsChoice("Teal") && AppIcons.IsChoice("slate") && AppIcons.IsChoice("periwinkle"),
+                && AppIcons.Resolve("") == "ink" && AppIcons.Resolve("teal") == "teal" && AppIcons.Resolve("..\\app") == "ink"
+                && AppIcons.Resolve("periwinkle") == "periwinkle" && AppIcons.Resolve("sunset") == "sunset"
+                && !AppIcons.IsChoice("") && !AppIcons.IsChoice("Teal") && AppIcons.IsChoice("slate") && AppIcons.IsChoice("periwinkle")
+                && AppIcons.IsChoice("sunset"),
                 string.Join(",", AppIcons.All.Select(c => c.Id)) + " default " + AppIcons.Default);
 
-            // Each icon as a window gets it: its 32 px picture has the star in the middle and the tile's color at the side
-            // (halfway down, where a tile that runs from one color to another has the color between them).
+            // Each icon as a window gets it: its 32 px picture has the kanji in the middle (異's long middle bar, in the
+            // list's "star" color, the mark's) and the stamp's color near the side, past the kanji's left end (halfway
+            // down, where a stamp that runs from one color to another has the color between them).
             var wrong = new List<string>();
             foreach (var item in listed)
             {
@@ -1449,11 +1454,11 @@ namespace IGYO
                         g.DrawIcon(icon, new System.Drawing.Rectangle(0, 0, 32, 32));
                     }
                     var middle = bmp.GetPixel(16, 16);
-                    var left = bmp.GetPixel(4, 16);
+                    var left = bmp.GetPixel(2, 16);
                     if (!Near(middle, star) || !Near(left, side)) wrong.Add(id + ": middle " + middle + " side " + left);
                 }
             }
-            Check("app icons: each one, as a window wears it, has its star in the middle and its tile's color at the side", wrong.Count == 0, string.Join("; ", wrong));
+            Check("app icons: each one, as a window wears it, has its kanji in the middle and its stamp's color at the side", wrong.Count == 0, string.Join("; ", wrong));
 
             // A shortcut that starts IGYO is given the icon chosen, only its icon; one that starts another program is
             // left alone; the default icon puts back the program's own (as setup made the shortcuts).

@@ -37,6 +37,7 @@
     ],
     // The kits as in kits.json when this was written. Only their shape matters here: the page builds everything from them.
     kits: [
+      ['ura', 'Ura', "Black and silver from IGYO's brand book: square frames and hairlines, a small cursor before what is chosen, spaced capitals, and 異 at the left of the tab strip.", 'cursor:Cursor before what is chosen=on/On,off/Off|mark:異 in the tab strip=on/Shown,off/Hidden|icons:Site icons=color/In color,mono/One tone|clock:New Tab clock=ja/As a Japanese phone,language/As the interface\'s language|window:Window corners=square/Square,round/Rounded'],
       ['igyo', 'IGYO', 'Soft rounded shapes and calm motion. The quiet one.', 'tabs:Tabs=float/Floating,attached/Attached to the toolbar|window:Window corners=round/Rounded,square/Square'],
       ['bunker', 'Bunker', 'Paper and ink: flat rectangles, hairlines and square marks. What you choose fills with ink from the left; a status line runs along the bottom.', 'status:Status line=on/Shown,off/Hidden|caps:Capital letters=on/On,off/Off|icons:Site icons=mono/One tone,color/In color|pattern:Ruled paper=lines/On,none/Off|window:Window corners=square/Square,round/Rounded'],
       ['protocol', 'Protocol', 'A field terminal: numbered tabs, charcoal blocks, one signal color, readouts and survey lines in the frame.', 'brand:Name block=on/Shown,off/Hidden|readouts:Readouts (tab position, clock)=on/Shown,off/Hidden|contours:Survey lines=on/Shown,off/Hidden|window:Window corners=square/Square,round/Rounded'],

@@ -1193,9 +1193,187 @@
 
   window.addEventListener('resize', () => { if (zoom) updateZoom(); });
 
-  // Clicking another window, or the page, closes menus (a dialog stays until it is answered), and a zoom box that
-  // was opened or kept with a click (one that came up by itself goes by itself).
-  window.addEventListener('blur', () => { closeMenu(true, true); suggest.hide(); closePicker(null); if (zoom && zoom.kept) hideZoom(true); });
+  // ----- the tab search, as Chrome's: a box to type in over the open tabs and the tabs closed lately -----
+  // The app sends the lists (MainForm.TabSearch.cs): the open tabs of this profile's windows, the one used last first,
+  // and this window's closed tabs, the one closed last first. What is typed keeps the lines that have every word of
+  // it in their title or address; the arrows move the marked line, Enter takes it, Esc closes. It hangs from the mark
+  // at the strip's start when the kit shows one, else from the strip's start itself.
+
+  let search = null;
+  const CLOSED_SHOWN = 12;   // closed tabs listed while nothing is typed (with something typed: every one that matches)
+  const relative = (() => { try { return new Intl.RelativeTimeFormat(IGYO.lang || undefined, { numeric: 'auto' }); } catch { return null; } })();
+
+  function ago(at) {
+    if (!at || !relative) return '';
+    const s = Math.max(0, Math.round((Date.now() - at) / 1000));
+    if (s < 60) return relative.format(-s, 'second');
+    const m = Math.round(s / 60);
+    if (m < 60) return relative.format(-m, 'minute');
+    const h = Math.round(m / 60);
+    if (h < 24) return relative.format(-h, 'hour');
+    return relative.format(-Math.round(h / 24), 'day');
+  }
+
+  function siteOf(url) {
+    try { return url ? new URL(url).host || url : ''; } catch { return url || ''; }
+  }
+
+  function showTabSearch(m, anchor) {
+    if (m.again) { if (search) { search.data = m; renderSearch(); } return; }   // after a change made in it
+    if (search) { search.input.focus({ preventScroll: true }); return; }
+    closeMenu(true, true);
+    const previous = document.activeElement;
+    const layer = openLayer({ onDismiss: () => closeTabSearch() });
+    const panel = el('div', 't-menu tc-pop tc-tabsearch');
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-label', tr('Search tabs'));
+    const box = el('label', 'tc-ts-search', icon('search'));
+    const input = el('input', 'tc-ts-input');
+    input.type = 'text';
+    input.placeholder = tr('Search tabs');
+    input.spellcheck = false;
+    input.autocomplete = 'off';
+    const keys = el('span', 't-kbd');
+    keys.textContent = 'Ctrl+Shift+A';
+    box.append(input, keys);
+    const list = el('div', 'tc-ts-list');
+    list.setAttribute('role', 'listbox');
+    panel.append(box, list);
+    layer.append(panel);
+    const usable = anchor && anchor.isConnected && anchor.offsetWidth > 0 ? anchor : null;
+    search = { layer, panel, input, list, data: m, previous, anchor: usable, rows: [], active: null, foldClosed: false };
+    input.addEventListener('input', renderSearch);
+    layer.addEventListener('keydown', onSearchKey);
+    renderSearch();
+    // Under the mark, from its left edge; without one, under the strip's start.
+    const strip = document.getElementById('tabstrip').getBoundingClientRect();
+    const r = usable ? usable.getBoundingClientRect() : { left: strip.left + 8, bottom: strip.bottom };
+    panel.style.left = clamp(r.left, 8, Math.max(8, window.innerWidth - panel.offsetWidth - 8)) + 'px';
+    panel.style.top = clamp(r.bottom + 6, 8, Math.max(8, window.innerHeight - panel.offsetHeight - 8)) + 'px';
+    panel.style.setProperty('--from-x', '0%');
+    panel.style.setProperty('--from-y', '0%');
+    if (usable) usable.classList.add('is-open');
+    layer.whenShown(() => input.focus({ preventScroll: true }));
+  }
+
+  function closeTabSearch(instant, keepFocus) {
+    const s = search;
+    if (!s) return;
+    search = null;
+    if (s.anchor) s.anchor.classList.remove('is-open');
+    closeLayer(s.layer, instant);
+    if (!keepFocus) giveFocusBack(s.previous);
+  }
+
+  function renderSearch() {
+    const s = search;
+    if (!s) return;
+    const words = s.input.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const matches = (t) => words.every((w) => (t.title || '').toLowerCase().includes(w) || (t.url || '').toLowerCase().includes(w));
+    const open = (s.data.open || []).filter(matches);
+    const closedAll = (s.data.closed || []).filter(matches);
+    const closed = words.length ? closedAll : closedAll.slice(0, CLOSED_SHOWN);
+    const rows = [];
+    const text = (tag, className, words) => { const node = el(tag, className); node.textContent = words; return node; };
+    s.list.replaceChildren();
+    if (open.length) {
+      s.list.append(text('div', 't-menu-head', tr('Open tabs')));
+      for (const t of open) { const row = searchRow(t, false); rows.push(row); s.list.append(row); }
+    }
+    if (closed.length) {
+      // Its head folds the list away and back, as in Chrome (while something is typed, it stays open).
+      const shown = !s.foldClosed || words.length > 0;
+      const head = el('div', 't-menu-head tc-ts-head');
+      const fold = el('button', 'tc-ts-fold' + (shown ? '' : ' is-folded'), icon('chevron-down'));
+      fold.type = 'button';
+      fold.tabIndex = -1;
+      fold.setAttribute('aria-label', tr('Recently closed'));
+      fold.setAttribute('aria-expanded', String(shown));
+      fold.addEventListener('click', () => { s.foldClosed = !s.foldClosed; renderSearch(); s.input.focus({ preventScroll: true }); });
+      head.append(text('span', '', tr('Recently closed')), fold);
+      s.list.append(head);
+      if (shown) for (const t of closed) { const row = searchRow(t, true); rows.push(row); s.list.append(row); }
+    }
+    if (!open.length && !closed.length) s.list.append(text('div', 'tc-ts-none', tr('No tabs found')));
+    s.rows = rows;
+    setSearchActive(rows[0] || null, false);
+  }
+
+  function searchRow(t, closed) {
+    const row = el('div', 't-menu-item tc-ts-row');
+    row.setAttribute('role', 'option');
+    row._t = t;
+    row._closed = closed;
+    const mark = el('span', 't-menu-icon');
+    if (t.icon && t.icon.startsWith('/')) {
+      const image = new Image();
+      image.alt = '';
+      image.onerror = () => { image.remove(); mark.innerHTML = icon('globe'); };
+      image.src = t.icon;
+      mark.append(image);
+    } else mark.innerHTML = icon(t.icon || 'globe');
+    const lines = el('span', 'tc-ts-text');
+    const title = el('span', 'tc-ts-title');
+    title.textContent = t.title || tr('New tab');
+    const sub = el('span', 'tc-ts-sub');
+    sub.textContent = [siteOf(t.url), ago(t.at)].filter(Boolean).join(' • ');
+    lines.append(title, sub);
+    row.title = t.url || '';
+    row.append(mark, lines);
+    if (!closed) {
+      const x = el('button', 'tc-ts-close', icon('close'));
+      x.type = 'button';
+      x.tabIndex = -1;
+      x.title = tr('Close tab');
+      x.setAttribute('aria-label', tr('Close tab'));
+      x.addEventListener('click', (event) => {
+        event.stopPropagation();
+        Host.cmd('searchCloseTab', { id: t.id });   // the app sends the lists again
+      });
+      row.append(x);
+    }
+    row.addEventListener('pointermove', () => { if (search && search.active !== row) setSearchActive(row, false); });
+    row.addEventListener('click', () => takeSearchRow(row));
+    return row;
+  }
+
+  function setSearchActive(row, scroll) {
+    const s = search;
+    if (!s) return;
+    if (s.active && s.active !== row) s.active.classList.remove('is-active');
+    s.active = row || null;
+    if (row) {
+      row.classList.add('is-active');
+      if (scroll) row.scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  function takeSearchRow(row) {
+    if (!row || !search) return;
+    const t = row._t;
+    closeTabSearch(false, true);
+    if (row._closed) Host.cmd('searchReopen', { key: t.key });
+    else Host.cmd('searchShowTab', { id: t.id });
+  }
+
+  function onSearchKey(event) {
+    const s = search;
+    if (!s) return;
+    const rows = s.rows;
+    const at = rows.indexOf(s.active);
+    const stop = () => { event.preventDefault(); event.stopPropagation(); };
+    switch (event.key) {
+      case 'ArrowDown': stop(); if (rows.length) setSearchActive(rows[(at + 1) % rows.length], true); break;
+      case 'ArrowUp': stop(); if (rows.length) setSearchActive(rows[at <= 0 ? rows.length - 1 : at - 1], true); break;
+      case 'Enter': stop(); takeSearchRow(s.active); break;
+      case 'Escape': stop(); closeTabSearch(); break;
+      case 'Tab': stop(); break;
+    }
+  }
+
+  // Clicking another window, or the page, closes menus (a dialog stays until it is answered), the tab search, and a
+  // zoom box that was opened or kept with a click (one that came up by itself goes by itself).
+  window.addEventListener('blur', () => { closeMenu(true, true); closeTabSearch(true, true); suggest.hide(); closePicker(null); if (zoom && zoom.kept) hideZoom(true); });
 
   IGYO.translate = { show: showTranslate, hide: hideTranslate, get isOpen() { return !!translate; } };
   IGYO.picker = { show: showPicker, close: () => closePicker(null), get isOpen() { return !!picker; } };
@@ -1210,6 +1388,7 @@
     closeDeeper: (depth) => closeDeeper(depth),
   };
   IGYO.dialog = { show: showDialog, get isOpen() { return !!dialog; } };
+  IGYO.tabSearch = { show: showTabSearch, close: closeTabSearch, get isOpen() { return !!search; } };
   IGYO.notice = { show: showNotice, hide: hideNotice };
   IGYO.zoom = { show: showZoom, hide: hideZoom, toggle: toggleZoom, update: updateZoom, get isOpen() { return !!zoom; } };
   IGYO.suggest = suggest;

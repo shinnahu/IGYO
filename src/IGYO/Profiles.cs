@@ -41,7 +41,7 @@ namespace IGYO
         // The color picked in setup's window (install.json in the install folder, with an id of that pick) is taken once:
         // the id is kept in settings, so a later choice in Settings is never undone by it. It becomes IGYO's own accent
         // (the one every profile that never chose its own has, a new profile starts with, and the profile picker shows),
-        // and the first profile's accent and the color of its circle. A pick that is a theme (Sunset) makes that theme
+        // and the first profile's accent and the color of its circle. A pick that is a theme (Subculture) makes that theme
         // IGYO's own and the first profile's instead, with the theme's own accent, and its color is the circle's. Setup
         // run again with the color it gave before (it starts on that one) leaves the first profile as it is. Only these
         // objects change; the caller saves them when this says so.

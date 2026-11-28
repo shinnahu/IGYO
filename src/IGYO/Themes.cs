@@ -110,6 +110,9 @@ namespace IGYO
     static class ThemeStore
     {
         public const string Auto = "auto";
+        // The look IGYO starts in: Subculture, the brand book's black and white (his words, 27 Nov 2026: "create a
+        // subculture theme for the entire browser and make it default"). Automatic stays one to choose.
+        public const string Default = "subculture";
         const int MaxFileBytes = 6 * 1024 * 1024, MaxCss = 200 * 1024, MaxWallpaper = 5 * 1024 * 1024;
 
         static readonly Regex IdRule = new Regex("^[a-z0-9][a-z0-9-]{0,47}$", RegexOptions.Compiled);
@@ -136,7 +139,7 @@ namespace IGYO
             ["System"] = Auto, ["Light"] = "igyo-light", ["Dark"] = "igyo-dark", ["Midnight"] = "midnight",
             ["Graphite"] = "igyo-dark", ["Ocean"] = "ocean", ["Forest"] = "forest", ["Rose"] = "rose",
             ["tacit-dark"] = "igyo-dark", ["tacit-light"] = "igyo-light",
-            ["guild"] = Auto,   // a look taken out on 17 Nov 2026 (its side rail of tabs upset the other looks when switching)
+            ["guild"] = Default,   // a look taken out on 17 Nov 2026 (its side rail of tabs upset the other looks when switching)
         };
 
         public static readonly Dictionary<string, string> LegacyAccents = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -203,7 +206,7 @@ namespace IGYO
         // A profile's theme: its own once it has chosen one, until then the one in settings (every profile shared
         // that one before each had its own).
         public static string ChosenFor(Profile profile, Settings settings) =>
-            !string.IsNullOrWhiteSpace(profile?.Theme) ? profile.Theme : settings?.Theme ?? Auto;
+            !string.IsNullOrWhiteSpace(profile?.Theme) ? profile.Theme : settings?.Theme ?? Default;
 
         // A theme was deleted: every profile that had it, and the shared one in settings, go back to Automatic.
         // True when something changed.

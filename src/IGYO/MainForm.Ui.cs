@@ -145,6 +145,11 @@ namespace IGYO
                 case "closeOtherTabs": if (tab != null) CloseTabs(tabs.Where(t => t != tab)); break;
                 case "closeTabsToRight": if (tab != null) CloseTabs(tabs.Skip(tabs.IndexOf(tab) + 1)); break;
                 case "reopenTab": ReopenClosedTab(); break;
+                // the tab search (MainForm.TabSearch.cs)
+                case "tabSearch": OpenTabSearch(); break;
+                case "searchShowTab": ShowFromSearch(id); break;
+                case "searchCloseTab": CloseFromSearch(id); break;
+                case "searchReopen": ReopenFromSearch(Int(m, "key")); break;
 
                 // toolbar and address bar
                 case "back": current?.Core?.GoBack(); break;

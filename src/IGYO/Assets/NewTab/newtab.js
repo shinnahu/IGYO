@@ -114,15 +114,41 @@
 
   const timeFormat = new Intl.DateTimeFormat(language, { hour: 'numeric', minute: '2-digit' });
   const dateFormat = new Intl.DateTimeFormat(language, { weekday: 'long', day: 'numeric', month: 'long' });
+  // A look may have the clock written as a Japanese phone writes it, whatever the language (the option "clock: ja",
+  // Subculture's): 18:59 under 11月27日 金曜日.
+  const phoneTime = new Intl.DateTimeFormat('ja-JP', { hour: 'numeric', minute: '2-digit', hourCycle: 'h23' });
+  const phoneDay = new Intl.DateTimeFormat('ja-JP', { month: 'long', day: 'numeric' });
+  const phoneWeekday = new Intl.DateTimeFormat('ja-JP', { weekday: 'long' });
+  const asJapanesePhone = () => root.dataset.oClock === 'ja';
   let clockTimer = 0;
+  // The time is written in parts so a look can dress one of them: the part of the day (AM, PM), with the space that
+  // parts it from the time, gets an element of its own, and #time says in data-half which half of the day it is
+  // (Ura hides that element and writes 午前 or 午後 before the time instead).
+  function writeTime(now) {
+    const time = $('time');
+    const parts = (asJapanesePhone() ? phoneTime : timeFormat).formatToParts(now);
+    const blank = (part) => !!part && part.type === 'literal' && !part.value.trim();
+    let first = parts.findIndex((part) => part.type === 'dayPeriod'), last = first;
+    if (first >= 0 && blank(parts[first - 1])) first--;
+    else if (first >= 0 && blank(parts[last + 1])) last++;
+    time.textContent = '';
+    let period = null;
+    parts.forEach((part, i) => {
+      if (first < 0 || i < first || i > last) { time.append(part.value); return; }
+      if (!period) { period = document.createElement('span'); period.className = 'nt-period'; time.append(period); }
+      period.append(part.value);
+    });
+    if (period) time.dataset.half = now.getHours() < 12 ? 'am' : 'pm'; else delete time.dataset.half;
+  }
   function tick() {
     const now = new Date();
-    $('time').textContent = timeFormat.format(now);
-    $('date').textContent = dateFormat.format(now);
+    writeTime(now);
+    $('date').textContent = asJapanesePhone() ? phoneDay.format(now) + ' ' + phoneWeekday.format(now) : dateFormat.format(now);
     clearTimeout(clockTimer);
     clockTimer = setTimeout(tick, 60500 - (now.getSeconds() * 1000 + now.getMilliseconds()));
   }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+  new MutationObserver(tick).observe(root, { attributes: true, attributeFilter: ['data-o-clock'] });   // the look changed
 
   function applyVisibility() {
     $('clock').hidden = !state.clock;

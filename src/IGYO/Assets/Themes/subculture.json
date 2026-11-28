@@ -1,0 +1,33 @@
+{
+  "format": "igyo-theme/1",
+  "id": "subculture",
+  "name": "Subculture",
+  "author": "IGYO",
+  "description": "IGYO's brand book in black and white: square frames, a cursor before what is chosen, the name's heavy gothic.",
+  "kit": "ura",
+  "scheme": "dark",
+  "colors": {
+    "frame": "#0b0b0b",
+    "frameInk": "#ededed",
+    "surface": "#121212",
+    "surface2": "#191919",
+    "page": "#0b0b0b",
+    "field": "#080808",
+    "ink": "#ededed",
+    "ink2": "#a6a6a6",
+    "ink3": "#727272",
+    "line": "#2a2a2a",
+    "accent": "#f2f2f2",
+    "accentInk": "#0b0b0b",
+    "accent2": "#9e9e9e",
+    "good": "#8fd4a0",
+    "warn": "#dcc47a",
+    "bad": "#ff6b6b"
+  },
+  "fonts": {},
+  "wallpaper": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAJCAMAAAAM9FwAAAAAA1BMVEULCwvfCdJ4AAAADElEQVQI12NgGKQAAACZAAGVGD0UAAAAAElFTkSuQmCC",
+  "shape": { "radius": 0, "border": 1 },
+  "options": { "cursor": "on", "mark": "on", "icons": "color", "clock": "ja", "window": "square" },
+  "fx": { "tabIn": "grow", "loader": "line", "click": "none", "title": "type", "notice": "type" },
+  "css": ""
+}

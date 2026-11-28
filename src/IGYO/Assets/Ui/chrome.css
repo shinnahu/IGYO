@@ -72,7 +72,14 @@
     background: var(--c-frame); color: var(--c-frame-ink);
     app-region: drag;
   }
-  .tc-brand { display: none; align-items: center; gap: 8px; }
+  /* The name or mark a kit may show at the strip's start (Ura: 異, Protocol: a name block). It is a button: it opens the
+     tab search (overlays.js), as Chrome's button there does. */
+  .tc-brand {
+    display: none; align-items: center; gap: 8px;
+    margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: default;
+    app-region: no-drag;
+  }
+  .tc-brand:focus-visible { outline: 0; box-shadow: var(--focus); }
   .tc-strip-fill { flex: 1; align-self: stretch; min-width: 24px; overflow: hidden; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
 
   .tc-tabs {
@@ -161,12 +168,17 @@
   .tc-tab-close .i { width: 12px; height: 12px; stroke-width: 2.200; }
   .tc-tab:hover .tc-tab-close, .tc-tab.is-active .tc-tab-close { opacity: .75; }
   .tc-tab-close:hover { opacity: 1 !important; background: color-mix(in oklab, currentColor 16%, transparent); }
+  /* Narrow tabs, as in Chrome: the close button goes first, then the title. A tab playing sound keeps its speaker to
+     the last: once there is no room for both icons, the speaker takes the site icon's place. (The widths are of the
+     tab's inside, without its padding: the site icon, 16 px, the gap, 8, and the speaker, 14, need 38.) */
   @container (max-width: 92px) {
     .tc-tab-close { display: none; }
-    .tc-tab-audio { display: none !important; }
   }
   @container (max-width: 52px) {
     .tc-tab-title { display: none; }
+  }
+  @container (max-width: 37px) {
+    .tc-tab.is-audio .tc-tab-icon { display: none; }
   }
   .tc-tab.is-dragging { z-index: 3; transition: none; box-shadow: var(--shadow-2); }
   /* A tab dragged out of the strip: it fades where it was, and a copy of it follows the mouse (to become a window). */
@@ -445,6 +457,51 @@
   .tc-menu-slider > .t-range::-webkit-slider-runnable-track { background: color-mix(in oklab, currentColor 30%, transparent); }
   .tc-menu-slider > .tc-menu-value { flex: none; min-width: 4.4ch; text-align: right; font-variant-numeric: tabular-nums; color: inherit; opacity: .78; }
   .tc-menu-slider[aria-disabled="true"] > .t-range { opacity: .4; }
+
+  /* ----- the tab search (overlays.js): a menu's panel, with a box to type in over its lines ----- */
+  .t-menu.tc-tabsearch {
+    display: flex; flex-direction: column;
+    width: min(360px, calc(100vw - 16px)); max-width: none; max-height: min(560px, calc(100vh - 16px));
+    padding: 0; overflow: hidden;
+  }
+  .tc-ts-search {
+    display: flex; align-items: center; gap: 10px; flex: none;
+    height: 46px; padding: 0 14px;
+    border-bottom: var(--bw) solid var(--c-line); color: var(--c-ink-2);
+  }
+  .tc-ts-search > .i { width: 16px; height: 16px; flex: none; }
+  .tc-ts-input {
+    flex: 1; min-width: 0; height: 100%; padding: 0;
+    border: 0; outline: 0; background: transparent; color: var(--c-ink); font: inherit; font-size: 13px;
+  }
+  .tc-ts-input::placeholder { color: var(--c-ink-3); }
+  .tc-ts-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 5px 6px; }
+  .tc-ts-head { display: flex; align-items: center; justify-content: space-between; padding-right: 6px; }
+  .tc-ts-fold {
+    display: grid; place-items: center; width: 22px; height: 22px; padding: 0;
+    border: 0; border-radius: var(--r-pill); background: transparent; color: inherit;
+    transform: rotate(180deg); transition: transform var(--t-1) var(--ease);
+  }
+  .tc-ts-fold.is-folded { transform: none; }
+  .tc-ts-fold:hover { background: var(--c-hover); color: var(--c-ink); }
+  .tc-ts-fold .i { width: 14px; height: 14px; }
+  .t-menu-item.tc-ts-row { min-height: 48px; gap: 12px; white-space: normal; }
+  .tc-ts-row > .t-menu-icon {
+    width: 30px; height: 30px; border-radius: var(--r-s);
+    background: color-mix(in oklab, var(--c-ink) 7%, transparent); color: var(--c-ink-2);
+  }
+  .t-menu-item.tc-ts-row .t-menu-icon img { width: 16px; height: 16px; border-radius: 3px; }
+  .tc-ts-text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+  .tc-ts-title, .tc-ts-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-block: .3em; margin-block: -.3em; }
+  .tc-ts-sub { font-size: 11.500px; color: var(--c-ink-3); }
+  .tc-ts-close {
+    display: grid; place-items: center; flex: none; width: 24px; height: 24px; padding: 0;
+    border: 0; border-radius: var(--r-pill); background: transparent; color: var(--c-ink-2); opacity: 0;
+  }
+  .tc-ts-row:hover .tc-ts-close, .tc-ts-row.is-active .tc-ts-close { opacity: 1; }
+  .tc-ts-close:hover { background: var(--c-hover); color: var(--c-ink); }
+  .tc-ts-close .i { width: 12px; height: 12px; stroke-width: 2.200; }
+  .tc-ts-none { padding: 22px 14px; text-align: center; color: var(--c-ink-3); }
 
   /* the color picker: a picture of the page laid over the page, and a magnifier beside the mouse */
   .tc-picker { cursor: crosshair; }

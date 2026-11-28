@@ -19,7 +19,7 @@ namespace IGYO
     {
         readonly BrowserApp app;
         readonly List<BrowserTab> tabs = new List<BrowserTab>();
-        readonly Stack<string> closedTabs = new Stack<string>();
+        readonly List<ClosedTab> closedTabs = new List<ClosedTab>();   // the one closed last at the end (MainForm.TabSearch.cs)
         readonly BookmarkStore bookmarks;
         readonly string[] startUrls;
         Session session;
@@ -1022,7 +1022,7 @@ namespace IGYO
         {
             int index = tabs.IndexOf(tab);
             if (index < 0) return;
-            if (!tab.IsBlank && !IsPrivate) closedTabs.Push(tab.Url);
+            if (!tab.IsBlank && !IsPrivate) closedTabs.Add(new ClosedTab(tab.Url, tab.Title));
             tabs.RemoveAt(index);
             openedBehind.Remove(tab);
             devtools.CloseFor(tab);
@@ -1060,7 +1060,7 @@ namespace IGYO
 
         void ReopenClosedTab()
         {
-            if (closedTabs.Count > 0) NewTab(closedTabs.Pop(), true, false);
+            if (closedTabs.Count > 0) ReopenClosed(closedTabs[closedTabs.Count - 1]);
         }
 
         void SwitchTab(int step)
@@ -1242,7 +1242,8 @@ namespace IGYO
         }
 
         // A tab's icon as the site sent it (for the interface's /icon/tab/<id>).
-        public byte[] TabIcon(string id) => int.TryParse(id, out int n) ? TabById(n)?.FaviconPng : null;
+        // (Also of a tab in another window the tab search lists: MainForm.TabSearch.cs.)
+        public byte[] TabIcon(string id) => int.TryParse(id, out int n) ? (TabById(n) ?? ListedTab(n, out _))?.FaviconPng : null;
 
         public byte[] AvatarPng(string profileId)
         {
@@ -1526,6 +1527,13 @@ namespace IGYO
             return host != null && Favicons.Has(host) ? "/icon/site/" + Uri.EscapeDataString(host) : "";
         }
 
+        // A tab's icon for the interface: the name of one of its own icons, or the address of the site's picture.
+        static string IconOf(BrowserTab t) =>
+            t.IsNewTabPage || string.IsNullOrEmpty(t.Url) ? "home"
+            : InternalPages.IsInternal(t.Url) ? "settings"
+            : IsHistoryUrl(t.Url) ? "history"
+            : t.FaviconPng != null ? $"/icon/tab/{t.Id}?v={t.IconVersion}" : SiteIcon(t.Url);
+
         Dictionary<string, object> TabsState() => new Dictionary<string, object>
         {
             ["active"] = current?.Id ?? 0,
@@ -1534,10 +1542,7 @@ namespace IGYO
                 ["id"] = t.Id,
                 ["title"] = t.Title ?? "",
                 ["url"] = t.IsBlank ? "" : t.Url,
-                ["icon"] = t.IsNewTabPage || string.IsNullOrEmpty(t.Url) ? "home"
-                    : InternalPages.IsInternal(t.Url) ? "settings"
-                    : IsHistoryUrl(t.Url) ? "history"
-                    : t.FaviconPng != null ? $"/icon/tab/{t.Id}?v={t.IconVersion}" : SiteIcon(t.Url),
+                ["icon"] = IconOf(t),
                 ["loading"] = t.IsLoading,
                 ["audio"] = t.IsPlayingAudio,
                 ["state"] = t == current || t.State == TabState.Live ? "live" : t.State == TabState.Sleeping ? "asleep" : "unloaded",
@@ -2144,6 +2149,7 @@ namespace IGYO
                 case Keys.Control | Keys.W:
                 case Keys.Control | Keys.F4: if (current != null) CloseTab(current); return true;
                 case Keys.Control | Keys.Shift | Keys.T: ReopenClosedTab(); return true;
+                case Keys.Control | Keys.Shift | Keys.A: OpenTabSearch(); return true;
                 case Keys.Control | Keys.L:
                 case Keys.Alt | Keys.D:
                 case Keys.F6: FocusAddress(); return true;

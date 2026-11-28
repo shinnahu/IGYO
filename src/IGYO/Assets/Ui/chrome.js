@@ -822,6 +822,10 @@
   newtabEl.innerHTML = icon('plus') + '<span class="tc-newtab-reach" aria-hidden="true"></span>';
   newtabEl.addEventListener('click', () => Host.cmd('newTab'));
 
+  // The name or mark a kit shows at the strip's start: it opens the tab search (overlays.js), as Chrome's button there.
+  const brandEl = $('brand');
+  brandEl.addEventListener('click', () => Host.cmd('tabSearch'));
+
   // ----- toolbar -----
 
   const buttons = {
@@ -1880,6 +1884,6 @@
 
   Object.assign(IGYO, {
     Host, S, Layout, el, setInfo,
-    ui: { renderTabs, renderNav, renderBookmarks, applySettings, applyTheme, applyWindow, applyBridge, showHostMenu, requestMenu, focusAddress, pasteText, go, buttons, viewport: viewportEl, extensionClick, updateTools, renderZoom, showExitButton },
+    ui: { renderTabs, renderNav, renderBookmarks, applySettings, applyTheme, applyWindow, applyBridge, showHostMenu, requestMenu, focusAddress, pasteText, go, buttons, brand: brandEl, viewport: viewportEl, extensionClick, updateTools, renderZoom, showExitButton },
   });
 })();

@@ -43,7 +43,7 @@ namespace IGYO
             // in Settings stays.
             public string Color { get; set; } = "";
             public string ColorId { get; set; } = "";
-            // A theme picked with that color ("sunset": IGYO's Sunset theme, with its own accent and the color for the
+            // A theme picked with that color ("subculture": Subculture, with its own accent and the color for the
             // circle), "" when the pick was a color alone.
             public string Theme { get; set; } = "";
         }

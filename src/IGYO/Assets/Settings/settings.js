@@ -754,7 +754,7 @@
       row(card, { title: tr('Ad block list'), desc: (state) => (app(state).adList ? tr('EasyList {0} from easylist.to (GPLv3 / CC BY-SA 3.0).', app(state).adList) : tr('Loading…')) });
       row(card, {
         title: tr('Fonts'),
-        desc: tr('Some themes use Averia Libre, Barlow, Cormorant Garamond, Fredoka, Google Sans Flex, JetBrains Mono, M PLUS 1, Mochiy Pop One and Saira. Each is under the SIL Open Font License 1.1; the files, their license texts and where each came from are in one folder.'),
+        desc: tr('Some themes use Averia Libre, Barlow, Cormorant Garamond, Dela Gothic One, Fredoka, Google Sans Flex, JetBrains Mono, M PLUS 1, Mochiy Pop One and Saira. Each is under the SIL Open Font License 1.1; the files, their license texts and where each came from are in one folder.'),
         end: [button(tr('Open folder'), async () => settled(await api.post('open', { what: 'fonts-folder' })))],
       });
       row(card, {

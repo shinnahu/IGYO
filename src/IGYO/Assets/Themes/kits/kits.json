@@ -56,6 +56,18 @@
   ],
   "kits": [
     {
+      "id": "ura",
+      "name": "Ura",
+      "description": "Black and silver from IGYO's brand book: square frames and hairlines, a small cursor before what is chosen, spaced capitals, and 異 at the left of the tab strip.",
+      "options": [
+        { "key": "cursor", "label": "Cursor before what is chosen", "values": [ { "value": "on", "label": "On" }, { "value": "off", "label": "Off" } ] },
+        { "key": "mark", "label": "異 in the tab strip", "values": [ { "value": "on", "label": "Shown" }, { "value": "off", "label": "Hidden" } ] },
+        { "key": "icons", "label": "Site icons", "values": [ { "value": "color", "label": "In color" }, { "value": "mono", "label": "One tone" } ] },
+        { "key": "clock", "label": "New Tab clock", "values": [ { "value": "ja", "label": "As a Japanese phone" }, { "value": "language", "label": "As the interface's language" } ] },
+        { "key": "window", "label": "Window corners", "values": [ { "value": "square", "label": "Square" }, { "value": "round", "label": "Rounded" } ] }
+      ]
+    },
+    {
       "id": "igyo",
       "name": "IGYO",
       "description": "Soft rounded shapes and calm motion. The quiet one.",

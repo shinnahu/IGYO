@@ -120,9 +120,44 @@
     setTimeout(() => send(Object.assign({ t: 'translate', state: 'done', from: from || 'ja', auto: !from, text: 'It was a nice day today, so I went for a walk in the park.' }, base)), 700);
   }
 
+  // The tab search's lists, as MainForm.TabSearch.cs makes them: open tabs (the one on show first, then the others as
+  // if left a minute and a half apart) and some made-up closed ones.
+  const devClosed = [
+    { key: 1, title: 'Field notes, chapter two', url: 'https://wiki.example.org/notes/two', icon: '', at: Date.now() - 10 * 60000 },
+    { key: 2, title: 'Home', url: 'https://social.example.com/home', icon: '', at: Date.now() - 2 * 3600000 },
+  ];
+  let devClosedSeq = 2;
+  function sendTabSearch(again) {
+    const shown = state.tabs.find((t) => t.id === state.active);
+    const rest = state.tabs.filter((t) => t !== shown);
+    const open = [shown, ...rest].filter(Boolean).map((t, i) => ({ id: t.id, title: t.title, url: t.url, icon: t.icon, at: Date.now() - i * 90000, here: true }));
+    send({ t: 'tabSearch', again: !!again, open, closed: devClosed.slice() });
+  }
+
   function command(m) {
     const tab = state.tabs.find((t) => t.id === m.id);
     switch (m.name) {
+      case 'tabSearch': sendTabSearch(false); break;
+      case 'searchShowTab': if (tab) { state.active = tab.id; tab.state = 'live'; pushTabs(); pushNav(); } break;
+      case 'searchCloseTab':
+        if (tab && state.tabs.length > 1) {
+          const i = state.tabs.indexOf(tab);
+          state.tabs.splice(i, 1);
+          if (tab.url) devClosed.unshift({ key: ++devClosedSeq, title: tab.title, url: tab.url, icon: '', at: Date.now() });
+          if (state.active === tab.id) state.active = state.tabs[Math.min(i, state.tabs.length - 1)].id;
+          pushTabs(); pushNav();
+          sendTabSearch(true);
+        }
+        break;
+      case 'searchReopen': {
+        const i = devClosed.findIndex((c) => c.key === m.key);
+        if (i < 0) break;
+        const [c] = devClosed.splice(i, 1);
+        state.tabs.push({ id: ++seq, title: c.title, url: c.url, icon: 'globe', loading: false, audio: false, state: 'live' });
+        state.active = seq;
+        pushTabs(); pushNav();
+        break;
+      }
       case 'newTab': state.tabs.push({ id: ++seq, title: 'New tab', url: '', icon: 'home', loading: false, audio: false, state: 'live' }); state.active = seq; pushTabs(); pushNav(); send({ t: 'focusAddress' }); break;
       case 'selectTab': if (tab) { state.active = tab.id; tab.state = 'live'; pushTabs(); pushNav(); } break;
       case 'closeTab': case 'closeOtherTabs': case 'closeTabsToRight': {

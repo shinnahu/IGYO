@@ -24,7 +24,7 @@ after 30. Switch to another program and all of IGYO lets go of what it is not us
 
 ![Memory in use with ten tabs open, IGYO and Chrome](screenshots/memory-chart.png)
 
-**Looks that change more than colors.** Eleven themes on six kits, each kit with its own shapes, typefaces
+**Looks that change more than colors.** Thirteen themes on seven kits, each kit with its own shapes, typefaces
 and motion. Make your own in the theme editor.
 
 ![The six kits](screenshots/looks.png)
@@ -56,13 +56,14 @@ Run `IGYOSetup.exe` from [Releases](https://github.com/shinnahu/IGYO/releases/la
 shortcuts and an entry in Settings > Apps > Installed apps, where you can uninstall it. The setup window is
 in English, Spanish or Japanese, following Windows.
 
-The setup window asks for one color, from thirteen. The first, Sunset, is picked unless you choose another: it
-starts IGYO in the Sunset theme with that theme's own colors, its pink is the circle color of your first
-profile, and while it is picked, setup's own button, switches and progress bar wear the Sunset icon's tile
-colors, mauve running left to right into peach. Any other color becomes IGYO's own accent, which every profile that has not chosen an
-accent of its own takes, and so does the window that asks which profile to open; it is also the accent and the
-circle color of your first profile. The window starts on Sunset also over an install that had another color
-picked: an update left on it brings the Sunset look, and the earlier color can be picked again to keep that.
+The setup window asks for one color, from thirteen. The first, Subculture, is picked unless you choose another: it
+starts IGYO in the Subculture theme with that theme's own colors, its white is the circle color of your first
+profile, and while it is picked, setup's own button, switches and progress bar are white. Any other color
+becomes IGYO's own accent, which every profile that has not chosen an accent of its own takes, and so does the
+window that asks which profile to open; it is also the accent and the circle color of your first profile. The
+window starts on Subculture also over an install that had another color picked: an update left on it brings the
+Subculture look, and the earlier color can be picked again to keep that. (IGYO Dark and Sunset are no longer
+among setup's choices; both are still themes in Settings.)
 
 Silent install: `IGYOSetup.exe /S` (optional `/D=<folder>`, `/NOSHORTCUTS`, `/NOLAUNCH`).
 
@@ -108,7 +109,7 @@ Default apps, where you choose it. Uninstalling takes IGYO off that list.
 | Address bar | Addresses open, anything else is searched with the search engine you chose. The engine's own pages can be typed as well (`edge://history`); `edge://settings`, which the engine does not have in an app like this one, opens IGYO's Settings. |
 | Google suggestions | On by default; Settings > Search and new tabs turns them off. Shows Google's predictions (searches and popular sites) under the address bar; your bookmarks and history don't show up there. What you type is sent to Google as you type, without your cookies; addresses, file paths and long pastes are never sent, and private windows never send anything. Up/Down to choose, Enter to go, Esc to close. |
 | New Tab page | Clock, a search box, and shortcuts you can add, edit, remove with Undo and drag to reorder. Customize: your own pictures as the background (one, or a different one with every new tab) and how out of focus they are (Blur, in every look), show or hide the clock and shortcuts, the clock's size, and a Themes button that opens Settings at Themes. Private windows show it without changing anything. |
-| Tabs and windows | The window has no Windows title bar: tabs sit at the top with the window's own buttons. Drag a tab to reorder it: as in Chrome, it changes places with the tab beside it once it is halfway over it, and it can be dragged past the last tab into the strip's empty room. Drag a tab out of the tab strip and it is a window of its own at once, which follows the mouse until you let go; over the tab strip of another window of the same profile it goes into that window instead, and Esc puts it back where it was. A window's only tab moves its window, and joins another window's strip the same way. With tabs kept between starts, the next start brings back the window closed last, together with the ones closed within a minute before it. Resting the mouse on a tab shows a card with its title, its site, a picture of the page (for a tab that is not on show) and the memory its page uses. Right-click a tab for Duplicate, Close others and more, middle-click to close; a closed tab shrinks away where it stood while the tabs after it close up. New window (Ctrl+N), reopen closed tab (Ctrl+Shift+T). A link or a bookmark opened with the middle mouse button, or with Ctrl held, opens in a new tab behind the one you are on (with Shift held as well, IGYO goes to it), and so does **Open image in new tab** in a picture's right-click menu; Settings > Search and new tabs can make IGYO go to such tabs at once. Started by a link from another program, IGYO reopens last time's tabs and opens the link as one more tab; while IGYO is open, the link goes to the open IGYO instead (see Default browser). With the window maximized, the mouse thrown against the screen's edge still reaches what stands there, as in other browsers. The pointer at the very top of the screen over a tab lights that tab up, and a press there acts on it (choose, drag, middle-click to close, right-click for its menu); over the + it lights the + up, and a click there opens a tab. A click at the far left of the toolbar presses Back, one at the far right opens the main menu. Menus work from the keyboard too (arrows, Enter, Esc; Alt+F opens the main menu). |
+| Tabs and windows | The window has no Windows title bar: tabs sit at the top with the window's own buttons. Drag a tab to reorder it: as in Chrome, it changes places with the tab beside it once it is halfway over it, and it can be dragged past the last tab into the strip's empty room. Drag a tab out of the tab strip and it is a window of its own at once, which follows the mouse until you let go; over the tab strip of another window of the same profile it goes into that window instead, and Esc puts it back where it was. A window's only tab moves its window, and joins another window's strip the same way. With tabs kept between starts, the next start brings back the window closed last, together with the ones closed within a minute before it. Resting the mouse on a tab shows a card with its title, its site, a picture of the page (for a tab that is not on show) and the memory its page uses. Right-click a tab for Duplicate, Close others and more, middle-click to close; a closed tab shrinks away where it stood while the tabs after it close up. New window (Ctrl+N), reopen closed tab (Ctrl+Shift+T). Search tabs (Ctrl+Shift+A, or a click on the mark at the start of the strip where the look shows one: Subculture's 異, Protocol's name block), as in Chrome: a box to type in over the open tabs of every window of the profile, the one used last first, and the tabs closed lately in the window, each with its site and how long ago; Enter or a click goes to the tab or opens the closed one again, and an open tab's ✕ closes it. A link or a bookmark opened with the middle mouse button, or with Ctrl held, opens in a new tab behind the one you are on (with Shift held as well, IGYO goes to it), and so does **Open image in new tab** in a picture's right-click menu; Settings > Search and new tabs can make IGYO go to such tabs at once. Started by a link from another program, IGYO reopens last time's tabs and opens the link as one more tab; while IGYO is open, the link goes to the open IGYO instead (see Default browser). With the window maximized, the mouse thrown against the screen's edge still reaches what stands there, as in other browsers. The pointer at the very top of the screen over a tab lights that tab up, and a press there acts on it (choose, drag, middle-click to close, right-click for its menu); over the + it lights the + up, and a click there opens a tab. A click at the far left of the toolbar presses Back, one at the far right opens the main menu. Menus work from the keyboard too (arrows, Enter, Esc; Alt+F opens the main menu). |
 | Default browser | Setup lists IGYO with Windows as a browser for `http` and `https` links and for page files (`.htm`, `.html`, `.shtml`, `.xht`, `.xhtml`); the choice is made in Windows' own settings, which Settings > Default browser opens at IGYO's page. One IGYO runs for a data folder: a link another program opens while IGYO is open goes to it, as a new tab at the end of the window used last, which comes to the front, and IGYO started again without a link opens a new window there, as Ctrl+N does. If IGYO is closing at that moment, the new start waits for it to end and then starts by itself. Windows starts IGYO for a link as `IGYO.exe --single-argument <link>`: everything after that switch is the one address, so a link written to look like switches (`… --uninstall`) is only ever opened as an address. |
 | Private window | Ctrl+Shift+N. Nothing is kept after you close it, and passwords are never saved. |
 | Profiles | Each profile has its own sign-ins, cookies, history, passwords, bookmarks, tabs, New Tab page, and theme and accent color (Settings > Appearance in one of its windows; a profile that never chose an accent has IGYO's own, the color picked in setup), in its own window, with any picture you like as its picture, or a circle with its first letter in the color you choose. Adding a profile (from the profile menu, or Settings > Profiles) shows that circle beside the name, and a click on it shows the colors it can have; the color can be changed later in its ⋯ menu in Settings > Profiles. With more than one profile, IGYO asks at start which one to open (Esc closes the question, and IGYO with it). Settings > Profiles can turn the question off; a profile made the default in its ⋯ menu then opens straight away (without a default, the question stays). A link from another program, or a profile named on the command line, never waits for the question. |
@@ -124,20 +125,26 @@ Default apps, where you choose it. Uninstalling takes IGYO off that list.
 | Full-page screenshot | Ctrl+Shift+S saves the whole page as a PNG (Pictures\IGYO). |
 | Print, zoom, full screen | Print: Ctrl+P. Zoom: Ctrl + / Ctrl − / Ctrl+0, Ctrl with the mouse wheel, or Menu > Zoom. While a page is not at 100%, a magnifier in the address bar says so (with a + above 100%, a − below) and opens a small box with the figure, − and +, and Reset. The box also comes up by itself when the zoom changes, and goes about two seconds after the last change. A zoom set with the keys, the menu or the box stays with the tab, also when it goes to another site. Full screen: F11; in full screen, the pointer at the very top of the screen brings down a round ✕ that leaves it, as in Chrome (also for a page's own full screen, such as a video's). |
 | Customizing | Settings (Ctrl+,) is a page in a tab: themes, the app icon, toolbar buttons and tools, compact mode, bookmarks bar, search engine (Google, DuckDuckGo, Bing, Brave, Ecosia, Startpage or your own), New Tab page on or off, reopen tabs, folders, profiles, privacy, the bookmark manager. |
-| App icon | Settings > Appearance > App icon offers twelve icons: IGYO's star on tiles of different colors (Sunset, mauve running down to peach, unless another is chosen). The one chosen is IGYO's icon at once, in its windows (Alt+Tab, the window's picture on the taskbar) and on its shortcuts: the desktop and Start menu shortcuts setup made, and IGYO's pins on the taskbar. Only shortcuts that start this IGYO are changed, and nothing of them but the icon. One icon for all profiles. When an update makes the shortcuts again, the next start puts the chosen icon back on them. |
+| App icon | Settings > Appearance > App icon offers thirteen icons: IGYO's 異 seal in different colors (Ink, a white 異 carved out of a black stamp, unless another is chosen). The one chosen is IGYO's icon at once, in its windows (Alt+Tab, the window's picture on the taskbar) and on its shortcuts: the desktop and Start menu shortcuts setup made, and IGYO's pins on the taskbar. Only shortcuts that start this IGYO are changed, and nothing of them but the icon. One icon for all profiles. When an update makes the shortcuts again, the next start puts the chosen icon back on them. |
 | If something goes wrong | Unexpected errors are written to `errors.log` in the data folder and IGYO keeps going, with a small notice that links to the file. |
 
 ## Themes
 
 A theme is one file: colors, fonts, corner roundness and border width, a few options and effects, and the
 name of a **kit**. The kit is what makes themes look unlike each other: it draws the shapes, the decorations
-and the animations. The six kits are IGYO, Specimen, Bunker, Protocol, Victory and Encore, and the IGYO kit
-has seven color themes (IGYO Dark, IGYO Light, Midnight, Forest, Ocean, Rose and Sunset: IGYO Dark's greys
-with a gold-to-pink glow on the active tab, in the loading line, switches and buttons, an amber star for a
-page that is a bookmark, and on New Tab the Sunset icon's tile, mauve running down to peach,
-behind a white clock and a gold-to-pink search button). A new profile starts on
-Automatic, which follows Windows between IGYO Dark and IGYO Light. Menu > Themes opens the gallery, and so does
-the Themes button in the New Tab page's Customize.
+and the animations. The seven kits are Ura, IGYO, Specimen, Bunker, Protocol, Victory and Encore. Ura has one
+theme, Subculture: IGYO's brand book in black and white, with square frames and hairlines, a small ▶ before
+what is chosen, spaced capitals, the 異 of the logo at the left of the tab strip (a click on it
+searches tabs), a gothic cross in place of the new tab button's +, an angular spiral turning in a tab while its
+page loads, the favourites icon of Specimen (IGYO's earlier star mark), and the logo's heavy gothic (Dela Gothic One) for headings. Its New Tab clock is Specimen's, large and thin, written as a
+Japanese phone writes it whatever the language (18:59 under 11月27日 金曜日; the look's "New Tab clock" option can
+follow the interface's language instead). Its New Tab page has the logo's seal in the bottom left corner and 異形 — IGYO down the right edge.
+The IGYO kit has seven color themes (IGYO Dark, IGYO Light, Midnight, Forest, Ocean, Rose and Sunset: IGYO
+Dark's greys with a gold-to-pink glow on the active tab, in the loading line, switches and buttons, an amber
+star for a page that is a bookmark, and on New Tab the Sunset icon's tile, mauve running down to peach,
+behind a white clock and a gold-to-pink search button). A new profile starts on Subculture; Automatic, which
+follows Windows between IGYO Dark and IGYO Light, is one to choose. Menu > Themes opens the gallery, and so
+does the Themes button in the New Tab page's Customize.
 
 ![The IGYO kit's color themes](screenshots/colors.png)
 
@@ -153,9 +160,9 @@ themes are never changed. Export writes a `.json` file; Import reads one. Your t
 A theme file from someone else is safe to import: only known kinds of values are kept, the kit must be one of
 IGYO's own, and CSS in it cannot load anything from the internet or run scripts.
 
-**Fonts.** Five kits have their own typefaces; the IGYO kit uses the fonts Windows already has, apart from
-the New Tab clock of IGYO Dark, IGYO Light and Sunset (Google Sans Flex). The ten families come with IGYO as 30 font
-files (0.7 MB) in `Assets\Shared\fonts`. They are never installed in
+**Fonts.** Six kits have their own typefaces; the IGYO kit uses the fonts Windows already has, apart from
+the New Tab clock of IGYO Dark, IGYO Light and Sunset (Google Sans Flex). The eleven families come with IGYO as 32
+font files (0.7 MB) in `Assets\Shared\fonts`. They are never installed in
 Windows: only IGYO's own pages load them. Each family is under the SIL Open Font License 1.1, with its
 licence text beside the files.
 
@@ -353,6 +360,40 @@ data folder, and `IGYO.exe --selftest <report file>` runs the built-in checks in
   answers the page; files named `dev*` are never shipped).
 
 ## How it was tested
+
+**1.0.14.** A new logo and a new default look:
+
+- **The logo** is 異 (from 異形, IGYO) carved out of a square stamp, in Dela Gothic One, made with the make-logo
+  skill of design.how. The app icons are this seal in different colors; the default one is Ink (a white 異 on a
+  black stamp). Setup's header shows the seal, with IGYO in the same typeface.
+- **Subculture**, a new theme on a new kit, Ura, is what a new profile starts in and setup's first choice (its
+  button white). Black and white, square frames, a ▶ before what is chosen, 異 at the start of the tab strip,
+  a gothic cross for the new tab button, an angular spiral while a page loads, Specimen's favourites icon, and
+  on New Tab Specimen's thin clock written as a Japanese phone writes it (18:59 under 11月27日 金曜日). Site icons
+  keep their colors.
+- **Search tabs** (Ctrl+Shift+A, or a click on the mark at the start of the strip where the look shows one):
+  the open tabs of the profile's windows and the tabs closed lately in the window, each with its site and how
+  long ago. A closed tab now keeps its title and when it was closed.
+- **Narrow tabs** keep the speaker of a tab playing sound, as in Chrome; with no room for both, it takes the
+  site icon's place.
+
+Checked like this:
+
+- **Built-in checks.** `IGYO.exe --selftest` in the Debug build of 1.0.14: 296 passed, none failed (changed for
+  this version: a new profile starts on Subculture, setup's pick is Subculture, the app icons are seals; new:
+  Subculture's text is readable and its kit is in place).
+- **The interface on the development server.** Subculture's tab strip, toolbar, menus, Settings and New Tab
+  looked at; the tab search opened from the mark (Subculture, Protocol) and with the app's command (IGYO
+  Dark), and typing, the arrows, Enter (a closed tab opened again), a tab's ✕ (it moved to the closed ones)
+  and Esc tried; a tab playing sound measured at widths from 140 px down to 40 px, its speaker inside the tab
+  at each; a new tab in Subculture growing in over 0.2 s; the clock as a Japanese phone, and back to the
+  interface's language with the look's option; site icons in color in Subculture, and Bunker as it was.
+- **The setup window**, drawn from the built setup without installing: Subculture picked, its button
+  #F2F2F2 and #D4D4D4 under the pointer; the files in the setup listed, the new ones there and no `dev*`
+  files or Widevine module.
+
+Not tested: installing this setup, the running browser's own window (the tab search across real windows,
+Ctrl+Shift+A typed in it, the mark clicked there), and the real mouse.
 
 **1.0.13.** The tab strip behaves more like Chrome's, compared with screen recordings of Chrome made on this PC:
 
